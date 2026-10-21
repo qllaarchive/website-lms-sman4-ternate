@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Portal LMS SMA Negeri 4 Ternate — daftar LMS mata pelajaran kelas X, XI, dan XII.">
+<meta name="theme-color" content="#f5f5f7" id="meta-theme">
+<title>LMS SMA Negeri 4 Ternate</title>
+<link rel="icon" href="assets/logo-sma4.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LMS SMAN 4">
+<link rel="apple-touch-icon" href="assets/logo-sma4.png">
+<script>
+/* Terapkan tema sebelum paint pertama — cegah kedip tema salah. */
+(function(){ var t; try{ t = localStorage.getItem("lms_theme"); }catch(e){}
+  if(t !== "light" && t !== "dark") t = "auto";
+  document.documentElement.setAttribute("data-theme", t); })();
+</script>
+<link rel="stylesheet" href="assets/portal.css">
+</head>
+<body>
+<header class="nav">
+  <div class="nav-in gut">
+    <a class="brand" href="index.html" aria-label="Beranda LMS SMA Negeri 4 Ternate">
+      <img class="brand-logo" src="assets/logo-sma4.png" alt="" width="38" height="38">
+      <span class="brand-text">
+        <b>SMA Negeri 4 Ternate</b>
+        <small>Learning Management System</small>
+      </span>
+    </a>
+    <div class="nav-right">
+      <div class="seg" id="seg" role="radiogroup" aria-label="Tema tampilan">
+        <span class="seg-thumb" id="seg-thumb" aria-hidden="true"></span>
+        <button type="button" role="radio" data-t="light" aria-label="Mode terang" title="Mode terang"></button>
+        <button type="button" role="radio" data-t="auto" aria-label="Ikuti perangkat" title="Ikuti perangkat"></button>
+        <button type="button" role="radio" data-t="dark" aria-label="Mode gelap" title="Mode gelap"></button>
+      </div>
+      <button type="button" class="btn primary" id="btn-login">
+        <span id="btn-login-ic" aria-hidden="true"></span> Masuk
+      </button>
+      <div class="who" id="who" hidden>
+        <span class="avatar" id="avatar" aria-hidden="true">A</span>
+        <span class="who-name" id="who-name">Admin</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="gut">
+  <section class="hero">
+    <p class="eyebrow">SMA Negeri 4 Ternate · Fase E</p>
+    <h1>Selamat datang.</h1>
+    <p class="sub">Daftar LMS mata pelajaran — pilih kelas untuk melihat materi, latihan, gim, dan lab.</p>
+    <div class="hero-actions">
+      <div class="seg" id="class-seg" role="radiogroup" aria-label="Pilih kelas">
+        <span class="seg-thumb" id="class-thumb" aria-hidden="true"></span>
+        <button type="button" role="radio" data-k="X" aria-label="Kelas X">X</button>
+        <button type="button" role="radio" data-k="XI" aria-label="Kelas XI">XI</button>
+        <button type="button" role="radio" data-k="XII" aria-label="Kelas XII">XII</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="admin-bar" id="admin-bar" hidden>
+    <span class="ab-badge" id="ab-badge"><span id="ab-ic" aria-hidden="true"></span> Admin</span>
+    <div class="ab-group">
+      <button type="button" class="btn ab-btn" id="ab-pantau"><span class="ab-ic" id="ab-pantau-ic" aria-hidden="true"></span> Pantau</button>
+      <button type="button" class="btn ab-btn" id="ab-kelola"><span class="ab-ic" id="ab-kelola-ic" aria-hidden="true"></span> Kelola</button>
+      <button type="button" class="btn ab-btn" id="ab-pengumuman"><span class="ab-ic" id="ab-peng-ic" aria-hidden="true"></span> Pengumuman</button>
+    </div>
+    <span class="spacer"></span>
+    <div class="ab-group">
+      <a class="btn ghost ab-btn" id="ab-drive" href="https://drive.google.com/drive/folders/1Bs190ZCurEjyAfIUVcZ3u91eh6r3J_FA" target="_blank" rel="noopener noreferrer"><span class="ab-ic" id="ab-drive-ic" aria-hidden="true"></span> Drive</a>
+      <button type="button" class="btn ghost ab-btn" id="ab-backup"><span class="ab-ic" id="ab-backup-ic" aria-hidden="true"></span> Cadangkan</button>
+      <button type="button" class="btn danger ab-btn" id="ab-logout"><span class="ab-ic" id="ab-logout-ic" aria-hidden="true"></span> Keluar</button>
+    </div>
+  </div>
+
+  <div class="chips" role="status" aria-label="Ringkasan progres belajar">
+    <span class="chip"><b id="st-open">0</b> LMS dibuka</span>
+    <span class="chip"><b id="st-avg">—</b> rata-rata progres</span>
+    <span class="chip"><b id="st-done">0</b> LMS selesai</span>
+  </div>
+
+  <div class="search">
+    <span class="s-ic" id="s-ic" aria-hidden="true"></span>
+    <input id="q" type="search" placeholder="Cari mata pelajaran…" aria-label="Cari mata pelajaran" autocomplete="off" spellcheck="false">
+  </div>
+
+  <section class="cards is-first" id="grid" aria-label="Daftar LMS"></section>
+  <p class="empty" id="empty" hidden>
+    <span class="e-ic" id="e-ic" aria-hidden="true"></span>
+    <span id="empty-text"></span>
+  </p>
+</main>
+
+<footer>
+  <div class="gut">
+    <img class="f-logo" src="assets/logo-sma4.png" alt="Logo SMA Negeri 4 Ternate" width="44" height="44">
+    <p>SMA Negeri 4 Ternate · Learning Management System · Kelas X–XII</p>
+    <p class="f-links">
+      <button type="button" class="linkish" id="f-profil">Profil Sekolah &amp; PPDB</button>
+      <span aria-hidden="true">·</span>
+      <button type="button" class="linkish" id="f-pengumuman">Pengumuman</button>
+    </p>
+    <p>Progres tersimpan di perangkat ini · Bekerja tanpa internet</p>
+  </div>
+</footer>
+
+<!-- Masuk / buat akun admin -->
+<div class="sheet-wrap" id="modal-login" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="sheet-head">
+      <div>
+        <h2 id="login-title">Masuk Admin</h2>
+        <p class="sheet-sub" id="login-sub">Akun untuk kepala sekolah &amp; admin sekolah.</p>
+      </div>
+      <button type="button" class="x" data-close aria-label="Tutup"></button>
+    </div>
+    <form id="login-form">
+      <label>Nama pengguna
+        <input id="login-user" autocomplete="username" required>
+      </label>
+      <label>Kata sandi
+        <input id="login-pass" type="password" autocomplete="current-password" required>
+      </label>
+      <label id="login-pass2-wrap" hidden>Konfirmasi kata sandi
+        <input id="login-pass2" type="password" autocomplete="new-password">
+      </label>
+      <p class="form-err" id="login-err" hidden></p>
+      <div class="sheet-actions">
+        <button type="button" class="btn ghost" data-close>Batal</button>
+        <button type="submit" class="btn primary" id="login-submit">Masuk</button>
+      </div>
+    </form>
+    <p class="sheet-note" id="login-note">Pemantauan progres daring memakai Spreadsheet Guru di Google Drive. Akun ini disimpan di perangkat ini.</p>
+  </div>
+</div>
+
+<!-- Kelola LMS (CRUD) -->
+<div class="sheet-wrap" id="modal-kelola" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="kelola-title">
+    <div class="sheet-head">
+      <div>
+        <h2 id="kelola-title">Kelola LMS</h2>
+        <p class="sheet-sub">Tambah, ubah, atau hapus tautan LMS per kelas. Tempel tautan Netlify dari guru.</p>
+      </div>
+      <button type="button" class="x" data-close aria-label="Tutup"></button>
+    </div>
+
+    <div class="kelola-tools">
+      <div class="seg" id="kelola-seg" role="radiogroup" aria-label="Kelas yang dikelola">
+        <span class="seg-thumb" id="kelola-thumb" aria-hidden="true"></span>
+        <button type="button" role="radio" data-k="X" aria-label="Kelas X">X</button>
+        <button type="button" role="radio" data-k="XI" aria-label="Kelas XI">XI</button>
+        <button type="button" role="radio" data-k="XII" aria-label="Kelas XII">XII</button>
+      </div>
+      <button type="button" class="btn primary" id="k-add"><span id="k-add-ic" aria-hidden="true"></span> Tambah LMS</button>
+    </div>
+
+    <form id="kelola-form" hidden>
+      <div class="form-row">
+        <label>Nama mata pelajaran *
+          <input id="k-name" required placeholder="cth. Matematika">
+        </label>
+        <label>Nama singkatan
+          <input id="k-short" placeholder="cth. MTK">
+        </label>
+      </div>
+      <label>Tautan LMS (Netlify) *
+        <input id="k-url" type="url" required placeholder="https://….netlify.app">
+      </label>
+      <div class="form-row">
+        <label>Nama guru
+          <input id="k-teacher" placeholder="cth. Ibu Rahma">
+        </label>
+        <label>Ikon
+          <select id="k-icon"></select>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Warna
+          <input id="k-color" type="color" value="#0d9488">
+        </label>
+        <label class="form-check">
+          <input id="k-pub" type="checkbox" checked> Tampilkan di daftar siswa
+        </label>
+      </div>
+      <p class="form-err" id="k-err" hidden></p>
+      <div class="sheet-actions">
+        <button type="button" class="btn ghost" id="k-cancel">Batal</button>
+        <button type="submit" class="btn primary" id="k-save">Simpan</button>
+      </div>
+    </form>
+
+    <div class="k-list" id="k-list"></div>
+  </div>
+</div>
+
+<!-- Pantau progres -->
+<div class="sheet-wrap" id="modal-pantau" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="pantau-title">
+    <div class="sheet-head">
+      <div>
+        <h2 id="pantau-title">Pantau Progres</h2>
+        <p class="sheet-sub">Ringkasan kemajuan belajar dari perangkat ini.</p>
+      </div>
+      <button type="button" class="x" data-close aria-label="Tutup"></button>
+    </div>
+
+    <div class="p-summary" id="pantau-summary"></div>
+
+    <div class="p-toolbar">
+      <div class="seg" id="pantau-seg" role="radiogroup" aria-label="Filter kelas">
+        <span class="seg-thumb" id="pantau-thumb" aria-hidden="true"></span>
+        <button type="button" role="radio" data-k="all" aria-label="Semua kelas">Semua</button>
+        <button type="button" role="radio" data-k="X" aria-label="Kelas X">X</button>
+        <button type="button" role="radio" data-k="XI" aria-label="Kelas XI">XI</button>
+        <button type="button" role="radio" data-k="XII" aria-label="Kelas XII">XII</button>
+      </div>
+      <div class="p-actions">
+        <button type="button" class="btn primary" id="pantau-csv"><span id="pantau-csv-ic" aria-hidden="true"></span> Unduh CSV</button>
+        <a class="btn ghost" id="pantau-drive" href="https://drive.google.com/drive/folders/1Bs190ZCurEjyAfIUVcZ3u91eh6r3J_FA" target="_blank" rel="noopener noreferrer"><span id="pantau-drive-ic" aria-hidden="true"></span> Spreadsheet Guru</a>
+      </div>
+    </div>
+
+    <div id="pantau-body"></div>
+  </div>
+</div>
+
+<!-- Pengumuman -->
+<div class="sheet-wrap" id="modal-pengumuman" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="pengumuman-title">
+    <div class="sheet-head">
+      <div>
+        <h2 id="pengumuman-title">Pengumuman &amp; Kalender</h2>
+        <p class="sheet-sub">Informasi sekolah untuk siswa &amp; wali murid.</p>
+      </div>
+      <button type="button" class="x" data-close aria-label="Tutup"></button>
+    </div>
+    <div id="pengumuman-body"></div>
+  </div>
+</div>
+
+<!-- Cadangkan / pulihkan data admin -->
+<div class="sheet-wrap" id="modal-backup" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="backup-title">
+    <div class="sheet-head">
+      <div>
+        <h2 id="backup-title">Cadangkan Data</h2>
+        <p class="sheet-sub">Unduh atau pulihkan data admin &amp; progres perangkat.</p>
+      </div>
+      <button type="button" class="x" data-close aria-label="Tutup"></button>
+    </div>
+    <div class="sheet-actions" style="flex-direction:column;align-items:stretch;gap:10px">
+      <button type="button" class="btn primary" id="backup-export">Unduh JSON (data admin + progres)</button>
+      <label class="btn ghost" style="cursor:pointer;justify-content:center">
+        Pulihkan dari file JSON
+        <input type="file" id="backup-import" accept="application/json" hidden>
+      </label>
+    </div>
+    <p class="sheet-note">JSON berisi daftar LMS, akun admin, dan progres belajar tersimpan di perangkat ini. Simpan sebagai salinan sebelum ganti perangkat.</p>
+  </div>
+</div>
+
+<!-- Profil sekolah -->
+<div class="sheet-wrap" id="modal-profil" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="profil-title">
+    <div class="sheet-head">
+      <div>
+        <h2 id="profil-title">Profil SMA Negeri 4 Ternate</h2>
+        <p class="sheet-sub">Identitas sekolah &amp; informasi PPDB.</p>
+      </div>
+      <button type="button" class="x" data-close aria-label="Tutup"></button>
+    </div>
+    <div id="profil-body"></div>
+  </div>
+</div>
+
+<script src="assets/icons.js"></script>
+<script src="data/registry.js"></script>
+<script src="assets/portal.js"></script>
+</body>
+</html>
