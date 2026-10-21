@@ -1200,6 +1200,13 @@ const D = { nama:"", kelas:"X", sekolah:"SMAN 4 Ternate", tema:"", gs:"",
   u:{}, ex:{uts:0,uas:0,rem:0}, g:{}, lab:{}, seq:{},
   forum:null, chat:[{ who:"bot", t:"Halo! 👋 Saya Teman Matematika Kelas X. Tanyakan rumus, tips belajar, atau minta contoh soal." }] };
 function load(){ try{ const r = localStorage.getItem(LS_KEY); if(r) Object.assign(D, JSON.parse(r)); }catch(e){} }
+function loadFromUrl(){
+  try{
+    var params = new URLSearchParams(window.location.search);
+    var gs = params.get("gs");
+    if(gs){ D.gs = gs; }
+  }catch(e){}
+}
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(D)); }catch(e){} gsProgres(); }
 function U(n){ if(!D.u[n]) D.u[n] = { materi:false, diag:0, form:0, quiz:0, refl:false, proj:false, meet:[false,false,false] }; return D.u[n]; }
 function theme(){ if(D.tema) document.documentElement.dataset.theme = D.tema; else delete document.documentElement.dataset.theme; }
@@ -2724,6 +2731,7 @@ function updateUser(){
 }
 function boot(){
   load();
+  loadFromUrl();
   theme();
   soundOn = D.snd !== false;
   updateUser();

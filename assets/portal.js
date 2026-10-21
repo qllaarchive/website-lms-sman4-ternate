@@ -87,7 +87,10 @@
     stats();
   }
 
-  /* ---------- auth (hash sederhana; crypto.subtle tak ada di file://) ---------- */
+  /* ---------- auth (hybrid: API jika tersedia, fallback ke localStorage) ---------- */
+  var apiAvailable = false;
+  if(window.LMS_API) LMS_API.available().then(function(ok){ apiAvailable = ok; });
+
   function hash(pw, salt){
     var s = String(pw || ""), out = 0;
     var seed = String(salt || "") + "::" + s;
@@ -100,6 +103,7 @@
     return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
   }
   function isAdmin(){
+    if(apiAvailable && window._apiUser) return true;
     return !!(store.admin && store.session && store.session.exp > Date.now());
   }
   function loginOK(user, pass){
@@ -113,6 +117,8 @@
   }
   function endSession(){
     store.session = null;
+    window._apiUser = null;
+    if(apiAvailable && window.LMS_API) LMS_API.logout();
     saveStore();
   }
 
@@ -121,10 +127,11 @@
   var adminBar = $("admin-bar");
   function syncAuthUI(){
     var on = isAdmin();
+    var user = (apiAvailable && window._apiUser) ? window._apiUser : (on && store.session ? store.session : null);
     if(btnLogin) btnLogin.hidden = on;
     if(who) who.hidden = !on;
-    if(whoName) whoName.textContent = on && store.session ? store.session.user : "";
-    if(avatar) avatar.textContent = (on && store.session && store.session.user ? store.session.user[0] : "A").toUpperCase();
+    if(whoName) whoName.textContent = user ? user.username || user.user || "" : "";
+    if(avatar) avatar.textContent = (user ? (user.username || user.user || "A")[0] : "A").toUpperCase();
     if(adminBar) adminBar.hidden = !on;
   }
   if(btnLogin) btnLogin.addEventListener("click", function(){ openModal("modal-login"); });
@@ -209,6 +216,24 @@
       loginErr.hidden = false;
     }
     if(!u || !p) return fail("Isi nama pengguna dan kata sandi.");
+
+    // Coba API dulu
+    if(apiAvailable && window.LMS_API){
+      if(!store.admin){
+        LMS_API.register(u, p).then(function(r){
+          if(r.ok){ window._apiUser = r.data.user; closeModal($("modal-login")); syncAuthUI(); }
+          else fail(r.data && r.data.error === "username_taken" ? "Username sudah dipakai." : "Gagal membuat akun.");
+        });
+        return;
+      }
+      LMS_API.login(u, p).then(function(r){
+        if(r.ok){ window._apiUser = r.data.user; closeModal($("modal-login")); syncAuthUI(); }
+        else fail("Username atau kata sandi salah.");
+      });
+      return;
+    }
+
+    // Fallback localStorage
     if(!store.admin){
       if(p.length < 4) return fail("Kata sandi minimal 4 karakter.");
       if(p !== p2) return fail("Konfirmasi kata sandi tidak sama.");
@@ -334,6 +359,7 @@
     var meta = pct === null ? "Belum dibuka" : (pct >= 100 ? "Selesai" : pct + "% selesai");
     var ext = /^https?:\/\//i.test(e.file || "");
     var href = e.file || "#";
+    if(!ext && e.scriptId) href += "?gs=" + encodeURIComponent(e.scriptId);
     var name = String(e.name || "Tanpa nama");
     return '<a class="card" href="' + href + '" data-id="' + esc(e.id) + '" style="--c:' + esc(e.color || "#0d9488") + ';--i:' + i + '"' +
       (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>' +
@@ -513,6 +539,7 @@
       if($("k-short")) $("k-short").value = arr[i].short || "";
       if($("k-url")) $("k-url").value = arr[i].file || "";
       if($("k-teacher")) $("k-teacher").value = arr[i].teacher || "";
+      if($("k-script")) $("k-script").value = arr[i].scriptId || "";
       if(kIconSel) kIconSel.value = arr[i].icon || "book";
       if($("k-color")) $("k-color").value = arr[i].color || COLOR_CHOICES[0];
       if($("k-pub")) $("k-pub").checked = arr[i].pub !== false;
@@ -527,6 +554,7 @@
     var short = ($("k-short") && $("k-short").value || "").trim();
     var url = ($("k-url") && $("k-url").value || "").trim();
     var teacher = ($("k-teacher") && $("k-teacher").value || "").trim();
+    var scriptId = ($("k-script") && $("k-script").value || "").trim();
     var icon = kIconSel ? kIconSel.value : "book";
     var color = $("k-color") ? $("k-color").value : COLOR_CHOICES[0];
     var pub = $("k-pub") ? $("k-pub").checked : true;
@@ -551,7 +579,8 @@
       lsKey: "lms_" + slug + "_" + klass.toLowerCase() + "_v" + Date.now().toString(36),
       file: url,
       pub: pub,
-      seed: false
+      seed: false,
+      scriptId: scriptId
     };
     if(same){
       rec.lsKey = same.lsKey;
@@ -562,11 +591,19 @@
       rec.icon = icon;
       rec.color = color;
       rec.pub = pub;
+      rec.scriptId = scriptId;
       arr[arr.indexOf(same)] = rec;
     }else{
       arr.push(rec);
     }
     saveStore();
+
+    if(apiAvailable && window.LMS_API){
+      var apiPayload = { klass: kelolaClass, name: name, short: short || name, teacher: teacher, icon: icon, color: color, file: url, pub: pub };
+      if(same) LMS_API.updateEntry(same.id || rec.id, apiPayload);
+      else LMS_API.createEntry(apiPayload);
+    }
+
     resetKForm();
     syncKelolaUI();
     render();

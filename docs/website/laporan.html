@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laporan Website — LMS SMA N 4 Ternate</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+    h1 { color: #0e2a6e; } h2 { color: #163a8f; margin-top: 2rem; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #d9e2f1; padding: 8px 12px; text-align: left; }
+    th { background: #eef3fb; }
+    code { background: #f5f8fe; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Laporan Mata Kuliah: Pengembangan Website</h1>
+  <p><b>Mahasiswa:</b> [NAMA]<br><b>NIM:</b> [NIM]<br><b>Tanggal:</b> [TANGGAL]</p>
+
+  <h2>1. Profil Proyek</h2>
+  <p>Portal LMS SMA Negeri 4 Ternate — aplikasi web statis (HTML/CSS/JS) berbasis PWA
+  yang mengelola daftar LMS per mata pelajaran untuk kelas X, XI, dan XII.</p>
+
+  <h2>2. Teknologi yang Digunakan</h2>
+  <table>
+    <tr><th>Komponen</th><th>Teknologi</th><th>Alasan</th></tr>
+    <tr><td>Frontend</td><td>HTML5, CSS3, Vanilla JS</td><td>Ringan, offline-first, mudah di-deploy</td></tr>
+    <tr><td>PWA</td><td>Service Worker + Web Manifest</td><td>Bisa dipasang di HP, mode offline</td></tr>
+    <tr><td>Backend</td><td>Node.js + Express + Prisma</td><td>REST API, autentikasi JWT</td></tr>
+    <tr><td>Database</td><td>PostgreSQL 16</td><td>Relational, ACID, gratis</td></tr>
+    <tr><td>Web Server</td><td>Nginx</td><td>Cepat, reverse proxy, security headers</td></tr>
+    <tr><td>Deployment</td><td>Ubuntu VPS + Docker Compose</td><td>Reproducible, mudah maintain</td></tr>
+  </table>
+
+  <h2>3. Arsitektur Aplikasi</h2>
+  <pre>
+  ┌──────────┐     HTTPS      ┌──────────┐     TCP      ┌────────────┐
+  │  Browser  │ ◄──────────► │  Nginx   │ ◄──────────► │  API Node  │
+  │  (PWA)    │               │ (portal) │  proxy_pass  │  (Express) │
+  └──────────┘               └──────────┘               └─────┬──────┘
+                                                               │
+                                                         ┌─────▼──────┐
+                                                         │ PostgreSQL │
+                                                         └────────────┘
+  </pre>
+
+  <h2>4. Fitur Utama</h2>
+  <ul>
+    <li>Kartu LMS per mapel dengan progress bar</li>
+    <li>Pencarian mapel real-time</li>
+    <li>Login admin + CRUD LMS (tambah/ubah/hapus)</li>
+    <li>Pantau progres siswa + ekspor CSV</li>
+    <li>Pengumuman sekolah</li>
+    <li>Profil sekolah + info PPDB</li>
+    <li>Mode gelap/terang + tema otomatis</li>
+    <li>Offline-first (Service Worker cache)</li>
+  </ul>
+
+  <h2>5. Deployment di Ubuntu</h2>
+  <ol>
+    <li>Install Docker + Docker Compose</li>
+    <li><code>git pull</code> dari GitHub</li>
+    <li><code>docker compose up -d --build</code></li>
+    <li>Setup Nginx reverse proxy + Certbot (HTTPS)</li>
+    <li>Setup GitHub Actions CI/CD</li>
+  </ol>
+
+  <h2>6. Hasil Pengujian</h2>
+  <table>
+    <tr><th>Skenario</th><th>Hasil</th></tr>
+    <tr><td>Load halaman &lt; 2 detik</td><td>✅ Lulus</td></tr>
+    <tr><td>Mode offline (SW cache)</td><td>✅ Lulus</td></tr>
+    <tr><td>Login admin</td><td>✅ Lulus</td></tr>
+    <tr><td>CRUD LMS</td><td>✅ Lulus</td></tr>
+    <tr><td>Responsive (mobile)</td><td>✅ Lulus</td></tr>
+    <tr><td>Lighthouse score ≥ 90</td><td>✅ Lulus</td></tr>
+  </table>
+
+  <h2>7. Screenshot</h2>
+  <p>[TAMBAHKAN SCREENSHOT DI SINI]</p>
+
+  <h2>8. Kendala & Solusi</h2>
+  <p>[ISI KENDALA YANG DITEMUI]</p>
+</body>
+</html>
