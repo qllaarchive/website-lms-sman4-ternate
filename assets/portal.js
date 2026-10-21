@@ -57,15 +57,25 @@
     return s;
   }
   var store = loadStore();
+  var reg = window.LMS_REGISTRY || [];
   if(store.entries.X.length === 0){
-    var reg = window.LMS_REGISTRY || [];
     store.entries.X = reg.map(function(e){
       return {
         id: e.id, name: e.name, short: e.short, teacher: e.teacher || "", icon: e.icon,
-        color: e.color, lsKey: e.lsKey, file: e.file, pub: true, seed: true
+        color: e.color, lsKey: e.lsKey, file: e.file, pub: true, seed: true,
+        scriptId: e.scriptId || ""
       };
     });
     saveStore();
+  } else {
+    // sinkronkan scriptId dari registry untuk entri bawaan (seed) yang tersimpan lama
+    var byId = {};
+    reg.forEach(function(e){ byId[e.id] = e.scriptId || ""; });
+    var changed = false;
+    store.entries.X.forEach(function(en){
+      if(en.seed && !en.scriptId && byId[en.id]){ en.scriptId = byId[en.id]; changed = true; }
+    });
+    if(changed) saveStore();
   }
   function saveStore(){
     try{ localStorage.setItem(PORTAL_KEY, JSON.stringify(store)); }catch(e){}
@@ -359,7 +369,13 @@
     var meta = pct === null ? "Belum dibuka" : (pct >= 100 ? "Selesai" : pct + "% selesai");
     var ext = /^https?:\/\//i.test(e.file || "");
     var href = e.file || "#";
-    if(!ext && e.scriptId) href += "?gs=" + encodeURIComponent(e.scriptId);
+    if(e.scriptId){
+      var hi = href.indexOf("#");
+      var hash = hi >= 0 ? href.slice(hi) : "";
+      if(hi >= 0) href = href.slice(0, hi);
+      href += (href.indexOf("?") >= 0 ? "&" : "?") + "gs=" + encodeURIComponent(e.scriptId);
+      href += hash;
+    }
     var name = String(e.name || "Tanpa nama");
     return '<a class="card" href="' + href + '" data-id="' + esc(e.id) + '" style="--c:' + esc(e.color || "#0d9488") + ';--i:' + i + '"' +
       (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>' +

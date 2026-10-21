@@ -1,6 +1,6 @@
 /* Registry mapel — dipakai portal (index.html). lsKey WAJIB sama dengan meta.lsKey pada data/<id>.js */
 window.LMS_REGISTRY = [
-  { id:"matematika",       file:"matematika.html",       name:"Matematika",       short:"Matematika",       icon:"calculator", color:"#0d9488", lsKey:"mtklms_x_sman4ternate_v1", teacher:"", scriptId:"" },
+  { id:"matematika",       file:"matematika.html",       name:"Matematika",       short:"Matematika",       icon:"calculator", color:"#0d9488", lsKey:"mtklms_x_sman4ternate_v1", teacher:"", scriptId:"AKfycbzj0XeuqkERFtu-tFOsU98TELFSwpNWL6wG5hEVAkO8ErRBxkjiOPvFTrPyimiQ2Xxm" },
   { id:"bahasa-indonesia", file:"bahasa-indonesia.html", name:"Bahasa Indonesia", short:"B. Indonesia",     icon:"book-open",  color:"#e8590c", lsKey:"lms_bahasa-indonesia_x_v1", teacher:"", scriptId:"" },
   { id:"bahasa-inggris",   file:"bahasa-inggris.html",   name:"Bahasa Inggris",   short:"B. Inggris",       icon:"globe",      color:"#7048e8", lsKey:"lms_bahasa-inggris_x_v1", teacher:"", scriptId:"" },
   { id:"biologi",          file:"biologi.html",          name:"Biologi",          short:"Biologi",          icon:"dna",        color:"#2b8a3e", lsKey:"lms_biologi_x_v1", teacher:"", scriptId:"" },
