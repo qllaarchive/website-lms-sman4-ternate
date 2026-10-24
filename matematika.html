@@ -171,8 +171,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font:800 14px/1.2 var(--body);text-align:center;color:var(--ink);box-shadow:var(--shadow);position:relative;transition:transform .18s var(--ease)}
 .tile:active{transform:scale(.97)}
 .tile .ti{font-size:32px;line-height:1}
-.cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-@media (max-width:1240px){.cols{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
 .col{border-radius:var(--r);border:1.5px solid var(--line);overflow:hidden;background:var(--card);display:flex;flex-direction:column}
 .col.e1{border-color:var(--e1line)}.col.e2{border-color:var(--e2line)}.col.e3{border-color:var(--e3line)}.col.e4{border-color:var(--e4line)}
@@ -181,7 +180,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .col-h .bub{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:23px;color:#fff;flex-shrink:0;border:3px solid var(--card)}
 .col.e1 .bub{background:var(--e1)}.col.e2 .bub{background:var(--e2)}.col.e3 .bub{background:var(--e3)}.col.e4 .bub{background:var(--e4)}
 .col-h small{font:800 12px var(--body);color:var(--muted)}
-.col-h h3{font-size:18px}
+.col-h h3{font-size:18px;overflow-wrap:anywhere}
 .col.e1 h3{color:var(--e1)}.col.e2 h3{color:var(--e2)}.col.e3 h3{color:var(--e3)}.col.e4 h3{color:var(--e4)}
 .ulist{display:flex;flex-direction:column;gap:8px;padding:10px}
 .ucard{display:grid;grid-template-columns:52px minmax(0,1fr) 14px;gap:12px;align-items:center;padding:8px;border-radius:12px;border:1px solid var(--line);background:var(--card);cursor:pointer;text-align:left;width:100%;position:relative;transition:border-color .16s var(--ease),background .16s var(--ease)}
@@ -189,9 +188,10 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .col.e1 .th{background:var(--e1bg)}.col.e2 .th{background:var(--e2bg)}.col.e3 .th{background:var(--e3bg)}.col.e4 .th{background:var(--e4bg)}
 .ucard .no{position:absolute;top:-6px;left:-6px;width:24px;height:24px;border-radius:50%;color:#fff;font:800 13px/24px var(--display);text-align:center}
 .col.e1 .no{background:var(--e1)}.col.e2 .no{background:var(--e2)}.col.e3 .no{background:var(--e3)}.col.e4 .no{background:var(--e4)}
-.ucard h4{font-size:15.5px}
-.ucard p{font-size:12.5px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ucard h4{font-size:15.5px;overflow-wrap:anywhere}
+.ucard p{font-size:12.5px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .ucard .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;font:700 11.5px var(--body);color:var(--muted)}
+.ucard .meta span{white-space:nowrap}
 .ucard .chev{color:var(--muted);font-size:18px}
 .ucard .done{position:absolute;top:6px;right:8px;font-size:12px}
 .mini{height:5px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:5px}
@@ -246,9 +246,9 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .meet .card.ok{border-color:var(--good);background:linear-gradient(180deg,var(--goodbg),var(--card) 40%)}
 .chart{display:flex;flex-direction:column;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
 .chart .r{display:grid;grid-template-columns:130px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:13.5px;font-weight:700}
-.chart .r .b{height:18px;border-radius:6px;background:var(--e2)}
+.chart .r .b{display:block;height:18px;border-radius:6px;background:var(--e2)}
 .chart .r .v{font-variant-numeric:tabular-nums;text-align:right}
-.chart .r .tr{background:var(--soft);border-radius:6px}
+.chart .r .tr{display:block;background:var(--soft);border-radius:6px;overflow:hidden}
 
 /* Kuis */
 .q{padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
@@ -511,6 +511,7 @@ canvas.lab{width:100%;background:#0d1230;border-radius:14px;border:1px solid var
   .numb-in input{width:120px}
   table{font-size:13.5px}
   th,td{padding:7px 8px}
+  .tbl-wrap table{min-width:680px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
