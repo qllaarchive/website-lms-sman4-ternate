@@ -365,8 +365,6 @@
   function entries(){ return store.entries[klass] || []; }
 
   function card(e, i){
-    var pct = progOf(e);
-    var meta = pct === null ? "Belum dibuka" : (pct >= 100 ? "Selesai" : pct + "% selesai");
     var ext = /^https?:\/\//i.test(e.file || "");
     var href = e.file || "#";
     if(e.scriptId){
@@ -381,8 +379,6 @@
       (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>' +
       '<span class="tile" style="background:' + rgba(e.color, .13) + '">' + I(e.icon || "book") + '</span>' +
       '<span class="txt"><h3>' + esc(name) + '</h3><p class="cap">Kelas ' + esc(klass) + (e.teacher ? " · " + esc(e.teacher) : "") + '</p></span>' +
-      (pct === null ? "" : '<span class="prog"><span class="bar" style="--p:' + (pct / 100) + '"></span></span>') +
-      '<p class="cap pc">' + meta + '</p>' +
       '<span class="chev" aria-hidden="true">' + I(ext ? "external-link" : "chevron-right") + '</span>' +
     '</a>';
   }
@@ -437,6 +433,7 @@
     requestAnimationFrame(step);
   }
   function stats(){
+    if(!stOpen && !stAvg && !stDone) return;
     var open = 0, sum = 0, done = 0;
     entries().forEach(function(e){
       var pct = progOf(e);
