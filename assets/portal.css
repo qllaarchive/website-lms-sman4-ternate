@@ -86,6 +86,12 @@ a{ color:var(--accent); text-decoration:none }
 .seg button[aria-checked="true"]{ color:var(--ink) }
 .seg button:focus-visible{ outline:2px solid var(--accent); outline-offset:1px }
 #pantau-seg .seg-thumb{ width:calc((100% - 4px) / 4) }
+#pantau-seg, #class-seg, #kelola-seg{ display:inline-flex }
+#pantau-seg button, #class-seg button, #kelola-seg button{
+  flex:1 1 auto; white-space:nowrap;
+}
+#pantau-seg button{ min-width:76px; padding:0 8px }
+#class-seg button, #kelola-seg button{ min-width:62px; padding:0 8px }
 
 /* ——— tombol dasar ——— */
 .btn{
@@ -143,6 +149,7 @@ a.btn{ text-decoration:none }
   text-wrap:balance;
 }
 .hero .sub{ margin-top:8px; font-size:17px; line-height:1.4; color:var(--ink2); max-width:38em }
+.hero-actions{ margin-top:18px; display:flex; flex-wrap:wrap; align-items:center; gap:10px }
 
 /* ——— pencarian ——— */
 .search{ position:relative; margin-top:20px }
@@ -235,6 +242,7 @@ footer p + p{ color:var(--ink3) }
   transition:background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 .sheet.wide{ max-width:680px }
+.sheet.xwide{ max-width:860px }
 @keyframes sheetin{ from{ opacity:0; transform:translateY(16px) scale(.98) } to{ opacity:1; transform:none } }
 .sheet h2{ font-size:20px; font-weight:700; letter-spacing:-.015em }
 .sheet-sub{ margin-top:4px; font-size:13px; color:var(--ink2) }
@@ -284,28 +292,63 @@ footer p + p{ color:var(--ink3) }
 .k-off{ font-size:11px; font-weight:700; color:var(--ink3); text-transform:uppercase; letter-spacing:.04em; flex:none }
 
 /* ——— pantau: ringkasan + tabel ——— */
-.p-summary{
-  display:grid; grid-template-columns:repeat(4, minmax(0, 1fr));
-  gap:10px; margin:4px 0 16px;
-}
-@media (max-width:640px){ .p-summary{ grid-template-columns:repeat(2, minmax(0, 1fr)) } }
-.p-stat{
-  background:var(--fill); border-radius:12px; padding:12px 14px;
-  display:flex; flex-direction:column; gap:2px; min-width:0;
-}
-.p-stat .lbl{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink3) }
-.p-stat .val{ font-size:22px; font-weight:700; letter-spacing:-.02em; color:var(--ink); font-variant-numeric:tabular-nums }
-.p-stat .sub{ font-size:12px; color:var(--ink2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .p-toolbar{
   display:flex; flex-wrap:wrap; align-items:center; gap:10px;
-  margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--line);
+  margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--line);
 }
 .p-toolbar .seg{ height:30px }
 .p-toolbar .seg button{ min-width:36px; height:26px; font-size:12px; padding:0 8px }
 .p-actions{ margin-left:auto; display:flex; gap:8px; flex-wrap:wrap }
 .p-actions .btn{ height:32px; padding:0 12px; font-size:12.5px; gap:6px }
 .p-actions .btn svg{ width:14px; height:14px }
-.p-section{ margin-top:14px }
+
+.p-hero{
+  display:flex; align-items:center; gap:24px;
+  background:var(--fill); border-radius:16px; padding:18px 22px;
+  margin-bottom:18px;
+  animation:rise var(--dur-enter) var(--ease) both;
+}
+.p-ring{ position:relative; width:108px; height:108px; flex:none }
+.p-ring svg{ display:block; width:100%; height:100%; transform:rotate(-90deg) }
+.p-ring circle{ fill:none; stroke-width:8 }
+.pr-track{ stroke:color-mix(in srgb, var(--ink) 9%, transparent) }
+.pr-val{
+  stroke:var(--accent); stroke-linecap:round;
+  stroke-dasharray:calc(var(--p, 0) * 263.9) 263.9;
+}
+.p-ring-mid{
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:1px; text-align:center;
+}
+.p-ring-mid b{ font-size:21px; font-weight:700; letter-spacing:-.02em; color:var(--ink); font-variant-numeric:tabular-nums }
+.p-ring-mid small{
+  font-size:10px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink3);
+}
+.p-hero-side{ flex:1; min-width:0 }
+.p-hero-cap{
+  font-size:13px; color:var(--ink2); margin-bottom:12px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.p-hero-cap b{ color:var(--ink); font-weight:650 }
+.p-legend{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px }
+.pl{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:9px 12px 10px; min-width:0;
+}
+.pl-top{ display:flex; align-items:center; gap:6px; min-width:0 }
+.pl-dot{ width:8px; height:8px; border-radius:50%; background:var(--c, var(--ink3)); flex:none }
+.pl-lbl{
+  font-size:11.5px; font-weight:600; color:var(--ink2);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.pl b{
+  display:block; font-size:19px; font-weight:700; letter-spacing:-.02em;
+  color:var(--ink); margin-top:4px; line-height:1.15; font-variant-numeric:tabular-nums;
+}
+.pl small{ font-size:11px; color:var(--ink3) }
+
+.p-section{ margin-top:8px }
 .p-section:first-child{ margin-top:0 }
 .p-section h3{
   font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
@@ -318,23 +361,37 @@ footer p + p{ color:var(--ink3) }
 .p-table{ width:100%; border-collapse:collapse; font-size:13px }
 .p-table th{
   text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
-  color:var(--ink3); padding:8px 10px; border-bottom:1px solid var(--line);
+  color:var(--ink3); padding:7px 10px; border-bottom:1px solid var(--line);
   background:var(--fill); white-space:nowrap;
 }
 .p-table th:first-child{ border-radius:8px 0 0 8px }
 .p-table th:last-child{ border-radius:0 8px 8px 0; text-align:right }
-.p-table td{ padding:10px; border-bottom:1px solid var(--line); vertical-align:middle }
+.p-table td{ padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:middle }
 .p-table tbody tr{ transition:background-color var(--dur-fast) var(--ease) }
 .p-table tbody tr:hover{ background:color-mix(in srgb, var(--fill) 55%, transparent) }
 .p-table tbody tr:last-child td{ border-bottom:none }
-.p-table .p-name{ font-weight:600; display:flex; align-items:center; gap:8px; min-width:0 }
-.p-table .p-dot{ width:8px; height:8px; border-radius:50%; flex:none }
-.p-table .p-name span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-.p-table .p-prog{ min-width:140px; width:22% }
-.p-table .p-prog .prog{ margin:0; height:5px; border-radius:3px }
-.p-table .p-pct{ font-size:12px; font-weight:600; color:var(--ink2); margin-top:3px; font-variant-numeric:tabular-nums }
-.p-table .p-status{ white-space:nowrap }
-.p-table .p-open{ text-align:right; white-space:nowrap }
+.p-table .p-name{ font-weight:600; white-space:nowrap }
+.p-subj-in{ display:flex; align-items:center; gap:9px; min-width:0 }
+.p-dot{ width:9px; height:9px; border-radius:50%; flex:none }
+.p-subj-txt{ min-width:0 }
+.p-subj-txt b{
+  display:block; font-size:13px; font-weight:600; color:var(--ink); line-height:1.3;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.p-subj-txt small{
+  display:block; font-size:11.5px; color:var(--ink3); margin-top:1px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.p-prog{ width:26%; min-width:150px }
+.p-prog-row{ display:flex; align-items:center; gap:10px }
+.p-prog-row .prog{ flex:1; margin:0; height:6px; border-radius:3px }
+.p-pct{
+  font-size:12.5px; font-weight:700; color:var(--ink2);
+  min-width:36px; text-align:right; font-variant-numeric:tabular-nums;
+}
+.p-status{ white-space:nowrap }
+.p-when{ font-size:12px; color:var(--ink2); white-space:nowrap }
+.p-open{ text-align:right; white-space:nowrap }
 .p-table a{
   display:inline-flex; align-items:center; gap:5px; height:28px; padding:0 10px;
   border-radius:999px; border:1px solid var(--line); color:var(--ink);
@@ -343,6 +400,15 @@ footer p + p{ color:var(--ink3) }
 }
 .p-table a:hover{ background:var(--fill) }
 .p-table a svg{ width:13px; height:13px }
+@media (max-width:640px){
+  .p-hero{ flex-direction:column; align-items:center; gap:16px; padding:16px }
+  .p-hero-side{ width:100% }
+  .p-hero-cap{ white-space:normal; text-align:center }
+  .pl{ padding:8px 9px }
+  .pl b{ font-size:17px }
+  .p-table .th-when, .p-table .p-when{ display:none }
+  .p-prog{ min-width:110px }
+}
 .p-empty{ font-size:13px; color:var(--ink3); padding:8px }
 .pill{
   display:inline-flex; align-items:center; gap:5px;
@@ -366,6 +432,7 @@ footer p + p{ color:var(--ink3) }
 @keyframes fillbar{ from{ transform:scaleX(0) } }
 .hero{ animation:rise var(--dur-enter) var(--ease) both }
 .search{ animation:rise var(--dur-enter) var(--ease) 90ms both }
+.hero-actions{ animation:rise var(--dur-enter) var(--ease) 130ms both }
 .admin-bar{ animation:rise var(--dur-enter) var(--ease) 150ms both }
 .cards.is-first .card{
   animation:rise var(--dur-enter) var(--ease) both;

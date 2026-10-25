@@ -63,9 +63,17 @@
 
 <main class="gut">
   <section class="hero">
-    <p class="eyebrow">SMA Negeri 4 Ternate · Fase E</p>
+    <p class="eyebrow">SMA Negeri 4 Ternate · <span id="hero-eyebrow">Fase E</span></p>
     <h1>Selamat datang di Portal LMS SMA Negeri 4 Ternate</h1>
     <p class="sub">Daftar LMS mata pelajaran — buka materi, latihan, gim, dan lab dalam satu tempat.</p>
+    <div class="hero-actions">
+      <div class="seg" id="class-seg" role="radiogroup" aria-label="Pilih kelas">
+        <span class="seg-thumb" id="class-thumb" aria-hidden="true"></span>
+        <button type="button" role="radio" data-k="X" aria-label="Kelas X">X</button>
+        <button type="button" role="radio" data-k="XI" aria-label="Kelas XI">XI</button>
+        <button type="button" role="radio" data-k="XII" aria-label="Kelas XII">XII</button>
+      </div>
+    </div>
   </section>
 
   <div class="search">
@@ -190,16 +198,14 @@
 <!-- Pantau progres -->
 <div class="sheet-wrap" id="modal-pantau" hidden>
   <div class="sheet-backdrop" data-close></div>
-  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="pantau-title">
+  <div class="sheet xwide" role="dialog" aria-modal="true" aria-labelledby="pantau-title">
     <div class="sheet-head">
       <div>
         <h2 id="pantau-title">Pantau Progres</h2>
-        <p class="sheet-sub">Ringkasan kemajuan belajar dari perangkat ini.</p>
+        <p class="sheet-sub">Kemajuan belajar per mata pelajaran dari perangkat ini.</p>
       </div>
       <button type="button" class="x" data-close aria-label="Tutup"></button>
     </div>
-
-    <div class="p-summary" id="pantau-summary"></div>
 
     <div class="p-toolbar">
       <div class="seg" id="pantau-seg" role="radiogroup" aria-label="Filter kelas">
@@ -210,10 +216,12 @@
         <button type="button" role="radio" data-k="XII" aria-label="Kelas XII">XII</button>
       </div>
       <div class="p-actions">
-        <button type="button" class="btn primary" id="pantau-csv"><span id="pantau-csv-ic" aria-hidden="true"></span> Unduh CSV</button>
+        <button type="button" class="btn ghost" id="pantau-csv"><span id="pantau-csv-ic" aria-hidden="true"></span> Unduh CSV</button>
         <a class="btn ghost" id="pantau-drive" href="https://drive.google.com/drive/folders/1Bs190ZCurEjyAfIUVcZ3u91eh6r3J_FA" target="_blank" rel="noopener noreferrer"><span id="pantau-drive-ic" aria-hidden="true"></span> Spreadsheet Guru</a>
       </div>
     </div>
+
+    <div class="p-hero" id="pantau-summary"></div>
 
     <div id="pantau-body"></div>
   </div>

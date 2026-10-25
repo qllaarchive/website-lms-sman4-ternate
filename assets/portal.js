@@ -88,11 +88,18 @@
     if(CLASSES.indexOf(ck) >= 0) klass = ck;
   }catch(e){}
 
+  function phaseOf(k){ return k === "X" ? "Fase E" : "Fase F"; }
+  function syncPhaseUI(){
+    var el = $("hero-eyebrow");
+    if(el) el.textContent = phaseOf(klass);
+  }
+
   function setClass(k){
     if(CLASSES.indexOf(k) < 0) return;
     klass = k;
     try{ localStorage.setItem(CLASS_KEY, k); }catch(e){}
     syncClassUI();
+    syncPhaseUI();
     render();
     stats();
   }
@@ -378,7 +385,7 @@
     return '<a class="card" href="' + href + '" data-id="' + esc(e.id) + '" style="--c:' + esc(e.color || "#0d9488") + ';--i:' + i + '"' +
       (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>' +
       '<span class="tile" style="background:' + rgba(e.color, .13) + '">' + I(e.icon || "book") + '</span>' +
-      '<span class="txt"><h3>' + esc(name) + '</h3><p class="cap">Kelas ' + esc(klass) + (e.teacher ? " · " + esc(e.teacher) : "") + '</p></span>' +
+      '<span class="txt"><h3>' + esc(name) + '</h3><p class="cap">Kelas ' + esc(klass) + ' · ' + phaseOf(klass) + (e.teacher ? " · " + esc(e.teacher) : "") + '</p></span>' +
       '<span class="chev" aria-hidden="true">' + I(ext ? "external-link" : "chevron-right") + '</span>' +
     '</a>';
   }
@@ -674,6 +681,7 @@
     });
     return {
       total: total, open: open, done: done, none: none,
+      active: open - done,
       avg: open ? Math.round(sum / open) : null
     };
   }
@@ -698,18 +706,38 @@
     }catch(e){ return fmtDate(at); }
   }
 
+  function plItem(color, lbl, n, pct){
+    return '<div class="pl">' +
+      '<span class="pl-top"><span class="pl-dot" style="--c:' + color + '"></span>' +
+      '<span class="pl-lbl">' + lbl + "</span></span>" +
+      "<b>" + n + "</b><small>" + pct + "% dari total</small></div>";
+  }
+
   function renderPantau(){
     var sumEl = $("pantau-summary");
     var body = $("pantau-body");
     var keys = pantauClasses();
     var s = pantauStats(keys);
+    var scope = pantauFilter === "all" ? "Semua kelas" : "Kelas " + pantauFilter;
+    var share = function(n){ return s.total ? Math.round(n / s.total * 100) : 0; };
     if(sumEl){
+      var avg = s.avg === null ? 0 : s.avg;
       sumEl.innerHTML =
-        '<div class="p-stat"><span class="lbl">Total LMS</span><span class="val">' + s.total + '</span><span class="sub">' +
-          (pantauFilter === "all" ? "Semua kelas" : "Kelas " + pantauFilter) + '</span></div>' +
-        '<div class="p-stat"><span class="lbl">Rata-rata</span><span class="val">' + (s.avg === null ? "—" : s.avg + "%") + '</span><span class="sub">dari ' + s.open + ' dibuka</span></div>' +
-        '<div class="p-stat"><span class="lbl">Selesai</span><span class="val">' + s.done + '</span><span class="sub">' + (s.total ? Math.round(s.done / s.total * 100) : 0) + '% dari total</span></div>' +
-        '<div class="p-stat"><span class="lbl">Belum dibuka</span><span class="val">' + s.none + '</span><span class="sub">perlu tindak lanjut</span></div>';
+        '<div class="p-ring" style="--p:' + (avg / 100) + '">' +
+          '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+            '<circle class="pr-track" cx="50" cy="50" r="42"></circle>' +
+            '<circle class="pr-val" cx="50" cy="50" r="42"></circle>' +
+          "</svg>" +
+          '<span class="p-ring-mid"><b>' + (s.avg === null ? "—" : s.avg + "%") + "</b><small>rerata</small></span>" +
+        "</div>" +
+        '<div class="p-hero-side">' +
+          '<p class="p-hero-cap"><b>' + scope + "</b> · " + s.open + " dari " + s.total + " LMS dibuka</p>" +
+          '<div class="p-legend">' +
+            plItem("var(--good)", "Selesai", s.done, share(s.done)) +
+            plItem("var(--accent)", "Aktif", s.active, share(s.active)) +
+            plItem("var(--ink3)", "Belum dibuka", s.none, share(s.none)) +
+          "</div>" +
+        "</div>";
     }
     if(!body) return;
     if(!s.total){
@@ -724,22 +752,27 @@
           '<p class="p-empty">Belum ada LMS terbit.</p></div>';
         return;
       }
-      html += '<div class="p-section"><h3>Kelas ' + k + ' <span class="cnt">' + list.length + '</span></h3>';
+      html += '<div class="p-section"><h3>Kelas ' + k + ' <span class="cnt">' + list.length + "</span></h3>";
       html += '<table class="p-table"><thead><tr>' +
-        "<th>Mapel</th><th>Guru</th><th>Progres</th><th>Status</th><th>Terakhir dibuka</th><th></th>" +
+        "<th>Mata Pelajaran</th><th>Progres</th><th>Status</th>" +
+        "<th class=\"th-when\">Terakhir dibuka</th><th></th>" +
         "</tr></thead><tbody>";
       list.forEach(function(e){
         var pct = progOf(e);
         var at = lastAt(e);
+        var col = esc(e.color || "#0d9488");
         html += "<tr>" +
-          '<td class="p-name"><span class="p-dot" style="background:' + esc(e.color || "#0d9488") + '"></span><span>' + esc(e.name || "—") + "</span></td>" +
-          "<td>" + (e.teacher ? esc(e.teacher) : '<span style="color:var(--ink3)">—</span>') + "</td>" +
-          '<td class="p-prog">' +
-            '<span class="prog"><span class="bar" style="--c:' + esc(e.color || "#0d9488") + ";--p:" + ((pct || 0) / 100) + '"></span></span>' +
-            '<div class="p-pct">' + (pct === null ? "0%" : pct + "%") + "</div>" +
-          "</td>" +
+          '<td class="p-subj"><span class="p-subj-in">' +
+            '<span class="p-dot" style="background:' + col + '"></span>' +
+            '<span class="p-subj-txt"><b>' + esc(e.name || "—") + "</b>" +
+            (e.teacher ? "<small>" + esc(e.teacher) + "</small>" : "") +
+            "</span></span></td>" +
+          '<td class="p-prog"><span class="p-prog-row">' +
+            '<span class="prog"><span class="bar" style="--c:' + col + ";--p:" + ((pct || 0) / 100) + '"></span></span>' +
+            '<span class="p-pct">' + (pct === null ? 0 : pct) + "%</span>" +
+          "</span></td>" +
           '<td class="p-status">' + pctPill(pct) + "</td>" +
-          "<td>" + fmtDateTime(at) + "</td>" +
+          '<td class="p-when">' + fmtDateTime(at) + "</td>" +
           '<td class="p-open"><a href="' + esc(e.file || "#") + '" target="_blank" rel="noopener noreferrer">Buka ' + I("external-link") + "</a></td>" +
           "</tr>";
       });
@@ -910,7 +943,9 @@
     });
   }
   syncClassUI();
+  syncPhaseUI();
   syncPantauUI();
+  renderPantau();
   syncAuthUI();
   syncLoginUI();
   syncKelolaUI();
