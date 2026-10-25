@@ -39,8 +39,12 @@ Portal pembelajaran digital **SMA Negeri 4 Ternate** — kumpulan LMS mata pelaj
 | Kelola LMS | Tambah/ubah/hapus tautan LMS per kelas (nama, guru, warna, ikon, publikasi) |
 | Pantau Progres | Ringkasan rata-rata + distribusi Selesai/Aktif/Belum dibuka, tabel per mapel, filter kelas, ekspor CSV & tautan Spreadsheet Guru |
 | Cadangan data | Ekspor/impor JSON (daftar LMS, akun, progres) |
+| Profil & Pengumuman | Profil sekolah (identitas, kontak, media sosial, PPDB) + pengumuman — dikelola admin, tampil di footer |
 | PWA | Dapat dipasang di layar utama, service worker menyimpan berkas shell |
 | Aksesibel | Semantik HTML, aria pada kontrol, dukungan *reduced-motion* |
+
+Tautan mapel dapat membawa parameter `?gs=<scriptId>` untuk membuka **Google Apps Script**
+dari guru ([`apps-script/Code.gs`](apps-script/Code.gs)) langsung dari kartu portal.
 
 ### Halaman LMS per mapel
 
@@ -76,23 +80,30 @@ Progres belajar disimpan otomatis di `localStorage` per perangkat — tetap ters
 ```
 .
 ├── index.html               # Portal utama (daftar mapel, admin, pantau progres)
-├── *.html                   # 16 halaman LMS per mata pelajaran
+├── *.html                   # 15 halaman LMS per mata pelajaran
+├── sejarah/                 # Halaman LMS Sejarah (dipisah ke folder sendiri)
+│   └── sejarah.html
 ├── assets/
 │   ├── portal.css/.js       # Gaya & logika portal
 │   ├── lms.css/.js          # Engine halaman LMS (render unit, asesmen, gim, lab)
 │   └── icons.js             # Ikon SVG inline
 ├── data/
-│   ├── registry.js          # Daftar mapel (tautan, warna, guru, lsKey)
+│   ├── registry.js          # Daftar mapel portal (lsKey, warna, emoji, scriptId Apps Script)
 │   ├── matematika.js        # Konten LMS Matematika (137 tampilan)
 │   └── sejarah.js           # Konten LMS Sejarah (136 tampilan)
 ├── scripts/
 │   ├── validate.mjs         # Validasi skema data LMS
-│   └── smoke.mjs            # Smoke test render (DOM stub) tanpa browser
+│   ├── smoke.mjs            # Smoke test render (DOM stub) tanpa browser
+│   └── build-config.mjs     # Generate config.js (API base) saat build deploy
+├── apps-script/             # Kode Google Apps Script (dituju parameter ?gs=)
 ├── api/                     # Backend Express + Prisma (login & sinkronisasi)
 ├── mobile/                  # Aplikasi Flutter (rencana)
 ├── docs/                    # Dokumen perkuliahan (website, sobj, tkti, netsec, mobile)
 ├── sw.js, manifest.webmanifest  # PWA (service worker + manifest)
+├── netlify.toml, config.js  # Konfigurasi deploy Netlify + base URL API
+├── portal-nginx.conf        # Konfigurasi Nginx (deploy VPS)
 ├── docker-compose.yml       # db + api + portal untuk pengembangan lokal
+├── DEPLOY.md                # Panduan langkah-demi-langkah deploy
 └── .github/workflows/ci.yml # CI (syntax check) + deploy otomatis ke VPS
 ```
 
@@ -198,7 +209,8 @@ Push ke `main` akan memicu CI, lalu deploy otomatis ke VPS via SSH (lihat `.gith
    (nama, guru, tautan, warna, ikon).
 
 > Saat ini yang sudah berisi konten penuh: **Matematika** (137 tampilan) dan
-> **Sejarah** (136 tampilan). 14 mapel lain sudah punya halaman siap diisi.
+> **Sejarah** (136 tampilan, halamannya di [`sejarah/sejarah.html`](sejarah/sejarah.html)).
+> 14 mapel lain sudah punya halaman kosong siap diisi.
 
 ---
 
@@ -220,6 +232,8 @@ Push ke `main` akan memicu CI, lalu deploy otomatis ke VPS via SSH (lihat `.gith
   semua data tersimpan di perangkat masing-masing.
 - Saat API tersedia (`config.js`), portal otomatis memakai sinkronisasi pusat
   (daftar LMS, entri per kelas) dengan fallback localStorage.
+- Kartu mapel dapat membawa `?gs=<scriptId>` → **Google Apps Script**
+  ([`apps-script/Code.gs`](apps-script/Code.gs)) untuk spreadsheet guru/eksternal.
 
 ---
 
