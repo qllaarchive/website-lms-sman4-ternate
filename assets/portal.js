@@ -68,12 +68,17 @@
     });
     saveStore();
   } else {
-    // sinkronkan scriptId dari registry untuk entri bawaan (seed) yang tersimpan lama
+    // sinkronkan scriptId/file/lsKey dari registry untuk entri bawaan (seed) yang tersimpan lama
     var byId = {};
-    reg.forEach(function(e){ byId[e.id] = e.scriptId || ""; });
+    reg.forEach(function(e){ byId[e.id] = e; });
     var changed = false;
     store.entries.X.forEach(function(en){
-      if(en.seed && !en.scriptId && byId[en.id]){ en.scriptId = byId[en.id]; changed = true; }
+      var r = byId[en.id];
+      if(!en.seed || !r) return;
+      if(en.scriptId !== (r.scriptId || "")){ en.scriptId = r.scriptId || ""; changed = true; }
+      var localFile = !/^[a-z]+:\/\//i.test(en.file || "");
+      if(localFile && en.file !== r.file){ en.file = r.file; changed = true; }
+      if(en.lsKey !== r.lsKey){ en.lsKey = r.lsKey; changed = true; }
     });
     if(changed) saveStore();
   }
