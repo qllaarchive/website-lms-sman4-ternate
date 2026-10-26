@@ -24,7 +24,6 @@
   if($("drive-ic")) $("drive-ic").innerHTML = I("external-link");
   if($("ab-pantau-ic")) $("ab-pantau-ic").innerHTML = I("bar-chart");
   if($("ab-kelola-ic")) $("ab-kelola-ic").innerHTML = I("settings");
-  if($("ab-peng-ic")) $("ab-peng-ic").innerHTML = I("message-circle");
   if($("ab-drive-ic")) $("ab-drive-ic").innerHTML = I("external-link");
   if($("ab-backup-ic")) $("ab-backup-ic").innerHTML = I("save");
   if($("ab-logout-ic")) $("ab-logout-ic").innerHTML = I("log-out");
@@ -42,7 +41,6 @@
       entries: { X: [], XI: [], XII: [] },
       admin: null,
       session: null,
-      announcements: [],
       school: null
     };
   }
@@ -164,22 +162,12 @@
     renderPantau();
     openModal("modal-pantau");
   });
-  var abPengumuman = $("ab-pengumuman");
-  if(abPengumuman) abPengumuman.addEventListener("click", function(){
-    renderPengumuman();
-    openModal("modal-pengumuman");
-  });
   var abBackup = $("ab-backup");
   if(abBackup) abBackup.addEventListener("click", function(){ openModal("modal-backup"); });
   var fProfil = $("f-profil");
   if(fProfil) fProfil.addEventListener("click", function(){
     renderProfil();
     openModal("modal-profil");
-  });
-  var fPengumuman = $("f-pengumuman");
-  if(fPengumuman) fPengumuman.addEventListener("click", function(){
-    renderPengumuman();
-    openModal("modal-pengumuman");
   });
   if(abDrive) abDrive.href = DRIVE;
 
@@ -777,55 +765,6 @@
     document.body.appendChild(a);
     a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-  }
-
-  /* ---------- pengumuman ---------- */
-  function renderPengumuman(){
-    var body = $("pengumuman-body");
-    if(!body) return;
-    var items = (store.announcements || []);
-    var html = "";
-    if(!items.length){
-      html = '<p class="p-empty">Belum ada pengumuman.</p>';
-    }else{
-      html = '<div class="k-list">' + items.map(function(a, i){
-        return '<div class="k-row"><span class="k-info"><b>' + esc(a.title) + "</b>" +
-          "<small>" + esc(a.date || "") + "</small>" +
-          "<small>" + esc(a.body || "") + "</small></span>" +
-          (isAdmin() ? '<span class="k-actions"><button type="button" class="btn danger" data-act="del-ann" data-i="' + i + '">Hapus</button></span>' : "") +
-          "</div>";
-      }).join("") + "</div>";
-    }
-    if(isAdmin()){
-      html += '<form id="ann-form" style="margin-top:14px;display:flex;flex-direction:column;gap:10px">' +
-        '<label>Judul<input id="ann-title" required placeholder="cth. Jadwal PTS"></label>' +
-        '<label>Tanggal<input id="ann-date" type="date" required></label>' +
-        '<label>Isi<input id="ann-body" required placeholder="Ringkasan pengumuman"></label>' +
-        '<button type="submit" class="btn primary">Tambah Pengumuman</button></form>';
-    }
-    body.innerHTML = html;
-    var form = $("ann-form");
-    if(form) form.addEventListener("submit", function(ev){
-      ev.preventDefault();
-      if(!store.announcements) store.announcements = [];
-      store.announcements.unshift({
-        title: ($("ann-title").value || "").trim(),
-        date: $("ann-date").value,
-        body: ($("ann-body").value || "").trim()
-      });
-      saveStore();
-      renderPengumuman();
-    });
-    body.querySelectorAll('[data-act="del-ann"]').forEach(function(b){
-      b.addEventListener("click", function(){
-        var i = parseInt(b.dataset.i, 10);
-        if(store.announcements && store.announcements[i]){
-          store.announcements.splice(i, 1);
-          saveStore();
-          renderPengumuman();
-        }
-      });
-    });
   }
 
   /* ---------- profil sekolah ---------- */

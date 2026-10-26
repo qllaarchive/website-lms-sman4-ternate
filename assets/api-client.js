@@ -57,17 +57,6 @@
       return apiFetch("/progress/summary");
     },
 
-    /* Announcements */
-    getAnnouncements: function(){
-      return apiFetch("/admin/announcements");
-    },
-    createAnnouncement: function(title, date, body){
-      return apiFetch("/admin/announcements", { method: "POST", body: JSON.stringify({ title: title, date: date, body: body }) });
-    },
-    deleteAnnouncement: function(id){
-      return apiFetch("/admin/announcements/" + id, { method: "DELETE" });
-    },
-
     /* School profile */
     getProfile: function(){
       return apiFetch("/admin/profile");

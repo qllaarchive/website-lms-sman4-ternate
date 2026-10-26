@@ -39,7 +39,7 @@ Portal pembelajaran digital **SMA Negeri 4 Ternate** — kumpulan LMS mata pelaj
 | Kelola LMS | Tambah/ubah/hapus tautan LMS per kelas (nama, guru, warna, ikon, publikasi) |
 | Pantau Progres | Ringkasan rata-rata + distribusi Selesai/Aktif/Belum dibuka, tabel per mapel, filter kelas, ekspor CSV & tautan Spreadsheet Guru |
 | Cadangan data | Ekspor/impor JSON (daftar LMS, akun, progres) |
-| Profil & Pengumuman | Profil sekolah (identitas, kontak, media sosial, PPDB) + pengumuman — dikelola admin, tampil di footer |
+| Profil Sekolah | Identitas, kontak, media sosial, dan PPDB — dikelola admin, tampil di footer |
 | PWA | Dapat dipasang di layar utama, service worker menyimpan berkas shell |
 | Aksesibel | Semantik HTML, aria pada kontrol, dukungan *reduced-motion* |
 
