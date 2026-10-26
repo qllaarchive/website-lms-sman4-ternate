@@ -19,7 +19,6 @@
   if($("s-ic")) $("s-ic").innerHTML = I("search");
   if($("e-ic")) $("e-ic").innerHTML = I("search");
   if($("btn-login-ic")) $("btn-login-ic").innerHTML = I("log-in");
-  if($("ab-ic")) $("ab-ic").innerHTML = I("shield");
   if($("k-add-ic")) $("k-add-ic").innerHTML = I("plus");
   if($("drive-ic")) $("drive-ic").innerHTML = I("external-link");
   if($("ab-pantau-ic")) $("ab-pantau-ic").innerHTML = I("bar-chart");

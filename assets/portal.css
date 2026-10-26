@@ -53,13 +53,13 @@ a{ color:var(--accent); text-decoration:none }
   border-bottom:1px solid var(--line);
   transition:background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
-.nav-in{ display:flex; align-items:center; gap:12px; min-height:60px; padding-block:8px }
+.nav-in{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; min-height:60px; padding-block:8px }
 .brand{ display:inline-flex; align-items:center; gap:11px; color:var(--ink); border-radius:8px; min-width:0 }
 .brand-logo{ width:38px; height:38px; flex:none; border-radius:50%; box-shadow:var(--shadow-rest) }
 .brand-text{ display:flex; flex-direction:column; min-width:0; line-height:1.2 }
-.brand-text b{ font-size:15px; font-weight:600; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.brand-text b{ font-size:15px; font-weight:600; letter-spacing:-.01em; white-space:nowrap }
 .brand-text small{ font-size:11px; color:var(--ink2); letter-spacing:.02em }
-.nav-right{ margin-left:auto; display:flex; align-items:center; gap:10px }
+.nav-right{ margin-left:auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:6px 10px }
 .nav-right>*{ flex:none }
 
 /* ——— segmented control ——— */
@@ -93,6 +93,11 @@ a{ color:var(--accent); text-decoration:none }
 }
 #pantau-seg button{ min-width:76px; padding:0 8px }
 #class-seg button, #kelola-seg button{ min-width:62px; padding:0 8px }
+/* tema datar di header (tanpa blok) */
+#seg{ background:transparent; padding:0; height:30px; gap:2px }
+#seg .seg-thumb{ display:none }
+#seg button{ min-width:30px; height:30px; padding:0 4px }
+#seg button[aria-checked="true"]{ color:var(--accent) }
 
 /* ——— tombol dasar ——— */
 .btn{
@@ -113,27 +118,26 @@ a{ color:var(--accent); text-decoration:none }
 .btn.danger:hover{ background:color-mix(in srgb, var(--danger) 10%, transparent) }
 
 /* ——— identitas admin ——— */
-.who{ display:inline-flex; align-items:center; gap:9px; padding:3px 12px 3px 3px; border-radius:999px; background:var(--fill) }
+.who{ display:inline-flex; align-items:center; gap:8px }
 .avatar{
-  width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
-  background:var(--accent); color:var(--on-accent); font-size:12px; font-weight:700; letter-spacing:.02em;
+  width:26px; height:26px; border-radius:50%; display:grid; place-items:center;
+  background:var(--accent); color:var(--on-accent); font-size:11px; font-weight:700; letter-spacing:.02em;
 }
-.who-name{ font-size:13px; font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.who-name{ font-size:12.5px; font-weight:600; color:var(--ink2); white-space:nowrap }
 
-/* ——— aksi admin (menyatu di bar kanan header) ——— */
-.admin-bar{
-  display:inline-flex; align-items:center; gap:6px;
-  padding-right:10px; margin-right:2px;
-  border-right:1px solid var(--line);
+/* ——— aksi admin (teks datar di header) ——— */
+.admin-bar{ display:inline-flex; align-items:center; gap:2px }
+.ab-group{ display:inline-flex; align-items:center; gap:2px }
+.ab-group + .ab-group{ margin-left:8px }
+.ab-btn{
+  display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 8px;
+  border:0; border-radius:8px; background:none; cursor:pointer; text-decoration:none;
+  color:var(--ink2); white-space:nowrap;
+  font:600 12.5px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  transition:color var(--dur-fast) var(--ease);
 }
-.ab-badge{
-  display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px;
-  border-radius:999px; background:color-mix(in srgb, var(--accent) 12%, transparent);
-  color:var(--accent); font-size:12px; font-weight:700;
-}
-.ab-badge svg{ width:14px; height:14px }
-.ab-group{ display:inline-flex; align-items:center; gap:4px }
-.ab-btn{ height:30px; padding:0 11px; font-size:12px; gap:6px }
+.ab-btn:hover{ color:var(--accent) }
+.ab-btn.ab-danger{ color:var(--danger) }
 .ab-btn .ab-ic{ display:inline-grid; place-items:center; width:14px; height:14px }
 .ab-btn .ab-ic svg{ width:14px; height:14px }
 .ab-label{ white-space:nowrap }
@@ -444,17 +448,11 @@ footer p + p{ color:var(--ink3) }
   animation-delay:calc(280ms + var(--i, 0) * 45ms);
 }
 @media (max-width:1024px){
-  #ab-badge{ display:none }
   .admin-bar .ab-label{ display:none }
-  .admin-bar .ab-btn{ width:32px; padding:0; justify-content:center }
-}
-@media (max-width:760px){
-  .who-name{ display:none }
+  .admin-bar .ab-btn{ width:30px; padding:0; justify-content:center }
 }
 @media (max-width:640px){
-  .nav-in{ flex-wrap:wrap }
-  .nav-right{ width:100%; justify-content:flex-end }
-  .admin-bar{ border-right:0; padding-right:0; margin-right:0 }
+  .nav-right{ width:100% }
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{
