@@ -168,6 +168,8 @@
     renderProfil();
     openModal("modal-profil");
   });
+  var fYear = $("f-year");
+  if(fYear) fYear.textContent = new Date().getFullYear();
   if(abDrive) abDrive.href = DRIVE;
 
   /* ---------- modals ---------- */

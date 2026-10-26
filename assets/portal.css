@@ -222,11 +222,29 @@ a.btn{ text-decoration:none }
 .empty b{ color:var(--ink) }
 
 /* ——— kaki halaman ——— */
-footer{ margin-top:40px; border-top:1px solid var(--line); transition:border-color var(--dur) var(--ease) }
-footer .gut{ padding-block:24px 48px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center }
-footer .f-logo{ width:44px; height:44px; border-radius:50%; opacity:.9 }
-footer p{ font-size:13px; color:var(--ink2) }
-footer p + p{ color:var(--ink3) }
+footer{ margin-top:48px; border-top:1px solid var(--line); transition:border-color var(--dur) var(--ease) }
+.f-top{ display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,2fr); gap:36px; padding-block:36px 30px }
+.f-brand{ display:inline-flex; align-items:center; gap:11px }
+.f-logo{ width:40px; height:40px; border-radius:50%; opacity:.9 }
+.f-brand-txt{ display:flex; flex-direction:column; line-height:1.25 }
+.f-brand-txt b{ font-size:14px; font-weight:600; color:var(--ink); letter-spacing:-.01em }
+.f-brand-txt small{ font-size:11.5px; color:var(--ink3) }
+.f-desc{ margin:14px 0 0; max-width:46ch; font-size:13px; line-height:1.65; color:var(--ink2) }
+.f-cols{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px }
+.f-col h3{ margin:2px 0 10px; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3) }
+.f-col ul{ list-style:none; margin:0; padding:0; display:grid; gap:7px }
+.f-col li{ font-size:13px; line-height:1.45; color:var(--ink2) }
+.f-col .linkish{ font-size:13px; line-height:1.45 }
+.f-bottom{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 24px; padding-block:16px 28px; border-top:1px solid var(--line) }
+.f-bottom p{ margin:0; font-size:12px; color:var(--ink3) }
+@media (max-width:860px){
+  .f-top{ grid-template-columns:1fr; gap:28px }
+}
+@media (max-width:560px){
+  .f-cols{ grid-template-columns:1fr 1fr; gap:20px }
+  .f-col:last-child{ grid-column:1 / -1 }
+  .f-bottom p:last-child{ display:none }
+}
 .linkish{
   background:none; border:none; color:var(--accent); font:inherit; cursor:pointer;
   padding:0; text-decoration:underline; text-underline-offset:2px;
