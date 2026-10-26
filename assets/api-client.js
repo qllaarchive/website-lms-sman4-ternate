@@ -2,25 +2,43 @@
    Jika API tersedia, data disinkronkan. Jika tidak, fallback ke localStorage. */
 (function(){
   "use strict";
-  var API_BASE = "http://localhost:3000/api";
-  var _cached = null;
+  var API_BASE = String(window.LMS_API_BASE || "http://localhost:3000/api").replace(/\/+$/, "");
+  var _probe = null;
+  var TIMEOUT = 6000;
 
   function apiFetch(path, opts) {
     opts = opts || {};
     opts.credentials = "include";
     opts.headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = null;
+    if (ctrl) {
+      opts.signal = ctrl.signal;
+      timer = setTimeout(function(){ ctrl.abort(); }, TIMEOUT);
+    }
     return fetch(API_BASE + path, opts)
-      .then(function(r){ return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
-      .catch(function(){ return { ok: false, data: null }; });
+      .then(function(r){
+        return r.text().then(function(txt){
+          var d = null;
+          try { d = JSON.parse(txt); } catch(e){}
+          return { ok: r.ok, status: r.status, data: d };
+        });
+      })
+      .catch(function(){ return { ok: false, status: 0, data: null }; })
+      .then(function(res){
+        if (timer) clearTimeout(timer);
+        return res;
+      });
   }
 
   window.LMS_API = {
     available: function(){
-      if (_cached !== null) return Promise.resolve(_cached);
-      return apiFetch("/health").then(function(r){
-        _cached = r.ok;
-        return _cached;
+      if (_probe) return _probe;
+      _probe = apiFetch("/lms?klass=X").then(function(r){
+        if (!r.ok) _probe = null;
+        return r.ok;
       });
+      return _probe;
     },
 
     /* Auth */
@@ -36,8 +54,12 @@
 
     /* LMS entries */
     getEntries: function(klass){
-      var q = klass ? "?klass=" + klass : "";
+      var q = klass ? "?klass=" + encodeURIComponent(klass) : "";
       return apiFetch("/lms" + q);
+    },
+    getAllEntries: function(klass){
+      var q = klass ? "?klass=" + encodeURIComponent(klass) : "";
+      return apiFetch("/lms/all" + q);
     },
     createEntry: function(entry){
       return apiFetch("/lms", { method: "POST", body: JSON.stringify(entry) });

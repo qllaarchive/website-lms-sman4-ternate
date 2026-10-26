@@ -1,5 +1,5 @@
 /* Service worker LMS — cache shell untuk mode terpasang / daring. */
-var CACHE = "lms-v8";
+var CACHE = "lms-v14";
 var ASSETS = [
   "index.html",
   "assets/portal.css",

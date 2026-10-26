@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
@@ -7,43 +8,56 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 const EntrySchema = z.object({
+  id: z.string().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/).optional(),
   klass: z.enum(["X", "XI", "XII"]),
   name: z.string().min(1).max(120),
   short: z.string().max(40).optional(),
   teacher: z.string().max(80).optional(),
   icon: z.string().max(40),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  file: z.string().url().refine(u => /^https:\/\//.test(u), "harus https"),
+  file: z.string().min(1).max(500),
   pub: z.boolean().optional(),
+  scriptId: z.string().max(200).optional(),
 });
 
-function requireAdmin(req, res, next) {
-  if (req.user?.role !== "admin") return res.status(403).json({ error: "forbidden" });
-  next();
-}
-
+/* GET /api/lms — publik, siapa saja boleh lihat daftar LMS */
 router.get("/", async (req, res) => {
+  const klass = req.query.klass;
+  const where = klass ? { klass, pub: true } : { pub: true };
+  const entries = await prisma.lmsEntry.findMany({ where, orderBy: { createdAt: "asc" } });
+  res.json({ entries });
+});
+
+/* GET /api/lms/all — admin only, termasuk yang tidak publik */
+router.get("/all", requireAuth, async (req, res) => {
   const klass = req.query.klass;
   const where = klass ? { klass } : {};
   const entries = await prisma.lmsEntry.findMany({ where, orderBy: { createdAt: "asc" } });
   res.json({ entries });
 });
 
-router.post("/", requireAuth, requireAdmin, async (req, res) => {
+/* POST /api/lms — admin only */
+router.post("/", requireAuth, async (req, res) => {
   const parsed = EntrySchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "invalid_input", details: parsed.error.flatten() });
-  const e = await prisma.lmsEntry.create({ data: parsed.data });
-  res.status(201).json({ entry: e });
+  if (!parsed.success) return res.status(400).json({ error: "invalid_input" });
+  const data = Object.assign({}, parsed.data, {
+    id: parsed.data.id || randomUUID(),
+    short: parsed.data.short || parsed.data.name.slice(0, 40),
+  });
+  const entry = await prisma.lmsEntry.create({ data });
+  res.status(201).json({ entry });
 });
 
-router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
+/* PUT /api/lms/:id — admin only */
+router.put("/:id", requireAuth, async (req, res) => {
   const parsed = EntrySchema.partial().safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "invalid_input", details: parsed.error.flatten() });
-  const e = await prisma.lmsEntry.update({ where: { id: req.params.id }, data: parsed.data });
-  res.json({ entry: e });
+  if (!parsed.success) return res.status(400).json({ error: "invalid_input" });
+  const entry = await prisma.lmsEntry.update({ where: { id: req.params.id }, data: parsed.data });
+  res.json({ entry });
 });
 
-router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
+/* DELETE /api/lms/:id — admin only */
+router.delete("/:id", requireAuth, async (req, res) => {
   await prisma.lmsEntry.delete({ where: { id: req.params.id } });
   res.json({ ok: true });
 });

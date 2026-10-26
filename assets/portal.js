@@ -28,6 +28,8 @@
   if($("ab-logout-ic")) $("ab-logout-ic").innerHTML = I("log-out");
   if($("pantau-csv-ic")) $("pantau-csv-ic").innerHTML = I("save");
   if($("pantau-drive-ic")) $("pantau-drive-ic").innerHTML = I("external-link");
+  if($("q-clear-ic")) $("q-clear-ic").innerHTML = I("x");
+  if($("to-top-ic")) $("to-top-ic").innerHTML = I("chevron-up");
   document.querySelectorAll(".sheet-wrap .x").forEach(function(b){
     if(!b.innerHTML) b.innerHTML = I("x");
   });
@@ -83,6 +85,82 @@
     try{ localStorage.setItem(PORTAL_KEY, JSON.stringify(store)); }catch(e){}
   }
 
+  /* ---------- sinkronisasi daftar LMS dari API ---------- */
+  function findLocalEntry(id){
+    for(var i = 0; i < CLASSES.length; i++){
+      var arr = store.entries[CLASSES[i]] || [];
+      for(var j = 0; j < arr.length; j++){
+        if(arr[j].id === id) return arr[j];
+      }
+    }
+    return null;
+  }
+  function fromServer(e){
+    if(!e || CLASSES.indexOf(e.klass) < 0) return null;
+    var local = findLocalEntry(e.id);
+    var r = null;
+    for(var i = 0; i < reg.length; i++){ if(reg[i].id === e.id){ r = reg[i]; break; } }
+    var slug = String(e.id).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-|-$/g, "") || "mapel";
+    return {
+      id: e.id,
+      name: e.name || "Tanpa nama",
+      short: e.short || e.name || "",
+      teacher: e.teacher || "",
+      icon: e.icon || "book",
+      color: e.color || "#0d9488",
+      lsKey: (local && local.lsKey) || (r && r.lsKey) || ("lms_" + slug + "_" + String(e.klass).toLowerCase() + "_v1"),
+      file: e.file || "#",
+      pub: e.pub !== false,
+      seed: !!r || !!(local && local.seed),
+      scriptId: e.scriptId || (r && r.scriptId) || "",
+      server: true
+    };
+  }
+  function applyServerEntries(list){
+    if(!Array.isArray(list)) return false;
+    var grouped = { X: [], XI: [], XII: [] };
+    list.forEach(function(e){
+      var rec = fromServer(e);
+      if(rec) grouped[e.klass].push(rec);
+    });
+    CLASSES.forEach(function(k){ store.entries[k] = grouped[k]; });
+    saveStore();
+    render(true);
+    stats();
+    syncKelolaUI();
+    return true;
+  }
+  function loadServerEntries(){
+    if(!apiAvailable || !window.LMS_API) return Promise.resolve(false);
+    var req = (window._apiUser && LMS_API.getAllEntries) ? LMS_API.getAllEntries() : LMS_API.getEntries();
+    return req.then(function(r){
+      if(!r || !r.ok || !r.data || !Array.isArray(r.data.entries)) return false;
+      return applyServerEntries(r.data.entries);
+    });
+  }
+
+  /* ---------- umpan balik sementara ---------- */
+  function toast(msg, kind){
+    var wrap = $("toasts");
+    if(!wrap) return;
+    if(wrap.children.length >= 3) wrap.removeChild(wrap.firstChild);
+    var t = document.createElement("div");
+    t.className = "toast" + (kind === "err" ? " is-err" : "");
+    var dot = document.createElement("span");
+    dot.className = "t-dot";
+    dot.setAttribute("aria-hidden", "true");
+    var txt = document.createElement("span");
+    txt.textContent = msg;
+    t.appendChild(dot);
+    t.appendChild(txt);
+    wrap.appendChild(t);
+    requestAnimationFrame(function(){ t.classList.add("is-in"); });
+    setTimeout(function(){
+      t.classList.remove("is-in");
+      setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 220);
+    }, 3200);
+  }
+
   /* ---------- kelas aktif ---------- */
   var klass = "X";
   try{
@@ -102,19 +180,29 @@
     try{ localStorage.setItem(CLASS_KEY, k); }catch(e){}
     syncClassUI();
     syncPhaseUI();
-    render();
+    render(true);
     stats();
   }
 
   /* ---------- auth (akun admin tetap; API jika tersedia) ---------- */
   var apiAvailable = false;
-  if(window.LMS_API) LMS_API.available().then(function(ok){ apiAvailable = ok; });
+  if(window.LMS_API){
+    LMS_API.available().then(function(ok){
+      apiAvailable = !!ok;
+      if(!apiAvailable) return;
+      return LMS_API.me().then(function(r){
+        if(r && r.ok && r.data && r.data.user) window._apiUser = r.data.user;
+        syncAuthUI();
+        return loadServerEntries();
+      });
+    }).then(function(){ syncAuthUI(); });
+  }
 
   var ADMIN_USER = "smanfourtte26@gmail.com";
   var ADMIN_PASS = "smanfour#4";
 
   function isAdmin(){
-    if(apiAvailable && window._apiUser) return true;
+    if(apiAvailable) return !!window._apiUser;
     return !!(store.session && store.session.user === ADMIN_USER && store.session.exp > Date.now());
   }
   function loginOK(user, pass){
@@ -127,7 +215,9 @@
   function endSession(){
     store.session = null;
     window._apiUser = null;
-    if(apiAvailable && window.LMS_API) LMS_API.logout();
+    if(apiAvailable && window.LMS_API){
+      LMS_API.logout().then(function(){ return loadServerEntries(); }).then(function(){ syncAuthUI(); });
+    }
     saveStore();
   }
 
@@ -148,6 +238,7 @@
   if(abLogout) abLogout.addEventListener("click", function(){
     endSession();
     syncAuthUI();
+    toast("Anda telah keluar dari mode admin.");
   });
   var abKelola = $("ab-kelola");
   if(abKelola) abKelola.addEventListener("click", function(){
@@ -163,32 +254,62 @@
   });
   var abBackup = $("ab-backup");
   if(abBackup) abBackup.addEventListener("click", function(){ openModal("modal-backup"); });
-  var fProfil = $("f-profil");
-  if(fProfil) fProfil.addEventListener("click", function(){
-    renderProfil();
-    openModal("modal-profil");
-  });
   var fYear = $("f-year");
   if(fYear) fYear.textContent = new Date().getFullYear();
   if(abDrive) abDrive.href = DRIVE;
 
   /* ---------- modals ---------- */
+  var finePointer = window.matchMedia ? window.matchMedia("(hover: hover) and (pointer: fine)").matches : true;
+  var lastFocus = null;
   function openModal(id){
     var m = $(id);
     if(!m) return;
+    lastFocus = document.activeElement;
     m.hidden = false;
-    var f = m.querySelector("input, button.btn.primary");
+    document.body.classList.add("modal-open");
+    var sheet = m.querySelector(".sheet");
+    if(sheet) sheet.setAttribute("tabindex", "-1");
+    var f = finePointer ? m.querySelector("input:not([type=hidden]), button.btn.primary") : null;
     if(f) try{ f.focus(); }catch(e){}
+    else if(sheet) try{ sheet.focus(); }catch(e){}
   }
   function closeModal(m){
-    if(m) m.hidden = true;
+    if(!m || m.hidden) return;
+    m.hidden = true;
+    document.body.classList.remove("modal-open");
+    var back = lastFocus;
+    lastFocus = null;
+    if(back && document.contains(back) && back.offsetParent !== null){
+      try{ back.focus(); return; }catch(e){}
+    }
+    var brand = document.querySelector(".brand");
+    if(brand) try{ brand.focus(); }catch(e){}
   }
+  document.addEventListener("keydown", function(ev){
+    var open = null;
+    document.querySelectorAll(".sheet-wrap").forEach(function(m){
+      if(!m.hidden && !open) open = m;
+    });
+    if(!open) return;
+    if(ev.key === "Escape"){ closeModal(open); return; }
+    if(ev.key !== "Tab") return;
+    var nodes = open.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    var list = [];
+    nodes.forEach(function(el){ if(el.getClientRects().length) list.push(el); });
+    if(!list.length){ ev.preventDefault(); return; }
+    var firstEl = list[0], lastEl = list[list.length - 1];
+    var active = document.activeElement;
+    if(list.indexOf(active) < 0){
+      ev.preventDefault();
+      (ev.shiftKey ? lastEl : firstEl).focus();
+      return;
+    }
+    if(ev.shiftKey && active === firstEl){ ev.preventDefault(); lastEl.focus(); }
+    else if(!ev.shiftKey && active === lastEl){ ev.preventDefault(); firstEl.focus(); }
+  });
   document.querySelectorAll(".sheet-wrap").forEach(function(m){
     m.addEventListener("click", function(ev){
       if(ev.target.closest("[data-close]")) closeModal(m);
-    });
-    m.addEventListener("keydown", function(ev){
-      if(ev.key === "Escape") closeModal(m);
     });
   });
 
@@ -211,8 +332,13 @@
     // Coba API dulu
     if(apiAvailable && window.LMS_API){
       LMS_API.login(u.toLowerCase(), p).then(function(r){
-        if(r.ok){ window._apiUser = r.data.user; closeModal($("modal-login")); syncAuthUI(); }
-        else fail("Email atau kata sandi salah.");
+        if(r.ok){
+          window._apiUser = r.data.user;
+          syncAuthUI();
+          closeModal($("modal-login"));
+          toast("Berhasil masuk. Selamat bekerja.");
+          loadServerEntries();
+        }else fail("Email atau kata sandi salah.");
       });
       return;
     }
@@ -220,9 +346,10 @@
     // Mode offline: akun admin tetap
     if(!loginOK(u, p)) return fail("Email atau kata sandi salah.");
     startSession();
-    closeModal($("modal-login"));
     if(loginForm.reset) loginForm.reset();
     syncAuthUI();
+    closeModal($("modal-login"));
+    toast("Berhasil masuk. Selamat bekerja.");
   });
 
   /* ---------- tema ---------- */
@@ -306,28 +433,27 @@
     if(isNaN(n)) return "rgba(0,0,0," + a + ")";
     return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
   }
-  function progOf(e){
+  function progInfo(e){
     try{
       var raw = localStorage.getItem(e.lsKey);
       if(!raw) return null;
       var d = JSON.parse(raw), s = d && d.sum;
       if(!s || typeof s.pct !== "number" || isNaN(s.pct)) return null;
-      return Math.max(0, Math.min(100, Math.round(s.pct)));
+      return {
+        pct: Math.max(0, Math.min(100, Math.round(s.pct))),
+        d: typeof s.d === "number" ? s.d : null,
+        t: typeof s.t === "number" ? s.t : null
+      };
     }catch(_){ return null; }
   }
-  function lastAt(e){
-    try{
-      var raw = localStorage.getItem(e.lsKey);
-      if(!raw) return 0;
-      var d = JSON.parse(raw);
-      return (d && d.at) || (d && d.sum && d.sum.at) || 0;
-    }catch(_){ return 0; }
+  function progOf(e){
+    var info = progInfo(e);
+    return info ? info.pct : null;
   }
 
   function entries(){ return store.entries[klass] || []; }
 
-  function card(e, i){
-    var ext = /^https?:\/\//i.test(e.file || "");
+  function entryHref(e){
     var href = e.file || "#";
     if(e.scriptId){
       var hi = href.indexOf("#");
@@ -336,6 +462,11 @@
       href += (href.indexOf("?") >= 0 ? "&" : "?") + "gs=" + encodeURIComponent(e.scriptId);
       href += hash;
     }
+    return href;
+  }
+  function card(e, i){
+    var ext = /^https?:\/\//i.test(e.file || "");
+    var href = entryHref(e);
     var name = String(e.name || "Tanpa nama");
     return '<a class="card" href="' + href + '" data-id="' + esc(e.id) + '" style="--c:' + esc(e.color || "#0d9488") + ';--i:' + i + '"' +
       (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>' +
@@ -351,16 +482,41 @@
   }
 
   var first = true;
-  function render(){
+  var qClear = $("q-clear"), searchMeta = $("search-meta"), emptyReset = $("empty-reset");
+  var metaTimer = null;
+  function syncSearchUI(count, term){
+    if(qClear) qClear.hidden = !term;
+    if(emptyReset) emptyReset.hidden = !term;
+    if(!searchMeta) return;
+    clearTimeout(metaTimer);
+    if(!term){
+      searchMeta.hidden = true;
+      searchMeta.textContent = "";
+      return;
+    }
+    metaTimer = setTimeout(function(){
+      if(!q) return;
+      var live = q.value.trim();
+      if(!live) return;
+      searchMeta.hidden = count === 0;
+      if(count) searchMeta.textContent = count + " hasil untuk “" + live + "”";
+    }, 220);
+  }
+  function render(animate){
     var term = (q && q.value || "").trim().toLowerCase();
     var list = entries().filter(function(e){
       if(e.pub === false) return false;
       return !term || (String(e.name || "") + " " + String(e.short || "") + " " + String(e.id || "")).toLowerCase().indexOf(term) >= 0;
     });
     if(grid){
+      grid.classList.remove("is-swap");
       grid.innerHTML = list.map(card).join("");
       if(!first) grid.classList.remove("is-first");
       first = false;
+      if(animate && !reduce){
+        void grid.offsetWidth;
+        grid.classList.add("is-swap");
+      }
     }
     if(empty) empty.hidden = list.length > 0;
     if(emptyText){
@@ -368,6 +524,13 @@
       else if(klass === "X") emptyText.textContent = "Belum ada mapel terbit untuk kelas ini.";
       else emptyText.textContent = "Belum ada mapel terbit untuk Kelas " + klass + ".";
     }
+    syncSearchUI(list.length, term);
+  }
+  function clearSearch(focus){
+    if(!q) return;
+    q.value = "";
+    render();
+    if(focus) try{ q.focus(); }catch(e){}
   }
   if(grid) grid.addEventListener("click", function(ev){
     var a = ev.target.closest(".card[data-id]");
@@ -376,6 +539,26 @@
     setTimeout(stats, 350);
   });
   if(q) q.addEventListener("input", render);
+  if(qClear) qClear.addEventListener("click", function(){ clearSearch(true); });
+  if(emptyReset) emptyReset.addEventListener("click", function(){ clearSearch(true); });
+  if(q) q.addEventListener("keydown", function(ev){
+    if(ev.key !== "Escape") return;
+    if(q.value){
+      clearSearch(true);
+      ev.preventDefault();
+    }else{
+      q.blur();
+    }
+  });
+  document.addEventListener("keydown", function(ev){
+    if(ev.key !== "/" || ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    var t = ev.target;
+    if(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+    if(document.querySelector(".sheet-wrap:not([hidden])")) return;
+    if(!q) return;
+    ev.preventDefault();
+    q.focus();
+  });
 
   /* ---------- stat ---------- */
   function countUp(el, target, suffix){
@@ -500,11 +683,20 @@
     if(isNaN(i) || !arr[i]) return;
     if(b.dataset.act === "del"){
       if(!confirm("Hapus " + (arr[i].name || "entri ini") + " dari daftar kelas " + kelolaClass + "?")) return;
+      var removed = arr[i];
       arr.splice(i, 1);
       saveStore();
       syncKelolaUI();
       render();
       stats();
+      var delMsg = "LMS dihapus dari daftar.";
+      if(apiAvailable && window.LMS_API && removed.server){
+        LMS_API.deleteEntry(removed.id).then(function(r){
+          toast(r && r.ok ? delMsg : "Terhapus di perangkat, tetapi gagal di server.", r && r.ok ? "" : "err");
+        });
+      }else{
+        toast(delMsg);
+      }
       return;
     }
     if(b.dataset.act === "edit"){
@@ -567,16 +759,39 @@
       rec.color = color;
       rec.pub = pub;
       rec.scriptId = scriptId;
+      rec.server = !!same.server;
       arr[arr.indexOf(same)] = rec;
     }else{
       arr.push(rec);
     }
     saveStore();
 
-    if(apiAvailable && window.LMS_API){
-      var apiPayload = { klass: kelolaClass, name: name, short: short || name, teacher: teacher, icon: icon, color: color, file: url, pub: pub };
-      if(same) LMS_API.updateEntry(same.id || rec.id, apiPayload);
-      else LMS_API.createEntry(apiPayload);
+    var msg = same ? "Perubahan LMS disimpan." : "LMS baru ditambahkan.";
+    var apiOn = apiAvailable && window.LMS_API;
+    if(apiOn){
+      var apiPayload = { klass: kelolaClass, name: name, short: short || name, teacher: teacher, icon: icon, color: color, file: url, pub: pub, scriptId: scriptId };
+      var apiReq;
+      if(same && same.server){
+        apiReq = LMS_API.updateEntry(same.id, apiPayload);
+      }else{
+        apiPayload.id = rec.id;
+        apiReq = LMS_API.createEntry(apiPayload);
+      }
+      apiReq.then(function(r){
+        if(r && r.ok && r.data && r.data.entry){
+          rec.id = r.data.entry.id || rec.id;
+          rec.server = true;
+          saveStore();
+          syncKelolaUI();
+          render();
+          stats();
+          toast(msg);
+        }else{
+          toast("Tersimpan di perangkat, tetapi gagal sinkron ke server.", "err");
+        }
+      });
+    }else{
+      toast(msg);
     }
 
     resetKForm();
@@ -623,62 +838,83 @@
   function pantauClasses(){
     return pantauFilter === "all" ? CLASSES : [pantauFilter];
   }
-  function pantauStats(keys){
-    var total = 0, open = 0, sum = 0, done = 0, none = 0;
+  function pantauRows(keys){
+    var rows = [];
     keys.forEach(function(k){
       (store.entries[k] || []).forEach(function(e){
-        total++;
-        var pct = progOf(e);
-        if(pct === null){ none++; return; }
-        open++; sum += pct;
-        if(pct >= 100) done++;
+        rows.push({ klass: k, entry: e, info: progInfo(e) });
       });
     });
+    return rows;
+  }
+  function pantauStats(rows){
+    var open = 0, sum = 0, done = 0, modules = 0;
+    rows.forEach(function(r){
+      if(!r.info) return;
+      open++;
+      sum += r.info.pct;
+      if(r.info.pct >= 100) done++;
+      if(r.info.d) modules += r.info.d;
+    });
     return {
-      total: total, open: open, done: done, none: none,
-      active: open - done,
+      total: rows.length, open: open, done: done, modules: modules,
       avg: open ? Math.round(sum / open) : null
     };
   }
-  function pctPill(pct){
-    if(pct === null) return '<span class="pill none">Belum dibuka</span>';
-    if(pct >= 100) return '<span class="pill done">Selesai</span>';
-    return '<span class="pill active">Aktif</span>';
-  }
-  function fmtDate(at){
-    if(!at) return "—";
-    try{
-      return new Date(at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
-    }catch(e){ return "—"; }
-  }
-  function fmtDateTime(at){
-    if(!at) return "—";
-    try{
-      return new Date(at).toLocaleString("id-ID", {
-        day: "numeric", month: "short", year: "numeric",
-        hour: "2-digit", minute: "2-digit"
+  function pantauFocus(rows){
+    var active = [], fresh = [];
+    rows.forEach(function(r){
+      if(!r.info) fresh.push(r);
+      else if(r.info.pct < 100) active.push(r);
+    });
+    if(active.length){
+      active.sort(function(a, b){
+        return b.info.pct - a.info.pct || (b.info.d || 0) - (a.info.d || 0);
       });
-    }catch(e){ return fmtDate(at); }
+      return { row: active[0], label: active[0].info.pct > 0 ? "Lanjutkan" : "Mulai" };
+    }
+    if(fresh.length) return { row: fresh[0], label: "Mulai" };
+    return null;
   }
-
-  function plItem(color, lbl, n, pct){
-    return '<div class="pl">' +
-      '<span class="pl-top"><span class="pl-dot" style="--c:' + color + '"></span>' +
-      '<span class="pl-lbl">' + lbl + "</span></span>" +
-      "<b>" + n + "</b><small>" + pct + "% dari total</small></div>";
+  function moduleLabel(info){
+    if(!info) return "0 modul";
+    var d = info.d == null ? 0 : info.d;
+    if(info.t) return d + " dari " + info.t + " modul";
+    return "progres " + info.pct + "%";
   }
 
   function renderPantau(){
     var sumEl = $("pantau-summary");
     var body = $("pantau-body");
     var keys = pantauClasses();
-    var s = pantauStats(keys);
+    var rows = pantauRows(keys);
+    var s = pantauStats(rows);
     var scope = pantauFilter === "all" ? "Semua kelas" : "Kelas " + pantauFilter;
-    var share = function(n){ return s.total ? Math.round(n / s.total * 100) : 0; };
     if(sumEl){
       var avg = s.avg === null ? 0 : s.avg;
+      var focus = pantauFocus(rows);
+      var focusHTML = "";
+      if(focus){
+        var fe = focus.row.entry;
+        var ext = /^https?:\/\//i.test(fe.file || "");
+        focusHTML = '<a class="p-next" href="' + esc(entryHref(fe)) + '" style="--c:' + esc(fe.color || "#0d9488") + '"' +
+          (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>' +
+          '<span class="p-next-tile" aria-hidden="true">' + I(fe.icon || "book") + "</span>" +
+          '<span class="p-next-txt"><span class="p-kicker">Fokus belajar</span>' +
+          "<b>" + esc(fe.name || "Tanpa nama") + "</b><small>" + moduleLabel(focus.row.info) + "</small></span>" +
+          '<span class="p-next-go">' + focus.label + I(ext ? "external-link" : "chevron-right") + "</span></a>";
+      }else if(!s.total){
+        focusHTML = '<div class="p-next is-done"><span class="p-next-tile" aria-hidden="true">' + I("flag") + "</span>" +
+          '<span class="p-next-txt"><span class="p-kicker">Fokus belajar</span>' +
+          "<b>Belum ada LMS</b><small>Tambahkan LMS untuk mulai memantau.</small></span></div>";
+      }else{
+        focusHTML = '<div class="p-next is-done"><span class="p-next-tile" aria-hidden="true">' + I("check-circle") + "</span>" +
+          '<span class="p-next-txt"><span class="p-kicker">Fokus belajar</span>' +
+          "<b>Semua sudah tuntas</b><small>Tidak ada yang tertinggal. Kerja bagus.</small></span></div>";
+      }
       sumEl.innerHTML =
-        '<div class="p-ring" style="--p:' + (avg / 100) + '">' +
+        '<div class="p-ring" style="--p:' + (avg / 100) + '" role="img" aria-label="Rata-rata progres ' +
+          (s.avg === null ? "belum ada" : s.avg + " persen") + '">' +
           '<svg viewBox="0 0 100 100" aria-hidden="true">' +
             '<circle class="pr-track" cx="50" cy="50" r="42"></circle>' +
             '<circle class="pr-val" cx="50" cy="50" r="42"></circle>' +
@@ -686,16 +922,21 @@
           '<span class="p-ring-mid"><b>' + (s.avg === null ? "—" : s.avg + "%") + "</b><small>rerata</small></span>" +
         "</div>" +
         '<div class="p-hero-side">' +
-          '<p class="p-hero-cap"><b>' + scope + "</b> · " + s.open + " dari " + s.total + " LMS dibuka</p>" +
-          '<div class="p-legend">' +
-            plItem("var(--good)", "Selesai", s.done, share(s.done)) +
-            plItem("var(--accent)", "Aktif", s.active, share(s.active)) +
-            plItem("var(--ink3)", "Belum dibuka", s.none, share(s.none)) +
+          '<p class="p-kicker">' + scope + " · " + s.total + " LMS</p>" +
+          '<div class="p-metrics">' +
+            '<div class="p-metric"><b>' + s.modules + '</b><span>modul tuntas</span></div>' +
+            '<div class="p-metric"><b>' + s.open + '<i>/' + s.total + '</i></b><span>LMS dibuka</span></div>' +
           "</div>" +
-        "</div>";
+        "</div>" +
+        focusHTML;
+      var ringVal = sumEl.querySelector(".p-ring-mid b");
+      if(ringVal){
+        if(s.avg === null) ringVal.textContent = "—";
+        else countUp(ringVal, s.avg, "%");
+      }
     }
     if(!body) return;
-    if(!s.total){
+    if(!rows.length){
       body.innerHTML = '<p class="p-empty">Belum ada LMS terbit untuk filter ini.</p>';
       return;
     }
@@ -707,47 +948,42 @@
           '<p class="p-empty">Belum ada LMS terbit.</p></div>';
         return;
       }
-      html += '<div class="p-section"><h3>Kelas ' + k + ' <span class="cnt">' + list.length + "</span></h3>";
-      html += '<table class="p-table"><thead><tr>' +
-        "<th>Mata Pelajaran</th><th>Progres</th><th>Status</th>" +
-        "<th class=\"th-when\">Terakhir dibuka</th><th></th>" +
-        "</tr></thead><tbody>";
-      list.forEach(function(e){
-        var pct = progOf(e);
-        var at = lastAt(e);
-        var col = esc(e.color || "#0d9488");
-        html += "<tr>" +
-          '<td class="p-subj"><span class="p-subj-in">' +
-            '<span class="p-dot" style="background:' + col + '"></span>' +
-            '<span class="p-subj-txt"><b>' + esc(e.name || "—") + "</b>" +
-            (e.teacher ? "<small>" + esc(e.teacher) + "</small>" : "") +
-            "</span></span></td>" +
-          '<td class="p-prog"><span class="p-prog-row">' +
-            '<span class="prog"><span class="bar" style="--c:' + col + ";--p:" + ((pct || 0) / 100) + '"></span></span>' +
-            '<span class="p-pct">' + (pct === null ? 0 : pct) + "%</span>" +
-          "</span></td>" +
-          '<td class="p-status">' + pctPill(pct) + "</td>" +
-          '<td class="p-when">' + fmtDateTime(at) + "</td>" +
-          '<td class="p-open"><a href="' + esc(e.file || "#") + '" target="_blank" rel="noopener noreferrer">Buka ' + I("external-link") + "</a></td>" +
-          "</tr>";
+      html += '<div class="p-section"><h3>Kelas ' + k + ' <span class="cnt">' + list.length + '</span></h3><div class="p-list">';
+      list.forEach(function(e, i){
+        var info = progInfo(e);
+        var ext = /^https?:\/\//i.test(e.file || "");
+        var d = info && info.d != null ? info.d : 0;
+        var t = info && info.t != null ? info.t : 0;
+        html += '<a class="p-item" href="' + esc(entryHref(e)) + '" style="--c:' + esc(e.color || "#0d9488") +
+          ";--p:" + (info ? info.pct / 100 : 0) + ";--i:" + i + '"' +
+          (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>' +
+          '<span class="p-item-tile" aria-hidden="true">' + I(e.icon || "book") + "</span>" +
+          '<span class="p-item-main">' +
+            '<span class="p-item-name">' + esc(e.name || "—") + "</span>" +
+            (e.teacher ? '<span class="p-item-sub">' + esc(e.teacher) + "</span>" : "") +
+            '<span class="p-item-bar" aria-hidden="true"><i></i></span>' +
+          "</span>" +
+          '<span class="p-item-score"><b>' + (info ? info.pct + "%" : "—") + "</b><small>" +
+            (info ? (t ? d + "/" + t : "—") : "0 modul") + "</small></span>" +
+          '<span class="p-item-go" aria-hidden="true">' + I(ext ? "external-link" : "chevron-right") + "</span>" +
+        "</a>";
       });
-      html += "</tbody></table></div>";
+      html += "</div></div>";
     });
     body.innerHTML = html;
   }
   var pantauCsv = $("pantau-csv");
   if(pantauCsv) pantauCsv.addEventListener("click", function(){
     var keys = pantauClasses();
-    var rows = [["Kelas","Mapel","Guru","Tautan","Progres (%)","Status","Terakhir dibuka"]];
+    var rows = [["Kelas","Mapel","Guru","Tautan","Modul selesai","Total modul","Progres (%)"]];
     keys.forEach(function(k){
       (store.entries[k] || []).forEach(function(e){
-        var pct = progOf(e);
-        var at = lastAt(e);
+        var info = progInfo(e);
         rows.push([
           k, e.name || "", e.teacher || "", e.file || "",
-          pct === null ? 0 : pct,
-          pct === null ? "Belum dibuka" : (pct >= 100 ? "Selesai" : "Aktif"),
-          at ? new Date(at).toISOString().slice(0, 10) : ""
+          info && info.d != null ? info.d : 0,
+          info && info.t != null ? info.t : 0,
+          info ? info.pct : 0
         ]);
       });
     });
@@ -756,6 +992,7 @@
     }).join("\n");
     var suffix = pantauFilter === "all" ? "semua-kelas" : "kelas-" + pantauFilter.toLowerCase();
     downloadBlob("pantau-progres-" + suffix + ".csv", csv, "text/csv;charset=utf-8");
+    toast("CSV progres diunduh.");
   });
 
   function downloadBlob(filename, text, mime){
@@ -814,6 +1051,7 @@
   if(backupExport) backupExport.addEventListener("click", function(){
     downloadBlob("lms-backup-" + new Date().toISOString().slice(0, 10) + ".json",
       JSON.stringify(store, null, 2), "application/json");
+    toast("File backup diunduh.");
   });
   var backupImport = $("backup-import");
   if(backupImport) backupImport.addEventListener("change", function(){
@@ -833,13 +1071,38 @@
         syncClassUI();
         render();
         stats();
-        alert("Data berhasil dipulihkan.");
+        toast("Data berhasil dipulihkan.");
       }catch(e){
-        alert("File tidak valid. Pilih file JSON hasil unduhan dari LMS ini.");
+        toast("File tidak valid. Pilih file JSON hasil unduhan dari LMS ini.", "err");
       }
       backupImport.value = "";
     };
     r.readAsText(f);
+  });
+
+  /* ---------- gulir: bayangan header + kembali ke atas ---------- */
+  var navEl = document.querySelector(".nav");
+  var toTop = $("to-top");
+  var toTopOn = false;
+  function syncScrollUI(){
+    var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+    if(navEl) navEl.classList.toggle("is-scrolled", y > 6);
+    if(!toTop) return;
+    var on = y > 520;
+    if(on === toTopOn) return;
+    toTopOn = on;
+    toTop.classList.toggle("is-on", on);
+    toTop.setAttribute("aria-hidden", on ? "false" : "true");
+    toTop.tabIndex = on ? 0 : -1;
+  }
+  var scrollTick = false;
+  window.addEventListener("scroll", function(){
+    if(scrollTick) return;
+    scrollTick = true;
+    requestAnimationFrame(function(){ scrollTick = false; syncScrollUI(); });
+  }, { passive: true });
+  if(toTop) toTop.addEventListener("click", function(){
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   });
 
   /* ---------- init ---------- */
@@ -857,4 +1120,5 @@
   syncKelolaUI();
   stats();
   render();
+  syncScrollUI();
 })();

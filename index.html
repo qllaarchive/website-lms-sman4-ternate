@@ -75,13 +75,16 @@
 
   <div class="search">
     <span class="s-ic" id="s-ic" aria-hidden="true"></span>
-    <input id="q" type="search" placeholder="Cari mata pelajaran…" aria-label="Cari mata pelajaran" autocomplete="off" spellcheck="false">
+    <input id="q" type="search" placeholder="Cari mata pelajaran…" aria-label="Cari mata pelajaran" aria-keyshortcuts="/" autocomplete="off" spellcheck="false">
+    <button type="button" class="q-clear" id="q-clear" aria-label="Hapus pencarian" hidden><span id="q-clear-ic" aria-hidden="true"></span></button>
   </div>
+  <p class="search-meta" id="search-meta" aria-live="polite" hidden></p>
 
   <section class="cards is-first" id="grid" aria-label="Daftar LMS"></section>
   <p class="empty" id="empty" hidden>
     <span class="e-ic" id="e-ic" aria-hidden="true"></span>
     <span id="empty-text"></span>
+    <button type="button" class="btn ghost empty-reset" id="empty-reset" hidden>Hapus pencarian</button>
   </p>
 </main>
 
@@ -95,31 +98,25 @@
           <small>Learning Management System</small>
         </span>
       </div>
-      <p class="f-desc">Portal LMS SMA Negeri 4 Ternate adalah pusat pembelajaran digital sekolah untuk Kelas X&ndash;XII. Setiap mata pelajaran memiliki halaman mandiri berisi materi dan e-book, asesmen diagnostik&ndash;formatif&ndash;sumatif, gim edukatif, lab maya, forum diskusi, serta jurnal refleksi. Progres belajar tersimpan otomatis di perangkat, dan portal dapat dipasang di layar utama.</p>
+      <p class="f-desc">Portal LMS SMA Negeri 4 Ternate adalah rumah belajar digital siswa Kelas X&ndash;XII. Pilih kelas dan mata pelajaran, lalu buka materi, e-book, asesmen, gim edukatif, serta lab maya dalam satu tempat. Progres belajar tersimpan otomatis di perangkat.</p>
     </div>
     <div class="f-cols">
       <div class="f-col">
-        <h3>Di Dalam Portal</h3>
+        <h3>Untuk Siswa</h3>
         <ul>
-          <li>16 mata pelajaran Kelas X&ndash;XII</li>
+          <li>Pilih kelas &amp; mata pelajaran</li>
           <li>Materi, e-book &amp; pustaka</li>
           <li>Asesmen diagnostik sampai sumatif</li>
           <li>Gim edukatif &amp; lab maya</li>
         </ul>
       </div>
       <div class="f-col">
-        <h3>Kemudahan Akses</h3>
+        <h3>Progres &amp; Akses</h3>
         <ul>
           <li>Progres tersimpan di perangkat</li>
           <li>Dapat dipasang di layar utama</li>
-          <li>Fase E (X) &amp; Fase F (XI&ndash;XII)</li>
-        </ul>
-      </div>
-      <div class="f-col">
-        <h3>Tautan</h3>
-        <ul class="f-links">
-          <li><button type="button" class="linkish" id="f-profil">Profil Sekolah &amp; PPDB</button></li>
-          <li><a class="linkish" id="f-drive" href="https://drive.google.com/drive/folders/1Bs190ZCurEjyAfIUVcZ3u91eh6r3J_FA" target="_blank" rel="noopener noreferrer">Drive Guru</a></li>
+          <li>16 mata pelajaran <span class="nw">Kelas X&ndash;XII</span></li>
+          <li>Fase E (X) &amp; <span class="nw">Fase F (XI&ndash;XII)</span></li>
         </ul>
       </div>
     </div>
@@ -137,7 +134,7 @@
     <div class="sheet-head">
       <div>
         <h2 id="login-title">Masuk Admin</h2>
-        <p class="sheet-sub" id="login-sub">Akun untuk kepala sekolah &amp; admin sekolah.</p>
+        <p class="sheet-sub" id="login-sub">Masuk untuk mengakses halaman admin. Silakan hubungi operator untuk mendapatkan akses akun.</p>
       </div>
       <button type="button" class="x" data-close aria-label="Tutup"></button>
     </div>
@@ -154,7 +151,6 @@
         <button type="submit" class="btn primary" id="login-submit">Masuk</button>
       </div>
     </form>
-    <p class="sheet-note" id="login-note">Akun admin tetap sekolah — tidak ada pendaftaran akun baru.</p>
   </div>
 </div>
 
@@ -229,7 +225,7 @@
     <div class="sheet-head">
       <div>
         <h2 id="pantau-title">Pantau Progres</h2>
-        <p class="sheet-sub">Kemajuan belajar per mata pelajaran dari perangkat ini.</p>
+        <p class="sheet-sub">Ringkasan belajar dan langkah berikutnya dari perangkat ini.</p>
       </div>
       <button type="button" class="x" data-close aria-label="Tutup"></button>
     </div>
@@ -291,8 +287,12 @@
   </div>
 </div>
 
+<button type="button" class="to-top" id="to-top" aria-label="Kembali ke atas" aria-hidden="true" tabindex="-1"><span id="to-top-ic" aria-hidden="true"></span></button>
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
 <script src="assets/icons.js"></script>
 <script src="data/registry.js"></script>
+<script src="config.js"></script>
 <script src="assets/api-client.js"></script>
 <script src="assets/portal.js"></script>
 </body>
