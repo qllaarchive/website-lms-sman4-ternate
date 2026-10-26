@@ -100,7 +100,7 @@
   </div>
 </footer>
 
-<!-- Masuk / buat akun admin -->
+<!-- Masuk admin -->
 <div class="sheet-wrap" id="modal-login" hidden>
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="login-title">
@@ -112,14 +112,11 @@
       <button type="button" class="x" data-close aria-label="Tutup"></button>
     </div>
     <form id="login-form">
-      <label>Nama pengguna
-        <input id="login-user" autocomplete="username" required>
+      <label>Email
+        <input id="login-user" type="email" autocomplete="username" required>
       </label>
       <label>Kata sandi
         <input id="login-pass" type="password" autocomplete="current-password" required>
-      </label>
-      <label id="login-pass2-wrap" hidden>Konfirmasi kata sandi
-        <input id="login-pass2" type="password" autocomplete="new-password">
       </label>
       <p class="form-err" id="login-err" hidden></p>
       <div class="sheet-actions">
@@ -127,7 +124,7 @@
         <button type="submit" class="btn primary" id="login-submit">Masuk</button>
       </div>
     </form>
-    <p class="sheet-note" id="login-note">Pemantauan progres daring memakai Spreadsheet Guru di Google Drive. Akun ini disimpan di perangkat ini.</p>
+    <p class="sheet-note" id="login-note">Akun admin tetap sekolah — tidak ada pendaftaran akun baru.</p>
   </div>
 </div>
 

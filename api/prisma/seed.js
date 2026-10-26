@@ -14,7 +14,7 @@ const LMS_ENTRIES = [
   { id:"geografi",         klass:"X", name:"Geografi",         short:"Geografi",    icon:"globe",      color:"#c2255c", file:"geografi.html",         pub:true },
   { id:"kimia",            klass:"X", name:"Kimia",            short:"Kimia",       icon:"flask",      color:"#d6336c", file:"kimia.html",            pub:true },
   { id:"kka",              klass:"X", name:"KKA",              short:"KKA",         icon:"laptop",     color:"#1098ad", file:"kka.html",              pub:true },
-  { id:"pendais",          klass:"X", name:"PENDAIS",          short:"PENDAIS",     icon:"book",       color:"#862e9c", file:"pendais.html",          pub:true },
+  { id:"pendais",          klass:"X", name:"Pendidikan Agama Islam", short:"PAI",  icon:"book",       color:"#0f766e", file:"pendais.html",          pub:true },
   { id:"pjok",             klass:"X", name:"PJOK",             short:"PJOK",        icon:"activity",   color:"#f76707", file:"pjok.html",             pub:true },
   { id:"pkn",              klass:"X", name:"PKN",              short:"PKN",         icon:"landmark",   color:"#495057", file:"pkn.html",              pub:true },
   { id:"prakarya",         klass:"X", name:"Prakarya",         short:"Prakarya",    icon:"wrench",     color:"#9c6644", file:"prakarya.html",         pub:true },
@@ -24,15 +24,19 @@ const LMS_ENTRIES = [
 ];
 
 async function main() {
-  const username = process.env.ADMIN_USER || "admin";
-  const password = process.env.ADMIN_PASS || "Admin123!";
+  /* Akun admin tetap — tidak ada pendaftaran akun publik. */
+  const username = process.env.ADMIN_USER || "smanfourtte26@gmail.com";
+  const password = process.env.ADMIN_PASS || "smanfour#4";
+  const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
 
-  const exists = await prisma.user.findUnique({ where: { username } });
-  if (!exists) {
-    const hash = await argon2.hash(password, { type: argon2.argon2id });
-    await prisma.user.create({ data: { username, passwordHash: hash } });
-    console.log(`Admin "${username}" dibuat.`);
-  }
+  await prisma.user.upsert({
+    where: { username },
+    update: { passwordHash },
+    create: { username, passwordHash },
+  });
+  const others = await prisma.user.deleteMany({ where: { username: { not: username } } });
+  if (others.count) console.log(`${others.count} akun lama dihapus — hanya akun admin tetap yang berlaku.`);
+  console.log(`Akun admin tetap: "${username}"`);
 
   const count = await prisma.lmsEntry.count();
   if (count === 0) {

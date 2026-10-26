@@ -35,7 +35,7 @@ Portal pembelajaran digital **SMA Negeri 4 Ternate** — kumpulan LMS mata pelaj
 | Pemilih kelas | Kelas X (Fase E), XI & XII (Fase F) — konten & progres terpisah per kelas |
 | Tema tampilan | Terang / Gelap / Ikuti perangkat, tersimpan lokal, tanpa kedip saat muat |
 | Pencarian | Filter daftar mapel secara instan |
-| Admin | Login ber-salt + sesi 12 jam, tanpa cookie (aman untuk file:// & statis) |
+| Admin | Akun admin tetap sekolah (email + sandi, tanpa pendaftaran akun), sesi 12 jam; mode API memakai cookie JWT |
 | Kelola LMS | Tambah/ubah/hapus tautan LMS per kelas (nama, guru, warna, ikon, publikasi) |
 | Pantau Progres | Ringkasan rata-rata + distribusi Selesai/Aktif/Belum dibuka, tabel per mapel, filter kelas, ekspor CSV & tautan Spreadsheet Guru |
 | Cadangan data | Ekspor/impor JSON (daftar LMS, akun, progres) |

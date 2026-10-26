@@ -27,9 +27,6 @@
     login: function(username, password){
       return apiFetch("/auth/login", { method: "POST", body: JSON.stringify({ username: username, password: password }) });
     },
-    register: function(username, password){
-      return apiFetch("/auth/register", { method: "POST", body: JSON.stringify({ username: username, password: password }) });
-    },
     logout: function(){
       return apiFetch("/auth/logout", { method: "POST" });
     },

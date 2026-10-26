@@ -109,32 +109,22 @@
     stats();
   }
 
-  /* ---------- auth (hybrid: API jika tersedia, fallback ke localStorage) ---------- */
+  /* ---------- auth (akun admin tetap; API jika tersedia) ---------- */
   var apiAvailable = false;
   if(window.LMS_API) LMS_API.available().then(function(ok){ apiAvailable = ok; });
 
-  function hash(pw, salt){
-    var s = String(pw || ""), out = 0;
-    var seed = String(salt || "") + "::" + s;
-    for(var i = 0; i < seed.length; i++){
-      out = (out * 131 + seed.charCodeAt(i)) >>> 0;
-    }
-    return "h" + out.toString(16);
-  }
-  function makeSalt(){
-    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
-  }
+  var ADMIN_USER = "smanfourtte26@gmail.com";
+  var ADMIN_PASS = "smanfour#4";
+
   function isAdmin(){
     if(apiAvailable && window._apiUser) return true;
-    return !!(store.admin && store.session && store.session.exp > Date.now());
+    return !!(store.session && store.session.user === ADMIN_USER && store.session.exp > Date.now());
   }
   function loginOK(user, pass){
-    if(!store.admin) return false;
-    if(String(user) !== store.admin.user) return false;
-    return hash(pass, store.admin.salt) === store.admin.hash;
+    return String(user || "").trim().toLowerCase() === ADMIN_USER && String(pass || "") === ADMIN_PASS;
   }
   function startSession(){
-    store.session = { user: store.admin.user, exp: Date.now() + SESSION_MS };
+    store.session = { user: ADMIN_USER, exp: Date.now() + SESSION_MS };
     saveStore();
   }
   function endSession(){
@@ -213,62 +203,33 @@
     });
   });
 
-  /* ---------- form masuk / buat akun ---------- */
+  /* ---------- form masuk admin ---------- */
   var loginForm = $("login-form"), loginErr = $("login-err");
-  var loginPass2Wrap = $("login-pass2-wrap"), loginTitle = $("login-title"), loginSub = $("login-sub");
-  var loginSubmit = $("login-submit");
   function syncLoginUI(){
-    var first = !store.admin;
-    if(loginTitle) loginTitle.textContent = first ? "Buat Admin" : "Masuk Admin";
-    if(loginSub) loginSub.textContent = first
-      ? "Pertama kali — buat akun untuk kepala sekolah & admin."
-      : "Akun untuk kepala sekolah & admin sekolah.";
-    if(loginPass2Wrap) loginPass2Wrap.hidden = !first;
-    if(loginSubmit) loginSubmit.textContent = first ? "Buat Akun" : "Masuk";
     if(loginErr) loginErr.hidden = true;
   }
   if(loginForm) loginForm.addEventListener("submit", function(ev){
     ev.preventDefault();
     var u = ($("login-user") && $("login-user").value || "").trim();
     var p = $("login-pass") && $("login-pass").value || "";
-    var p2 = $("login-pass2") && $("login-pass2").value || "";
     function fail(msg){
       if(!loginErr) return;
       loginErr.textContent = msg;
       loginErr.hidden = false;
     }
-    if(!u || !p) return fail("Isi nama pengguna dan kata sandi.");
+    if(!u || !p) return fail("Isi email dan kata sandi.");
 
     // Coba API dulu
     if(apiAvailable && window.LMS_API){
-      if(!store.admin){
-        LMS_API.register(u, p).then(function(r){
-          if(r.ok){ window._apiUser = r.data.user; closeModal($("modal-login")); syncAuthUI(); }
-          else fail(r.data && r.data.error === "username_taken" ? "Username sudah dipakai." : "Gagal membuat akun.");
-        });
-        return;
-      }
-      LMS_API.login(u, p).then(function(r){
+      LMS_API.login(u.toLowerCase(), p).then(function(r){
         if(r.ok){ window._apiUser = r.data.user; closeModal($("modal-login")); syncAuthUI(); }
-        else fail("Username atau kata sandi salah.");
+        else fail("Email atau kata sandi salah.");
       });
       return;
     }
 
-    // Fallback localStorage
-    if(!store.admin){
-      if(p.length < 4) return fail("Kata sandi minimal 4 karakter.");
-      if(p !== p2) return fail("Konfirmasi kata sandi tidak sama.");
-      var salt = makeSalt();
-      store.admin = { user: u, salt: salt, hash: hash(p, salt) };
-      startSession();
-      saveStore();
-      closeModal($("modal-login"));
-      if(loginForm.reset) loginForm.reset();
-      syncAuthUI();
-      return;
-    }
-    if(!loginOK(u, p)) return fail("Nama pengguna atau kata sandi salah.");
+    // Mode offline: akun admin tetap
+    if(!loginOK(u, p)) return fail("Email atau kata sandi salah.");
     startSession();
     closeModal($("modal-login"));
     if(loginForm.reset) loginForm.reset();

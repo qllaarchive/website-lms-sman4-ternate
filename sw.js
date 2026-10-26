@@ -1,12 +1,13 @@
 /* Service worker LMS — cache shell untuk mode terpasang / daring. */
-var CACHE = "lms-v1";
+var CACHE = "lms-v3";
 var ASSETS = [
   "index.html",
   "assets/portal.css",
   "assets/portal.js",
   "assets/icons.js",
   "assets/logo-sma4.png",
-  "data/registry.js",
+  "assets/api-client.js",
+  "config.js",
   "manifest.webmanifest"
 ];
 self.addEventListener("install", function(e){
@@ -21,6 +22,11 @@ self.addEventListener("activate", function(e){
 });
 self.addEventListener("fetch", function(e){
   if(e.request.method !== "GET") return;
+  var url = new URL(e.request.url);
+  if(url.pathname.indexOf("/api/") === 0){
+    e.respondWith(fetch(e.request));
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(function(hit){
       return hit || fetch(e.request).then(function(res){
