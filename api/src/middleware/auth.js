@@ -10,7 +10,7 @@ export async function requireAuth(req, res, next) {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) return res.status(401).json({ error: "unauthorized" });
-    req.user = { id: user.id, username: user.username, role: user.role };
+    req.user = { id: user.id, username: user.username };
     next();
   } catch {
     res.status(401).json({ error: "unauthorized" });

@@ -23,10 +23,19 @@ const HALF = Math.ceil(NU/2);
 /* ================= STATE ================= */
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-const D = { nama:"", kelas:"X", sekolah:"SMAN 4 Ternate", tema:"", gs:"",
+const D = { nama:"", kelas:"", sekolah:"SMAN 4 Ternate", tema:"", gs:"",
   u:{}, ex:{uts:0,uas:0,rem:0}, g:{}, lab:{}, seq:{},
   forum:null, chat:[{ who:"bot", t:BOT_INTRO }] };
-function load(){ try{ const r = localStorage.getItem(LS_KEY); if(r) Object.assign(D, JSON.parse(r)); }catch(e){} }
+/* Kode Web App Google Sheets permanen (guru) — di-override oleh ?gs= bila ada. */
+const SHEET_URL_DEFAULT = META.sheetId || "AKfycbyp7tmtjjulW3rMhBN3h6nQnTtW2mxdqESfnDwrDtuVjfEgHjCBbvB5NBAinROsj_Lr";
+function gsNorm(v){
+  v = String(v || "").trim();
+  const m = v.match(/\/macros\/s\/([^\/\s]+)/);
+  return m ? m[1] : v;
+}
+function load(){ try{ const r = localStorage.getItem(LS_KEY); if(r) Object.assign(D, JSON.parse(r)); }catch(e){}
+  if(D.kelas === "X") D.kelas = "";
+  if(!D.gs && SHEET_URL_DEFAULT) D.gs = gsNorm(SHEET_URL_DEFAULT); }
 function save(){ try{ const p = progAll(); D.sum = { pct: Math.round(p.d/p.t*100), d:p.d, t:p.t };
     localStorage.setItem(LS_KEY, JSON.stringify(D)); }catch(e){} }
 function U(n){ if(!D.u[n]) D.u[n] = { materi:false, diag:0, form:0, quiz:0, refl:false, proj:false, meet:[false,false,false] }; return D.u[n]; }
@@ -57,10 +66,10 @@ function toast(msg){ const old = document.querySelector(".toast"); if(old) old.r
 
 /* ================= NAV & ROUTER ================= */
 const NAV = [
-  ["home","🏠","Home"],["courses","📚","My Courses"],["path","🗺️","Learning Path"],
-  ["lab","🧪","Lab Maya"],["game","🎮","Gim Edukatif"],["ebook","📗","E-Book"],
-  ["assign","📌","Assignments"],["quiz","✅","Asesmen"],["forum","💬","Diskusi"],
-  ["grades","📈","Grades"],["res","📎","Resources"],["bot","🤖",BOT_NAME],["set","⚙️","Settings"]
+  ["home","🏠","Beranda"],["courses","📚","Mata Pelajaran"],["path","🗺️","Alur Belajar"],
+  ["lab","🧪","Lab Maya"],["game","🎮","Gim Edukatif"],["ebook","📗","Buku Digital"],
+  ["assign","📌","Tugas"],["quiz","✅","Asesmen"],["forum","💬","Diskusi"],
+  ["grades","📈","Nilai"],["res","📎","Sumber Belajar"],["bot","🤖",BOT_NAME],["set","⚙️","Pengaturan"]
 ];
 const VIEWS = {};
 const BIND = {};
@@ -69,7 +78,7 @@ function go(name, arg, arg2){ VIEW = { name, arg, arg2 }; render(); window.scrol
 function navActive(v){ if(v==="unit")return "courses"; if(v==="exam")return "quiz"; return v; }
 function renderNav(){
   $("nav").innerHTML = NAV.map(([id,ic,lb]) =>
-    `<button data-nav="${id}" class="${navActive(VIEW.name)===id?"on":""}"><span>${ic}</span>${lb}${id==="lab"||id==="game"?'<span class="new">BARU</span>':""}</button>`).join("");
+    `<button data-nav="${id}" class="${navActive(VIEW.name)===id?"on":""}"><span>${ic}</span>${lb}</button>`).join("");
   $("nav").querySelectorAll("[data-nav]").forEach(b => b.onclick = () => { go(b.dataset.nav); play("klik"); });
 }
 let soundOn = true;
@@ -97,10 +106,23 @@ VIEWS.home = () => {
   const name = D.nama || "Murid Kelas X";
   const nextU = nextUnitN();
   const un = UNITS[nextU-1];
-  const tiles = [["courses","📚","My Courses"],["path","🗺️","Learning Path"],["quiz","✅","Asesmen"],
+  const tiles = [["courses","📚","Mata Pelajaran"],["path","🗺️","Alur Belajar"],["quiz","✅","Asesmen"],
     ["lab","🧪","Lab"],["game","🎮","Gim"],["assign","📌","Tugas"],["grades","📈","Nilai"]];
+  const useAcc = META.homeLayout === "accordion";
+  const openEl = un ? un.el : 1;
   const cols = ELEMENTS.map(e => {
     const us = UNITS.filter(u => u.el === e.id);
+    if(useAcc){
+      const open = e.id === openEl;
+      return `<div class="eacc e${e.id}${open ? " open" : ""}" data-el="${e.id}">
+        <button class="eacc-h" aria-expanded="${open}">
+          <span class="bub">${e.emoji}</span>
+          <span class="eacc-t"><small>ELEMEN ${e.id} · ${us.length} UNIT</small><b>${esc(e.name)}</b></span>
+          <span class="eacc-chev">▾</span>
+        </button>
+        <div class="eacc-body"><div class="ulist">${us.map(u => ucard(u)).join("")}</div></div>
+      </div>`;
+    }
     return `<div class="col e${e.id}">
       <div class="col-h"><span class="bub">${e.emoji}</span>
         <div><small>ELEMEN ${e.id} · ${us.length} UNIT</small><h3>${esc(e.name)}</h3></div></div>
@@ -139,9 +161,9 @@ VIEWS.home = () => {
       </div>
       <div class="tiles">${tiles.map(([v,ic,lb]) =>
         `<button class="tile" data-qa="${v}"><span class="ti">${ic}</span>${lb}</button>`).join("")}</div>
-      <div class="sec-h"><span class="ic">📖</span><h2>Learning Path per Elemen</h2>
+      <div class="sec-h"><span class="ic">📖</span><h2>Alur Belajar per Elemen</h2>
         <span class="right pill">${META.fase} · ${ELEMENTS.length} elemen · ${NU} unit</span></div>
-      <div class="cols">${cols}</div>
+      <div class="${useAcc ? "eacc-grid" : "cols"}">${cols}</div>
       <div class="card pad">
         <div class="sec-h" style="margin-bottom:10px"><span class="ic">🩺</span><h2>Asesmen Cepat</h2></div>
         <div class="grid3">
@@ -164,6 +186,12 @@ BIND.home = () => {
     else if(v === "q-form") go("quiz","form",nextUnitN());
     else if(v === "q-uts") go("quiz","sum",1);
     else go(v);
+  });
+  document.querySelectorAll(".eacc-h").forEach(b => b.onclick = () => {
+    const item = b.closest(".eacc");
+    const open = item.classList.toggle("open");
+    b.setAttribute("aria-expanded", open);
+    play("klik");
   });
 };
 function nextUnitN(){ for(let n=1;n<=NU;n++) if(unitFlags(n) < UNIT_TOT) return n; return NU; }
@@ -205,7 +233,7 @@ let courseSem = 0;
 VIEWS.courses = () => {
   const list = UNITS.filter(u => !courseSem || u.sem === courseSem);
   return `<div class="stack">
-    <div class="sec-h"><span class="ic">📚</span><h2>My Courses — ${NU} Unit ${META.short} X</h2>
+    <div class="sec-h"><span class="ic">📚</span><h2>Mata Pelajaran — ${NU} Unit ${META.short} X</h2>
       <span class="right row">${[0,1,2].map(s => `<button class="btn sm ${courseSem===s?"":"ghost"}" data-sem="${s}">${s?s+" Semester":"Semua"}</button>`).join("")}</span></div>
     <div class="grid2">${list.map(u => `<div class="card pad" style="border-left:5px solid var(--e${u.el})">
       <div class="row" style="justify-content:space-between">
@@ -237,7 +265,7 @@ VIEWS.path = () => {
     <td>${u.tp.map(t=>`<div><b class="small">${t.c}</b> — <span class="small">${esc(t.t)}</span></div>`).join("")}</td>
     <td class="num">${progUnit(u.n)}%</td></tr>`).join("");
   return `<div class="stack">
-    <div class="sec-h"><span class="ic">🗺️</span><h2>Learning Path / ATP ${META.short} ${META.fase}</h2>
+    <div class="sec-h"><span class="ic">🗺️</span><h2>Alur Belajar / ATP ${META.short} ${META.fase}</h2>
       <span class="right pill good">${MT} pertemuan × ${JP_M} JP = ${MT*JP_M} JP</span></div>
     <div class="card pad" style="background:var(--e2bg);border-color:var(--e2line)">
       <b>Rasional CP:</b> <span class="small">${esc(META.rasional || "")}</span></div>
@@ -282,7 +310,7 @@ VIEWS.unit = (n, tab) => {
         <div class="chips">${u.focus.map(f=>`<span class="chip e${u.el}"><b>${esc(f[0])}</b> · ${esc(f[1])}</span>`).join("")}</div></div></div>`,
     awal: () => `<div class="stack"><div class="card pad">
       <div class="sec-h" style="margin-bottom:6px"><span class="ic">🩺</span><h2 style="font-size:19px">Asesmen Diagnostik</h2>
-        <span class="right pill">${st.diag?`Skor: ${st.diag}`:"${DIAG(n).length} soal · tanpa pengaruh nilai"}</span></div>
+        <span class="right pill">${st.diag?`Skor: ${st.diag}`:`${DIAG(n).length} soal · tanpa pengaruh nilai`}</span></div>
       <p class="muted small">Ukur kesiapan belajarmu sebelum materi dimulai. Hasil memicu rekomendasi.</p>
       <div id="qbox" style="margin-top:14px"></div></div>
       <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">🧭</span><h2 style="font-size:19px">Hasil &amp; Rekomendasi</h2></div>
@@ -295,7 +323,7 @@ VIEWS.unit = (n, tab) => {
         <div class="chips">${u.focus.map(f=>`<span class="chip e${u.el}"><b>${esc(f[0])}</b> — ${esc(f[1])}</span>`).join("")}</div></div>
       <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">✏️</span><h2 style="font-size:19px">Contoh model penyelesaian</h2></div>
         <div class="model e${u.el}">${hl(u.model)}</div></div>
-      <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">📖</span><h2 style="font-size:19px">E-Book terkait</h2></div>
+      <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">📖</span><h2 style="font-size:19px">Buku digital terkait</h2></div>
         <div class="grid3">${EBOOKS.map(bk=>`<button class="btn ghost" data-ebook="${bk.id}">${bk.emoji} ${esc(bk.title)}</button>`).join("")}</div></div>
       <div class="row"><button class="btn" data-mat-done="${n}">${st.materi?"✅ Materi ditandai selesai":"Tandai materi selesai"}</button></div></div>`,
     meet: () => `<div class="stack">${u.meet.map((m,i)=>`<div class="card pad">
@@ -305,7 +333,7 @@ VIEWS.unit = (n, tab) => {
       <div class="mlist"><span>• Kegiatan: ${esc(m.act)}</span></div></div>`).join("")}</div>`,
     form: () => `<div class="stack"><div class="card pad">
       <div class="sec-h" style="margin-bottom:6px"><span class="ic">✍️</span><h2 style="font-size:19px">Kuis Formatif</h2>
-        <span class="right pill">${st.form?`Skor: ${st.form}`:"${FORM(n).length} soal · umpan balik langsung"}</span></div>
+        <span class="right pill">${st.form?`Skor: ${st.form}`:`${FORM(n).length} soal · umpan balik langsung`}</span></div>
       <div id="qbox" style="margin-top:14px"></div></div></div>`,
     kuis: () => `<div class="stack"><div class="card pad">
       <div class="sec-h" style="margin-bottom:6px"><span class="ic">🏁</span><h2 style="font-size:19px">Kuis Sumatif Unit</h2>
@@ -557,7 +585,7 @@ VIEWS.grades = () => {
     return `<div class="r"><span>U${u.n}</span><span class="tr"><span class="b" style="width:${a}%;background:var(--e${u.el})"></span></span><span class="v">${a||"—"}</span></div>`; }).join("");
   const best = Math.max(0, ...UNITS.map(u=>avgUnit(u.n)));
   return `<div class="stack">
-    <div class="sec-h"><span class="ic">📈</span><h2>Grades — Nilai Kamu</h2>
+    <div class="sec-h"><span class="ic">📈</span><h2>Nilai Kamu</h2>
       <span class="right pill">KKTP ${KKTP}</span></div>
     <div class="grid3">
       <div class="card stat"><span class="eyebrow">RERATA UNIT</span><b>${avgAll()}</b></div>
@@ -589,7 +617,7 @@ VIEWS.assign = () => {
       <button class="btn ghost sm" style="margin-top:8px" data-open-u="${u.n}">Buka detail unit →</button></div>`; }).join("");
   const total = UNITS.reduce((a,u)=>a+(U(u.n).task?1:0)+(U(u.n).proj?1:0),0);
   return `<div class="stack">
-    <div class="sec-h"><span class="ic">📌</span><h2>Assignments — Tugas &amp; Proyek</h2>
+    <div class="sec-h"><span class="ic">📌</span><h2>Tugas &amp; Proyek</h2>
       <span class="right pill ${total===NU*2?"good":""}">${total}/${NU*2} selesai</span></div>
     <div class="grid2">${cards}</div></div>`;
 };
@@ -609,30 +637,35 @@ function gameCard(g){
   const done = g.levels.filter((_,li)=>starsOf(g.id,li)>0).length;
   const stars = g.levels.reduce((b,_,li)=> b + starsOf(g.id, li), 0);
   const max = g.levels.length*3;
+  const pct = Math.round(done / g.levels.length * 100);
   return `<button class="gcard" data-game="${g.id}">
     <span class="gicon">${g.emoji}</span>
     <span><b>${esc(g.name)}</b><small>${esc(g.desc)}</small>
       <span class="gstars">${[0,1,2].map(i=>i < Math.round(stars/3) ? "★" : '<i>★</i>').join("")}
-      <em>${done}/${g.levels.length} level · ${stars}/${max}★</em></span></span></button>`;
+      <em>${done}/${g.levels.length} tingkat · ${stars}/${max}★${done===g.levels.length?" · ✅ tamat":""}</em></span>
+      <span class="gprogline"><i style="width:${pct}%"></i></span></span></button>`;
 }
 VIEWS.game = (id) => {
   if(!id){
     const total = GAMES.reduce((a,g)=> a + g.levels.length*3, 0);
+    const tpct = total ? Math.round(totalStars()/total*100) : 0;
     return `<div class="stack">
       <div class="ghero"><span class="gh-ic">🎮</span>
         <div><h2>Gim Edukatif ${esc(META.short)}</h2>
-          <p>${GAMES.length} gim · 3 level tiap gim · soal selaras unit &amp; elemen CP.</p></div>
-        <div class="gh-total"><b>${totalStars()}</b><span class="small">bintang dari ${total}</span></div></div>
+          <p>${GAMES.length} gim · 3 tingkat tiap gim · soal selaras unit &amp; elemen CP.</p></div>
+        <div class="gh-total"><b>${totalStars()}</b><span class="small">bintang dari ${total}</span>
+          <span class="gprogline" style="margin-top:6px"><i style="width:${tpct}%"></i></span></div></div>
       <div class="ggrid">${GAMES.map(g => gameCard(g)).join("")}</div></div>`;
   }
   const g = GAMES.find(x => x.id === id) || GAMES[0];
   const stars = g.levels.reduce((b,_,li)=> b + starsOf(g.id, li), 0);
   const levels = g.levels.map((l,li) => {
     const s = starsOf(g.id, li), on = unlocked(g, li);
-    return `<button class="ucard" ${on?`data-lv="${li}"`:'disabled style="opacity:.5"'}>
+    return `<button class="ucard ${s===3?"best":""}" ${on?`data-lv="${li}"`:'disabled style="opacity:.5"'}>
       <span class="th"><span class="no">${li+1}</span>${g.emoji}</span>
-      <span><h4>${esc(l.name)}</h4><p>${l.q.length} soal${on?"":" · selesaikan level sebelumnya"}</p>
+      <span><h4>${esc(l.name)}</h4><p>${l.q.length} soal${on?"":" · selesaikan tingkat sebelumnya"}</p>
         <span class="gstars">${[0,1,2].map(k=>k<s?"★":'<i>★</i>').join("")}</span></span>
+      ${li===g.levels.length-1?'<span class="boss">TANTANGAN</span>':""}
       <span class="chev">${s?"✅":on?"▶":"🔒"}</span></button>`; }).join("");
   return `<div class="stack">
     <div class="ghead" style="background:var(--labbg)">
@@ -655,30 +688,41 @@ BIND.game = (id) => {
 };
 function mountGame(box, g, li){
   const lvl = g.levels[li];
-  let i = 0, correct = 0, answered = false;
-  const shipPct = () => Math.min(92, 8 + i / lvl.q.length * 84);
-  const hud = () => `<div class="ghud"><span>${g.emoji} ${esc(lvl.name)} · Level ${li+1}</span>
-      <span>Sisa: ${lvl.q.length - i} · Benar: ${correct}</span></div>`;
+  let i = 0, correct = 0, combo = 0, bestCombo = 0, answered = false;
+  const pct = () => Math.round(i / lvl.q.length * 100);
+  const shipPct = () => Math.min(92, 8 + (i / lvl.q.length) * 84);
+  const hud = () => `<div class="ghud">
+      <div class="ghud-l"><span>${g.emoji} ${esc(lvl.name)} · Tingkat ${li+1}</span>
+        <span class="gprog"><i style="width:${pct()}%"></i></span></div>
+      <span>Sisa ${lvl.q.length - i} · Benar ${correct}</span>
+      ${combo > 1 ? `<span class="gcombo">🔥 Beruntun ×${combo}</span>` : ""}
+    </div>`;
+  const confetti = () => {
+    const cols = ["#d4a017","#b85c38","#c92a2a","#7a8b3c","#f5e6c8"];
+    return `<div class="gconfetti">${Array.from({length:28},(_,k)=>`<i style="left:${Math.round(Math.random()*100)}%;background:${cols[k%cols.length]};animation-delay:${(Math.random()*0.6).toFixed(2)}s"></i>`).join("")}</div>`;
+  };
+  const clearKey = () => { if(gameKey){ document.removeEventListener("keydown", gameKey); gameKey = null; } };
   function draw(){
+    clearKey();
     if(i >= lvl.q.length){
       const s = Math.round(correct / lvl.q.length * 100);
       const st = s >= 100 ? 3 : s >= 80 ? 2 : s >= 50 ? 1 : 0;
       const prev = starsOf(g.id, li);
       if(st > prev){ D.g[g.id] = D.g[g.id] || {}; D.g[g.id].stars = D.g[g.id].stars || {}; D.g[g.id].stars[li] = st; save(); }
       const hasNext = li + 1 < g.levels.length;
-      box.innerHTML = hud() + `<div class="gend">
+      box.innerHTML = hud() + `<div class="gend">${st >= 2 ? confetti() : ""}
         <span class="gend-ic">${st >= 2 ? "🏆" : st >= 1 ? "🎖️" : "🚀"}</span>
-        <div class="gend-stars">${[0,1,2].map(k=>k<st?"★":`<i>★</i>`).join("")}</div>
+        <div class="gend-stars">${[0,1,2].map(k=>k<st?`<span class="pop" style="animation-delay:${(k*0.14).toFixed(2)}s">★</span>`:`<i>★</i>`).join("")}</div>
         <h3>${s} · ${correct}/${lvl.q.length} benar</h3>
-        <p class="small" style="color:#cfc4ff">${st > prev ? "Bintang baru tersimpan! 🌟" : st ? `Bintang terbaik level ini: ${Math.max(st, prev)}` : "Coba lagi — kamu pasti bisa!"}</p>
+        <p class="small" style="color:#e8d4a8">${st > prev ? "Bintang baru tersimpan! 🌟" : st ? `Bintang terbaik tingkat ini: ${Math.max(st, prev)}` : "Coba lagi — kamu pasti bisa!"}${bestCombo > 1 ? ` · Beruntun terbaik ×${bestCombo}` : ""}</p>
         <div class="row" style="justify-content:center;margin-top:8px">
           <button class="btn g-again" id="g-again">↻ Ulangi</button>
-          ${hasNext ? `<button class="btn" id="g-next" style="background:#7446e8">Level berikutnya →</button>` : ""}
+          ${hasNext ? `<button class="btn" id="g-next" style="background:#a0602e">Tingkat berikutnya →</button>` : ""}
           <button class="btn" id="g-close" style="background:rgba(255,255,255,.14);color:#fff">← Semua gim</button>
         </div></div>`;
-      $("g-again").onclick = () => { i = 0; correct = 0; draw(); };
-      $("g-close").onclick = () => go("game");
-      const nx = $("g-next"); if(nx) nx.onclick = () => { play("klik"); mountGame(box, g, li + 1); };
+      $("g-again").onclick = () => { i = 0; correct = 0; combo = 0; bestCombo = 0; draw(); };
+      $("g-close").onclick = () => { clearKey(); go("game"); };
+      const nx = $("g-next"); if(nx) nx.onclick = () => { play("klik"); clearKey(); mountGame(box, g, li + 1); };
       return;
     }
     const q = lvl.q[i];
@@ -689,22 +733,33 @@ function mountGame(box, g, li){
         <div style="min-width:0">
           <span class="g-kicker">Soal ${i+1}/${lvl.q.length} · ${esc(g.name)}</span>
           <div class="g-prompt">${esc(q.p)}</div>
-          <div class="g-opts">${q.o.map((t,k)=>`<button data-gk="${k}">${String.fromCharCode(65+k)}. ${esc(t)}</button>`).join("")}</div>
+          <div class="g-opts">${q.o.map((t,k)=>`<button data-gk="${k}"><b style="opacity:.55;margin-right:6px">${String.fromCharCode(65+k)}</b>${esc(t)}</button>`).join("")}</div>
+          <div id="g-fb"></div>
         </div></div></div>`;
     box.querySelectorAll("[data-gk]").forEach(b => b.onclick = () => {
       if(answered) return; answered = true;
       const k = +b.dataset.gk, ok = k === q.a;
-      if(ok) correct++;
+      if(ok){ correct++; combo++; bestCombo = Math.max(bestCombo, combo); } else combo = 0;
       box.querySelectorAll("[data-gk]").forEach((x, xi) => {
         x.disabled = true;
-        if(xi === q.a){ x.style.background = "#1f9d55"; x.style.borderColor = "#1f9d55"; }
+        if(xi === q.a){ x.style.background = "#5b7f3a"; x.style.borderColor = "#5b7f3a"; }
         else if(xi === k) x.classList.add("no");
       });
+      const fb = $("g-fb");
+      if(fb) fb.innerHTML = `<div class="gfb ${ok ? "ok" : "no"}">${ok ? `✅ Tepat!${combo > 1 ? ` Beruntun ×${combo}` : ""}` : `❌ Belum tepat — jawaban benar: ${String.fromCharCode(65 + q.a)}`}</div>`;
       const ar = $("garena"); ar.classList.add(ok ? "g-ok" : "g-bad");
       play(ok ? "benar" : "salah");
       const sh = $("gship"); if(sh) sh.style.bottom = Math.min(92, 8 + (i + (ok?1:0)) / lvl.q.length * 84) + "%";
-      setTimeout(() => { i++; answered = false; draw(); }, ok ? 600 : 1250);
+      setTimeout(() => { i++; answered = false; draw(); }, ok ? 900 : 1500);
     });
+    gameKey = e => {
+      if(document.body && document.body.contains && !document.body.contains(box)){ clearKey(); return; }
+      let idx = -1;
+      if(/^[1-4]$/.test(e.key)) idx = +e.key - 1;
+      else if(/^[a-dA-D]$/.test(e.key)) idx = e.key.toLowerCase().charCodeAt(0) - 97;
+      if(idx >= 0 && idx < q.o.length && !answered){ const btn = box.querySelector(`[data-gk="${idx}"]`); if(btn) btn.click(); }
+    };
+    document.addEventListener("keydown", gameKey);
   }
   draw();
 }
@@ -715,7 +770,7 @@ VIEWS.lab = (id) => {
     return `<div class="stack">
       <div class="labhero"><span style="font-size:52px">🧪</span>
         <div><h2>Lab Maya</h2>
-          <p class="muted" style="font-weight:600">Eksplorasi langsung: geser parameter, lihat grafik &amp; angkanya berubah. Tandai selesai setelah kamu menemukan polanya.</p></div></div>
+          <p class="muted" style="font-weight:600">${esc(META.labHero || "Belajar dengan mencoba: susun, geser, dan jelajahi — temukan sendiri pola di balik capaian. Tandai selesai setelah tantangannya kamu tuntaskan.")}</p></div></div>
       <div class="labgrid">${LABS.map(l => `<button class="labcard" data-lab="${l.id}">
         <span class="li">${l.emoji}</span>
         <span><span class="eyebrow">ELEMEN ${l.el} ${D.lab[l.id]?"· ✅ SELESAI":""}</span>
@@ -760,6 +815,72 @@ VIEWS.lab = (id) => {
         </div>
         <div id="m-fb" style="margin-top:10px"></div>${done}</div></div>`;
   }
+  if(LTYPE === "timeline"){
+    const evs = l.events || [];
+    if(!mountTL || mountTL.seed !== l.id){
+      mountTL = { seed:l.id, pool: shuffle(evs.map((_,i)=>i)), slots: Array(evs.length).fill(null) };
+    }
+    const slotHtml = (v, pos) => `<div class="tlslot" data-slot="${pos}" ${v!==null?'draggable="true"':""}>
+        <span class="yr">${pos+1}</span>
+        ${v===null?'<span class="ph">Letakkan peristiwa di sini…</span>':`<span class="tx">${esc(evs[v].t)}</span><span class="tlx">✕</span>`}
+      </div>`;
+    return `<div class="stack">${top}
+      <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">⏳</span>
+        <h2 style="font-size:18px">Susun garis waktu</h2></div>
+        <p class="small muted">Seret kartu (atau klik kartu lalu klik slot) ke urutan waktu yang benar — dari paling awal ke paling akhir.</p>
+        <div class="tlwrap" style="margin-top:12px">
+          <div class="tlpool" id="tl-pool">${mountTL.pool.map(i => `<button class="tlchip" draggable="true" data-tl="${i}">${esc(evs[i].t)}</button>`).join("")}</div>
+          <div class="tlrail" id="tl-rail">${mountTL.slots.map((v,pos)=>slotHtml(v,pos)).join("")}</div>
+          <div class="row"><button class="btn" id="tl-check">Periksa urutan</button>
+            <button class="btn ghost" id="tl-reset">↻ Acak ulang</button></div>
+          <div id="tl-fb"></div>
+        </div>${done}</div></div>`;
+  }
+  if(LTYPE === "sortbin"){
+    const items = l.items || [], bins = l.bins || [];
+    if(!mountBin || mountBin.seed !== l.id){
+      mountBin = { seed:l.id, pool: shuffle(items.map((_,i)=>i)), placed:{} };
+    }
+    const inBin = b => Object.keys(mountBin.placed).filter(k => mountBin.placed[k] === b).map(Number);
+    return `<div class="stack">${top}
+      <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">🏺</span>
+        <h2 style="font-size:18px">Bedah sumber: primer atau sekunder?</h2></div>
+        <p class="small muted">Klik satu sumber, lalu klik kotak yang tepat. Sumber yang benar akan terkunci di kotaknya.</p>
+        <div class="binpool" id="bin-pool" style="margin-top:12px">${mountBin.pool.length ? mountBin.pool.map(i => `<button class="schip" data-si="${i}">${esc(items[i].t)}</button>`).join("") : '<span class="small muted">Semua sumber sudah dikelompokkan ✅</span>'}</div>
+        <div class="binwrap" style="margin-top:12px">${bins.map(b => `<div class="bin" data-bin="${b.id}">
+          <h4>${b.emoji || ""} ${esc(b.name)}<span class="cnt" id="cnt-${b.id}">${inBin(b.id).length}</span></h4>
+          <div class="bitems">${inBin(b.id).map(i => `<span class="schip ok">${esc(items[i].t)}</span>`).join("")}</div>
+        </div>`).join("")}</div>
+        <div id="bin-fb" style="margin-top:10px"></div>${done}</div></div>`;
+  }
+  if(LTYPE === "map"){
+    const ports = l.ports || [];
+    if(!mountMap || mountMap.seed !== l.id) mountMap = { seed:l.id, visited:new Set(), cur:null };
+    const cur = ports.find(p => p.id === mountMap.cur) || null;
+    return `<div class="stack">${top}
+      <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">🗺️</span>
+        <h2 style="font-size:18px">Jelajahi jalur rempah</h2></div>
+        <p class="small muted">Klik setiap pelabuhan pada peta untuk membuka kisahnya. Kunjungi semua pelabuhan untuk menyelesaikan lab.</p>
+        <div class="mapwrap" style="margin-top:12px">${mapSvg(ports, mountMap.visited)}</div>
+        <div class="mapinfo" id="map-info">${cur ? `<span class="mi-em">${cur.emoji || "⚓"}</span><div><span class="yr">${esc(cur.year || "")}</span><h4>${esc(cur.name)}</h4><p>${esc(cur.info || "")}</p></div>` : '<span class="mi-em">🧭</span><div><h4>Pilih pelabuhan</h4><p>Klik titik pada peta untuk membaca perannya dalam jaringan rempah Nusantara.</p></div>'}</div>
+        <div class="mapcheck" id="map-check">${ports.map(p => `<span class="mapdot ${mountMap.visited.has(p.id)?"on":""}" title="${esc(p.name)}"></span>`).join("")}<span id="map-count">${mountMap.visited.size}/${ports.length} pelabuhan</span></div>
+        ${done}</div></div>`;
+  }
+  if(LTYPE === "timeslider"){
+    if(!mountTS || mountTS.seed !== l.id) mountTS = { seed:l.id, y: l.start || 400 };
+    return `<div class="stack">${top}
+      <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">🕰️</span>
+        <h2 style="font-size:18px">Mesin waktu Nusantara</h2></div>
+        <p class="small muted">Geser tahun dan lihat era serta peristiwa yang hidup pada masa itu.</p>
+        <div class="tswrap" style="margin-top:12px">
+          <input type="range" class="tsrange" id="ts-range" min="${l.min}" max="${l.max}" step="${l.step || 10}" value="${mountTS.y}" aria-label="Tahun">
+          <div class="tsyear"><span>${l.min} M</span><span id="ts-now" style="color:var(--sj-accent);font-size:15px">${mountTS.y} M</span><span>${l.max} M</span></div>
+          <div id="ts-era"></div>
+          <div class="tscards" id="ts-cards"></div>
+        </div>
+        <div class="row" style="margin-top:12px"><button class="btn" id="ldone">${D.lab[l.id]?"↻ Tandai ulang":"Tandai selesai"}</button></div>
+      </div></div>`;
+  }
   if(LTYPE === "info"){
     return `<div class="stack">${top}
       <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">${l.emoji}</span>
@@ -778,7 +899,27 @@ VIEWS.lab = (id) => {
     labstat: `<div class="labctl" style="width:100%">
         <label style="flex:1">data (pisahkan koma) <input type="text" id="lds" value="4,7,9,10,12,14,18,21,25,30" style="flex:1;min-width:200px"></label>
         <button class="btn sm" id="ldraw">Hitung &amp; gambar</button>
-        <button class="btn ghost sm" id="lout">Tambah pencilan 99</button></div>`
+        <button class="btn ghost sm" id="lout">Tambah pencilan 99</button></div>`,
+    labukur: `<div class="labctl" style="width:100%">
+        <button class="btn sm" id="lacak">🎲 Objek acak</button>
+        <label style="flex:1">Hasil ukur (cm) <input type="text" id="lrep" inputmode="decimal" style="width:110px" placeholder="0,0"></label>
+        <button class="btn" id="lok">Periksa</button></div>`,
+    labgerak: `<div class="labctl">
+        <label>v₀ <input type="range" id="lv0" min="-4" max="10" step="1" value="2"><output id="ov0">2</output></label>
+        <label>a <input type="range" id="la2" min="-6" max="10" step="1" value="2"><output id="oa2">2</output></label>
+        <label>t <input type="range" id="lt2" min="1" max="10" step="1" value="3"><output id="ot2">3</output></label>
+        <div class="row" style="width:100%;margin-top:6px">
+          <button class="btn ghost sm" data-gp="0,2">GLB</button>
+          <button class="btn ghost sm" data-gp="2,2">Dipercepat</button>
+          <button class="btn ghost sm" data-gp="8,-2">Diperlambat</button>
+          <button class="btn ghost sm" data-gp="0,10">Jatuh bebas</button></div></div>`,
+    labenergi: `<div class="labctl">
+        <label>m (kg) <input type="range" id="lm" min="1" max="10" step="1" value="4"><output id="om">4</output></label>
+        <label>h (m) <input type="range" id="lh" min="0" max="20" step="1" value="15"><output id="oh">15</output></label>
+        <div class="row" style="width:100%;margin-top:6px">
+          <button class="btn ghost sm" data-gp="10">g Bumi</button>
+          <button class="btn ghost sm" data-gp="1.6">g Bulan</button>
+          <button class="btn ghost sm" data-gp="3.7">g Mars</button></div></div>`
   }[l.id] || "";
   return `<div class="stack">${top}
     <div class="card pad">
@@ -787,10 +928,45 @@ VIEWS.lab = (id) => {
       ${ctl}
       <canvas class="lab" id="lcv" width="640" height="360" style="margin-top:12px"></canvas>
       <div class="labout" id="labout" style="margin-top:12px"></div>
+      <div class="labout" id="lquiz" style="margin-top:12px"></div>
       <div class="row" style="margin-top:12px"><button class="btn" id="ldone">${D.lab[l.id]?"↻ Tandai ulang":"Tandai selesai"}</button></div>
       <p class="small muted" style="margin-top:8px">${esc(l.desc)}</p></div></div>`;
 };
 let mountSeqOrder = null;
+let mountTL = null, mountBin = null, mountMap = null, mountTS = null, gameKey = null;
+function mapSvg(ports, visited){
+  const route = ports.map(p => `${p.x},${p.y}`).join(" ");
+  return `<svg viewBox="0 0 720 340" role="img" aria-label="Peta jalur rempah Nusantara">
+    <defs>
+      <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#efe0bd"/><stop offset="1" stop-color="#e6d3a8"/>
+      </linearGradient>
+      <pattern id="waves" width="46" height="22" patternUnits="userSpaceOnUse">
+        <path d="M0 11 q11 -7 23 0 t23 0" fill="none" stroke="#c9b184" stroke-width="1.2" opacity=".45"/>
+      </pattern>
+    </defs>
+    <rect width="720" height="340" fill="url(#sea)"/>
+    <rect width="720" height="340" fill="url(#waves)"/>
+    <path d="M78 62 L120 54 L156 96 L150 150 L124 212 L96 246 L78 190 L64 120 Z" fill="#b9a06a" stroke="#8b7348" stroke-width="1.5"/>
+    <path d="M150 88 L182 82 L196 122 L178 156 L160 138 L146 112 Z" fill="#c2ab74" stroke="#8b7348" stroke-width="1.5"/>
+    <path d="M232 258 Q300 244 382 258 L378 276 Q300 266 236 276 Z" fill="#b9a06a" stroke="#8b7348" stroke-width="1.5"/>
+    <path d="M330 118 L396 108 L430 160 L414 222 L356 214 L326 164 Z" fill="#b9a06a" stroke="#8b7348" stroke-width="1.5"/>
+    <path d="M462 138 L492 128 L508 166 L492 212 L470 200 L482 168 Z" fill="#c2ab74" stroke="#8b7348" stroke-width="1.5"/>
+    <path d="M604 150 L684 140 L704 188 L652 224 L612 198 Z" fill="#b9a06a" stroke="#8b7348" stroke-width="1.5"/>
+    <ellipse cx="566" cy="174" rx="12" ry="8" fill="#a9a06a" stroke="#7f7648" stroke-width="1.2"/>
+    <ellipse cx="590" cy="194" rx="10" ry="6.5" fill="#b3a874" stroke="#7f7648" stroke-width="1.2"/>
+    <ellipse cx="608" cy="208" rx="7" ry="5" fill="#b3a874" stroke="#7f7648" stroke-width="1.1"/>
+    <ellipse cx="632" cy="230" rx="11" ry="7" fill="#a9a06a" stroke="#7f7648" stroke-width="1.2"/>
+    <polyline points="${route}" fill="none" stroke="#b8860b" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round" opacity=".75"/>
+    <text x="52" y="34" font-family="Georgia,serif" font-style="italic" font-size="15" fill="#8b7348">Samudra Hindia</text>
+    <text x="520" y="316" font-family="Georgia,serif" font-style="italic" font-size="15" fill="#8b7348">Laut Banda</text>
+    <text x="600" y="42" font-family="Georgia,serif" font-style="italic" font-size="15" fill="#8b7348">Papua</text>
+    ${ports.map(p => `<g class="mport ${visited.has(p.id)?"visited":""}" data-port="${p.id}" transform="translate(${p.x},${p.y})">
+      <circle r="9" fill="#c92a2a" stroke="#fdf6e6" stroke-width="2.5"/>
+      <text x="${p.lx || 0}" y="${p.ly || -15}" text-anchor="middle">${esc(p.name)}</text>
+    </g>`).join("")}
+  </svg>`;
+}
 function shuffle(a){ const r = a.slice(); for(let i=r.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [r[i],r[j]] = [r[j],r[i]]; } return r; }
 function shuffleQ(q){
   if(q.num || !Array.isArray(q.o) || q.o.length < 2) return q;
@@ -854,9 +1030,322 @@ BIND.lab = (id) => {
     });
     return;
   }
+  if(LTYPE === "timeline"){
+    const evs = l.events || [];
+    let sel = null;
+    const paintPool = () => { const el = $("tl-pool"); if(!el) return;
+      el.innerHTML = mountTL.pool.map(i => `<button class="tlchip" draggable="true" data-tl="${i}">${esc(evs[i].t)}</button>`).join("");
+      wirePool(); };
+    const paintRail = () => { const el = $("tl-rail"); if(!el) return;
+      el.innerHTML = mountTL.slots.map((v,pos) => `<div class="tlslot" data-slot="${pos}" ${v!==null?'draggable="true"':""}>
+        <span class="yr">${pos+1}</span>
+        ${v===null?'<span class="ph">Letakkan peristiwa di sini…</span>':`<span class="tx">${esc(evs[v].t)}</span><span class="tlx">✕</span>`}
+      </div>`).join("");
+      wireRail(); };
+    const place = (v, pos) => {
+      if(v === null || isNaN(v)) return;
+      const prev = mountTL.slots[pos];
+      mountTL.slots[pos] = v;
+      mountTL.pool = mountTL.pool.filter(x => x !== v);
+      if(prev !== null) mountTL.pool.push(prev);
+      sel = null; paintPool(); paintRail();
+    };
+    const wirePool = () => {
+      document.querySelectorAll("#tl-pool [data-tl]").forEach(b => {
+        b.onclick = () => { sel = +b.dataset.tl; document.querySelectorAll(".tlchip").forEach(x => x.classList.remove("sel")); b.classList.add("sel"); play("klik"); };
+        b.ondragstart = e => { sel = +b.dataset.tl; try{ e.dataTransfer.setData("text/plain", String(sel)); e.dataTransfer.effectAllowed = "move"; }catch(_){} };
+      });
+    };
+    const wireRail = () => {
+      document.querySelectorAll("#tl-rail [data-slot]").forEach(sl => {
+        const pos = +sl.dataset.slot;
+        sl.onclick = () => {
+          if(sel !== null){ place(sel, pos); play("klik"); return; }
+          if(mountTL.slots[pos] !== null){ mountTL.pool.push(mountTL.slots[pos]); mountTL.slots[pos] = null; play("klik"); paintPool(); paintRail(); }
+        };
+        sl.ondragstart = e => { const v = mountTL.slots[pos]; if(v === null) return; sel = v; try{ e.dataTransfer.setData("text/plain", String(v)); }catch(_){} };
+        sl.ondragover = e => { e.preventDefault(); sl.classList.add("over"); };
+        sl.ondragleave = () => sl.classList.remove("over");
+        sl.ondrop = e => { e.preventDefault(); sl.classList.remove("over"); const raw = e.dataTransfer.getData("text/plain"); const v = raw === "" ? sel : +raw; place(v, pos); };
+      });
+    };
+    paintPool(); paintRail();
+    document.querySelector("#tl-reset").onclick = () => { mountTL = { seed:l.id, pool: shuffle(evs.map((_,i)=>i)), slots: Array(evs.length).fill(null) }; sel = null; paintPool(); paintRail(); $("tl-fb").innerHTML = ""; };
+    document.querySelector("#tl-check").onclick = () => {
+      if(mountTL.slots.some(v => v === null)){ $("tl-fb").innerHTML = `<div class="res warn">Masih ada slot kosong — isi semua dulu.</div>`; play("salah"); return; }
+      const ok = mountTL.slots.every((v,i) => v === i);
+      document.querySelectorAll("#tl-rail [data-slot]").forEach((sl,pos) => {
+        sl.classList.remove("ok","no"); sl.classList.add(mountTL.slots[pos] === pos ? "ok" : "no");
+        const y = sl.querySelector(".yr"); const v = mountTL.slots[pos];
+        if(y && v !== null && evs[v].y) y.textContent = evs[v].y;
+      });
+      $("tl-fb").innerHTML = ok ? `<div class="res ok">Tepat! Garis waktu tersusun benar. ✅</div>`
+        : `<div class="res warn">Belum tepat — perhatikan tahun tiap peristiwa lalu tukar posisinya.</div>`;
+      if(ok){ play("benar"); mark(); } else play("salah");
+    };
+    return;
+  }
+  if(LTYPE === "sortbin"){
+    const items = l.items || [], bins = l.bins || [];
+    let sel = null;
+    const paint = () => {
+      const pool = $("bin-pool"); if(!pool) return;
+      pool.innerHTML = mountBin.pool.length ? mountBin.pool.map(i => `<button class="schip" data-si="${i}">${esc(items[i].t)}</button>`).join("") : '<span class="small muted">Semua sumber sudah dikelompokkan ✅</span>';
+      bins.forEach(b => {
+        const inBin = Object.keys(mountBin.placed).filter(k => mountBin.placed[k] === b.id).map(Number);
+        const cnt = $("cnt-" + b.id); if(cnt) cnt.textContent = inBin.length;
+        const box = document.querySelector(`[data-bin="${b.id}"] .bitems`);
+        if(box) box.innerHTML = inBin.map(i => `<span class="schip ok">${esc(items[i].t)}</span>`).join("");
+      });
+      pool.querySelectorAll("[data-si]").forEach(ch => {
+        ch.onclick = () => { sel = +ch.dataset.si; pool.querySelectorAll(".schip").forEach(x => x.classList.remove("sel")); ch.classList.add("sel"); play("klik"); };
+      });
+    };
+    document.querySelectorAll("[data-bin]").forEach(bin => {
+      bin.onclick = () => {
+        if(sel === null) return;
+        const bid = bin.dataset.bin, it = items[sel];
+        if(it && it.bin === bid){
+          mountBin.placed[sel] = bid;
+          mountBin.pool = mountBin.pool.filter(x => x !== sel);
+          play("benar");
+          $("bin-fb").innerHTML = `<div class="res ok">Tepat! ${esc(it.t)} = ${it.bin === "primer" ? "sumber primer" : "sumber sekunder"}.</div>`;
+          sel = null; paint();
+          if(!mountBin.pool.length) mark();
+        } else {
+          play("salah");
+          const ch = document.querySelector(`[data-si="${sel}"]`);
+          if(ch){ ch.classList.add("no"); setTimeout(() => ch.classList.remove("no"), 500); }
+          $("bin-fb").innerHTML = `<div class="res warn">Belum tepat — pikirkan lagi: apakah sumber ini lahir pada masa peristiwa?</div>`;
+        }
+      };
+    });
+    paint();
+    return;
+  }
+  if(LTYPE === "map"){
+    const ports = l.ports || [];
+    const info = $("map-info");
+    const show = p => { if(info) info.innerHTML = `<span class="mi-em">${p.emoji || "⚓"}</span><div><span class="yr">${esc(p.year || "")}</span><h4>${esc(p.name)}</h4><p>${esc(p.info || "")}</p></div>`; };
+    document.querySelectorAll("[data-port]").forEach(el => el.onclick = () => {
+      const p = ports.find(x => x.id === el.dataset.port); if(!p) return;
+      mountMap.visited.add(p.id); mountMap.cur = p.id;
+      el.classList.add("visited"); show(p); play("klik");
+      document.querySelectorAll("#map-check .mapdot").forEach((d,k) => d.classList.toggle("on", mountMap.visited.has(ports[k].id)));
+      const c = $("map-count"); if(c) c.textContent = mountMap.visited.size + "/" + ports.length + " pelabuhan";
+      if(mountMap.visited.size === ports.length) mark();
+    });
+    if(mountMap.cur){ const p = ports.find(x => x.id === mountMap.cur); if(p) show(p); }
+    return;
+  }
+  if(LTYPE === "timeslider"){
+    const eras = l.eras || [], evs = l.events || [];
+    const paint = () => {
+      const y = +$("ts-range").value; mountTS.y = y;
+      $("ts-now").textContent = y + " M";
+      const era = eras.find(e => y >= e.from && y <= e.to) || eras[eras.length - 1] || { name:"—", desc:"" };
+      $("ts-era").innerHTML = `<div class="tsera"><span class="tsbig">${y} <span style="font-size:18px">M</span></span><div><h4>${esc(era.name)}</h4><p>${esc(era.desc || "")}</p></div></div>`;
+      const near = evs.filter(e => Math.abs(e.y - y) <= 60);
+      $("ts-cards").innerHTML = near.length
+        ? near.map(e => `<div class="tscard"><span class="yr">${e.y} M</span><b>${esc(e.t)}</b><small>${esc(e.d || "")}</small></div>`).join("")
+        : `<div class="tsempty">Tidak ada peristiwa besar dalam ±60 tahun di sekitar tahun ${y}. Geser lagi untuk menemukan jejak kerajaan.</div>`;
+    };
+    $("ts-range").addEventListener("input", paint);
+    $("ldone").onclick = mark;
+    paint();
+    return;
+  }
   if(LTYPE === "info"){ $("ldone").onclick = mark; return; }
   const out = $("labout"), cv = $("lcv");
   $("ldone").onclick = mark;
+  if(Array.isArray(l.quiz) && l.quiz.length){ mountLabQuiz($("lquiz"), l); }
+  if(id === "labukur"){
+    let cur = 0;
+    const objekAcak = () => { cur = Math.round(80 + Math.random()*190)/10; };
+    const hintUkur = () => `<div class="res warn" style="margin:0">Baca panjang objek dari mistar (ketelitian 0,1 cm). Masukkan hasil ukurmu lalu klik Periksa — usahakan di dalam toleransi ± 0,1 cm.</div>`;
+    const simpan = (v) => {
+      if(isNaN(v)){ out.innerHTML = `<div class="res warn" style="margin:0">Isi dulu hasil ukurmu dengan angka (contoh: <b>13,6</b>).</div>`; play("salah"); return; }
+      const selisih = Math.abs(v - cur), ok = selisih <= 0.1001;
+      out.innerHTML = ok
+        ? `<div class="res ok" style="margin:0">✔ Tepat! Hasil ukurmu <b>${v} cm</b> selisih ${selisih.toFixed(2)} cm dari objek ${cur} cm — masih dalam toleransi 0,1 cm. Klik "🎲 Objek acak" untuk pengukuran baru, atau kerjakan mini kuis di bawah.</div>`
+        : `<div class="res warn" style="margin:0">Belum pas. Hasilmu <b>${v} cm</b>, selisih ${selisih.toFixed(2)} cm dari objek sebenarnya. Perhatikan tepi depan objek — mulai dari angka ${Math.floor(cur)} cm lalu tambah ×0,1 per garis kecil.</div>`;
+      play(ok?"benar":"salah");
+    };
+    objekAcak();
+    const drawUkur = () => {
+      const g = ctxOf(cv);
+      if(!g){ out.innerHTML = `<div class="res ok" style="margin:0">Objek acak terpasang pada posisi ${cur} cm.</div>`; return; }
+      const W = 640, H = 360, ppc = 19, x0 = 24, ybar = 150, hb = 54;
+      g.clearRect(0,0,W,H);
+      g.fillStyle = "#0d1230"; g.fillRect(0,0,W,H);
+      g.fillStyle = "#10214f"; g.fillRect(x0-4, ybar, 30*ppc+8, hb);
+      g.strokeStyle = "#cfe0ff"; g.lineWidth = 2; g.strokeRect(x0-4, ybar, 30*ppc+8, hb);
+      g.fillStyle = "rgba(255,255,255,.10)"; g.fillRect(x0-4, ybar, (30*ppc+8)/3, hb);
+      for(let cm = 0; cm <= 300; cm++){
+        const x = x0 + cm/10*ppc, mayor = cm % 10 === 0, half = cm % 5 === 0;
+        g.strokeStyle = mayor ? "#8ea2c9" : half ? "rgba(142,162,201,.7)" : "rgba(142,162,201,.4)";
+        g.lineWidth = mayor ? 2 : 1.2;
+        g.beginPath(); g.moveTo(x, ybar); g.lineTo(x, ybar + (mayor ? 24 : half ? 17 : 11)); g.stroke();
+        if(mayor){ g.fillStyle = "#cfe0ff"; g.font = "12px monospace"; g.fillText(String(cm/10), x - 4, ybar + 40); }
+      }
+      g.fillStyle = "#cfe0ff"; g.font = "13px sans-serif"; g.fillText("cm", x0 + 30*ppc + 10, ybar + 42);
+      const xo = x0 + cur*ppc, yobj = ybar - 64;
+      g.fillStyle = "#0d9488"; g.fillRect(xo, yobj, 34, 64);
+      g.fillStyle = "rgba(255,255,255,.25)"; g.fillRect(xo + 26, yobj, 8, 64);
+      g.strokeStyle = "#9fe0b6"; g.lineWidth = 2; g.strokeRect(xo, yobj, 34, 64);
+      g.fillStyle = "#9fe0b6"; g.font = "14px sans-serif"; g.fillText("objek", xo - 4, yobj - 10);
+      g.strokeStyle = "#ffd84d"; g.lineWidth = 2; g.setLineDash([5,4]);
+      g.beginPath(); g.moveTo(xo, yobj + 64); g.lineTo(xo, ybar + 58); g.stroke(); g.setLineDash([]);
+      g.fillStyle = "#ffd84d"; g.font = "13px sans-serif"; g.fillText("tepi depan ↓", xo + 6, ybar + 72);
+      out.innerHTML = hintUkur();
+    };
+    $("lacak").onclick = () => { play("klik"); objekAcak(); drawUkur(); };
+    const cek = () => { const v = parseFloat(String($("lrep").value).replace(",", ".")); simpan(v); };
+    $("lok").onclick = cek;
+    $("lrep").addEventListener("keydown", e => { if(e.key === "Enter") cek(); });
+    drawUkur();
+  }
+  if(id === "labgerak"){
+    const read = () => {
+      const v0 = +$("lv0").value, a = +$("la2").value, t = +$("lt2").value;
+      $("ov0").textContent = v0; $("oa2").textContent = a; $("ot2").textContent = t;
+      fxGerak(v0, a, t);
+    };
+    ["lv0","la2","lt2"].forEach(x => $(x).addEventListener("input", read));
+    document.querySelectorAll("[data-gp]").forEach(b => b.onclick = () => {
+      const parts = String(b.dataset.gp).split(",").map(Number);
+      $("lv0").value = parts[0]; $("la2").value = parts[1];
+      play("klik"); read();
+    });
+    read();
+  }
+  if(id === "labenergi"){
+    let gCur = 10;
+    const read = () => {
+      const m = +$("lm").value, h = +$("lh").value;
+      $("om").textContent = m; $("oh").textContent = h;
+      fxEnergi(m, h, gCur);
+    };
+    ["lm","lh"].forEach(x => $(x).addEventListener("input", read));
+    document.querySelectorAll("[data-gp]").forEach(b => b.onclick = () => { gCur = +b.dataset.gp; play("klik"); read(); });
+    read();
+  }
+  function mountLabQuiz(box, L){
+    if(!box) return;
+    const items = L.quiz.map(shuffleQ);
+    let i = 0, correct = 0, answered = false;
+    const draw = () => {
+      if(i >= items.length){
+        box.innerHTML = `<div class="res ${correct === items.length ? "ok" : "warn"}" style="margin:0">Mini kuis ${L.emoji}: ${correct} dari ${items.length} benar. <button class="btn ghost sm" id="lq-retry">↻ Ulangi</button></div>`;
+        box.querySelector("#lq-retry").onclick = () => { i = 0; correct = 0; answered = false; draw(); };
+        return;
+      }
+      const q = items[i];
+      box.innerHTML = `<div class="sec-h" style="margin-bottom:8px"><span class="ic">🧩</span>
+          <h2 style="font-size:16px">${esc(L.name)} · mini kuis ${i+1}/${items.length}</h2></div>
+        <div class="qtext">${i+1}. ${esc(q.q)}</div>
+        ${q.num ? `<div class="row" style="margin-top:10px"><input class="qin" id="lq-num" inputmode="decimal" placeholder="Jawaban angka…">
+            <button class="btn" id="lq-chk">Periksa</button></div>`
+          : `<div class="qopts">${q.o.map((t,k) => `<button class="qopt" data-k="${k}">${String.fromCharCode(65+k)}. ${esc(t)}</button>`).join("")}</div>`}
+        <div id="lq-fb" class="qfb"></div>
+        <div class="row" style="margin-top:10px"><button class="btn ghost" id="lq-next" disabled>${i === items.length-1 ? "Lihat hasil" : "Soal berikutnya →"}</button></div>`;
+      const next = box.querySelector("#lq-next");
+      if(q.num){
+        const cek = () => {
+          if(answered) return; answered = true;
+          const v = parseFloat(box.querySelector("#lq-num").value.replace(",", "."));
+          const ok = !isNaN(v) && Math.abs(v - q.ans) < 0.011;
+          if(ok) correct++;
+          box.querySelector("#lq-fb").innerHTML = `<span class="${ok?"ok":"no"}">${ok?"✔ Benar!":"✘ Salah"} — jawaban: ${q.ans}</span>`
+            + (q.w ? `<div class="small muted" style="margin-top:6px">${esc(q.w)}</div>` : "");
+          play(ok?"benar":"salah"); next.disabled = false;
+        };
+        box.querySelector("#lq-chk").onclick = cek;
+        box.querySelector("#lq-num").addEventListener("keydown", e => { if(e.key === "Enter") cek(); });
+      } else {
+        box.querySelectorAll(".qopt").forEach(b => b.onclick = () => {
+          if(answered) return; answered = true;
+          const k = +b.dataset.k, ok = k === q.a;
+          if(ok) correct++;
+          box.querySelectorAll(".qopt").forEach((x,xi) => {
+            if(xi === q.a) x.classList.add("ok"); else if(xi === k) x.classList.add("no"); else x.classList.add("dim");
+            x.disabled = true;
+          });
+          play(ok?"benar":"salah");
+          box.querySelector("#lq-fb").innerHTML = `<span class="${ok?"ok":"no"}">${ok?"✔ Benar!":"✘ Salah"}</span>`
+            + (q.w ? `<div class="small muted" style="margin-top:6px">${esc(q.w)}</div>` : "");
+          next.disabled = false;
+        });
+      }
+      next.onclick = () => { i++; answered = false; draw(); };
+    };
+    draw();
+  }
+  function fxGerak(v0, a, tt){
+    const g = ctxOf(cv); if(!g) return;
+    const W = 640, H = 360;
+    const sT = v0*tt + 0.5*a*tt*tt, vT = v0 + a*tt;
+    const sMax = Math.max(Math.abs(v0*10 + 0.5*a*100), Math.abs(v0*-4 + 0.5*a*16), 10, Math.abs(sT));
+    const sy = v => 168 - v * (120 / sMax), sx = k => 60 + k/10 * (W-90);
+    g.clearRect(0,0,W,H); grid(g,W,H);
+    g.strokeStyle = "#8ea2c9"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(40, sy(0)); g.lineTo(W-40, sy(0)); g.moveTo(sx(0), 30); g.lineTo(sx(0), H-40); g.stroke();
+    g.fillStyle = "#8ea2c9"; g.font = "12px monospace";
+    g.fillText("s (m)", 8, 46); g.fillText("t (s)", W-58, sy(0)+18);
+    for(let k = 1; k <= 10; k++){ g.strokeStyle = "rgba(255,255,255,.14)"; g.beginPath(); g.moveTo(sx(k), sy(0)-4); g.lineTo(sx(k), sy(0)+4); g.stroke(); if(k % 2 === 0){ g.fillStyle = "#5c6b8a"; g.fillText(String(k), sx(k)-4, sy(0)+18); } }
+    g.strokeStyle = "#46c97c"; g.lineWidth = 3; g.beginPath(); let mv = true;
+    for(let k = -2; k <= 10; k += .1){ const yy = sy(v0*k + 0.5*a*k*k); if(yy < 24 || yy > H-30){ mv = true; continue; } const px = sx(Math.max(k,0)); if(mv){ g.moveTo(px, yy); mv = false; } else g.lineTo(px, yy); }
+    g.stroke();
+    g.strokeStyle = "#6aa3ff"; g.lineWidth = 2.5; g.setLineDash([7,5]); g.beginPath(); mv = true;
+    const vMax = Math.max(Math.abs(v0 + a*10), Math.abs(v0), Math.abs(a), 1);
+    for(let k = 0; k <= 10; k += .1){ const vy = 92 - (v0 + a*k) * (52/vMax) ; if(mv){ g.moveTo(sx(k), vy); mv = false; } else g.lineTo(sx(k), vy); }
+    g.stroke(); g.setLineDash([]);
+    const yu = sy(0);
+    if(tt >= 0){ g.fillStyle = "#ffd84d"; g.beginPath(); g.arc(sx(Math.max(tt,0)), sy(sT), 7, 0, 7); g.fill(); }
+    g.fillStyle = "#cfe0ff"; g.font = "13px sans-serif";
+    g.fillText("— s vs t (hijau) · -- v vs t (biru)", 60, 26);
+    const konsep = a === 0 ? "GLB — v konstan" : (a > 0 ? "GLBB dipercepat" : "GLBB diperlambat");
+    out.innerHTML = `<div><span class="eyebrow">v akhir</span><b>${vT.toFixed(1)} m/s</b></div>
+      <div><span class="eyebrow">posisi (t = ${tt} s)</span><b>${sT.toFixed(1)} m</b></div>
+      <div><span class="eyebrow">jenis gerak</span><b>${konsep}</b></div>
+      <div><span class="eyebrow">model</span><b>s = v₀·t + ½·a·t²</b></div>`;
+  }
+  function fxEnergi(m, h, gval){
+    const g = ctxOf(cv); if(!g) return;
+    const W = 640, H = 360;
+    g.clearRect(0,0,W,H); grid(g,W,H);
+    const total = m * gval * 20, EP = m * gval * h, EK = m * gval * (20 - h);
+    const bw = 74, gap = 46, x0 = 340, base = H - 60, ux = 220 / Math.max(total, 1);
+    g.fillStyle = "#0d1230"; g.fillRect(0,0,W,H);
+    g.strokeStyle = "rgba(255,255,255,.08)"; g.lineWidth = 1;
+    for(let x = 0; x <= W; x += 32){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); }
+    for(let y = 0; y <= H; y += 32){ g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke(); }
+    const lvl = base - h * 12;
+    g.strokeStyle = "#5c6b8a"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(60, base + 2); g.lineTo(280, base + 2); g.stroke();
+    g.fillStyle = "#5c6b8a"; g.font = "12px sans-serif"; g.fillText("tanah", 62, base + 18);
+    g.fillStyle = "rgba(159,224,182,.15)"; g.fillRect(90, 78, 160, base - 78);
+    g.strokeStyle = "#9fe0b6"; g.setLineDash([6,5]); g.strokeRect(90, 78, 160, base - 78); g.setLineDash([]);
+    g.fillStyle = "#9fe0b6"; g.font = "12px sans-serif"; g.fillText("20 m", 250, 84);
+    const yb = base - h*12;
+    g.fillStyle = "#46c97c"; g.beginPath(); g.arc(170, Math.max(yb - 12, 88), 15, 0, 7); g.fill();
+    g.fillStyle = "#ffd84d"; g.font = "13px sans-serif"; g.fillText("bola (m=" + m + " kg)", 130, yb - 34);
+    const bar = (x, val, col, lab) => {
+      const bh = val * ux;
+      g.fillStyle = col; g.fillRect(x, base - bh, bw, bh);
+      g.strokeStyle = "#ffffff22"; g.strokeRect(x, base - bh, bw, bh);
+      g.fillStyle = col; g.font = "bold 13px sans-serif"; g.fillText(lab, x + 8, base - bh - 8);
+    };
+    bar(x0, EP, "#0d9488", "EP");
+    bar(x0 + bw + gap, EK, "#6aa3ff", "EK");
+    bar(x0 + 2*(bw + gap), Math.max(total, EP + EK), "#ffd84d", "TOTAL");
+    g.fillStyle = "#cfe0ff"; g.font = "12px sans-serif";
+    out.innerHTML = `<div><span class="eyebrow">EP (pada h)</span><b>${EP.toFixed(1)} J</b></div>
+      <div><span class="eyebrow">EK (menjelang tanah)</span><b>${EK.toFixed(1)} J</b></div>
+      <div><span class="eyebrow">Total energi</span><b>${total.toFixed(1)} J</b></div>
+      <div><span class="eyebrow">g</span><b>${gval} m/s²</b></div>
+      <div><span class="eyebrow">v saat di tanah</span><b>${Math.sqrt(2*gval*20).toFixed(1)} m/s</b> <span class="eyebrow">(jatuh dari 20 m)</span></div>`;
+  }
   if(id === "labgraf"){
     const read = () => { const a = +$("la").value, b = +$("lb").value, c = +$("lc").value;
       $("oa").value = a; $("ob").value = b; $("oc").value = c; drawGraf(a,b,c); };
@@ -868,7 +1357,7 @@ BIND.lab = (id) => {
     $("lt").addEventListener("input", read); read();
   }
   if(id === "labstat"){
-    const run = () => drawStat($("lds").value); 
+    const run = () => drawStat($("lds").value);
     $("ldraw").onclick = run;
     $("lout").onclick = () => { $("lds").value = $("lds").value + ",99"; run(); };
     run();
@@ -999,7 +1488,7 @@ let ebPage = 0;
 VIEWS.ebook = (id) => {
   if(!id){
     return `<div class="stack">
-      <div class="sec-h"><span class="ic">📗</span><h2>E-Book &amp; Ringkasan Rumus</h2>
+      <div class="sec-h"><span class="ic">📗</span><h2>Buku Digital &amp; Ringkasan Materi</h2>
         <span class="right pill">${EBOOKS.length} buku</span></div>
       <div class="labgrid">${EBOOKS.map(bk => `<button class="labcard" data-eb="${bk.id}">
         <span class="li">${bk.emoji}</span>
@@ -1072,12 +1561,12 @@ VIEWS.forum = (id) => {
   }
   return `<div class="stack">
     <div class="sec-h"><span class="ic">💬</span><h2>Diskusi Kelas ${META.short} X</h2>
-      <span class="right pill">${list.length} thread</span></div>
+      <span class="right pill">${list.length} diskusi</span></div>
     <div class="card pad">
       <div class="sec-h" style="margin-bottom:8px"><span class="ic">✍️</span><h2 style="font-size:18px">Buat diskusi baru</h2></div>
       <label class="f">Judul<input type="text" id="f-title" placeholder="mis. Saya belum paham bagian ini, bisa dibantu?"></label>
       <label class="f" style="margin-top:10px">Pertanyaan<textarea id="f-body" rows="3" placeholder="Tulis pertanyaanmu..."></textarea></label>
-      <button class="btn" id="f-new" style="margin-top:10px">Posting</button></div>
+      <button class="btn" id="f-new" style="margin-top:10px">Tulis diskusi</button></div>
     ${list.map(t => `<div class="forum-row" data-ft="${t.id}">
       <span class="ava ${t.role==="guru"?"guru":""}">${esc(t.av)}</span>
       <span style="min-width:0"><b>${esc(t.title)}</b>
@@ -1104,10 +1593,10 @@ BIND.forum = (id) => {
 
 /* ================= RESOURCES ================= */
 VIEWS.res = () => {
-  const jumps = [["📘","E-Book","ebook"],["🧪","Lab","lab"],["🎮","Gim","game"],["🗺️","ATP","path"],
-    ["✅","Asesmen","quiz"],["📈","Nilai","grades"],["💬","Diskusi","forum"],["🤖","Teman AI","bot"]];
+  const jumps = [["📘","Buku Digital","ebook"],["🧪","Lab","lab"],["🎮","Gim","game"],["🗺️","ATP","path"],
+    ["✅","Asesmen","quiz"],["📈","Nilai","grades"],["💬","Diskusi","forum"],["🤖","Teman Sejarah","bot"]];
   return `<div class="stack">
-    <div class="sec-h"><span class="ic">📎</span><h2>Resources</h2>
+    <div class="sec-h"><span class="ic">📎</span><h2>Sumber Belajar</h2>
       <span class="right pill">pintasan &amp; referensi</span></div>
     <div class="card pad"><div class="res-ic">${jumps.map(([ic,lb,v])=>
       `<button data-jump="${v}"><span class="c">${ic}</span>${lb}</button>`).join("")}</div></div>
@@ -1134,13 +1623,13 @@ VIEWS.bot = () => {
   const quick = QUICK;
   return `<div class="stack">
     <div class="sec-h"><span class="ic">🤖</span><h2>${BOT_NAME}</h2>
-      <span class="right row"><button class="btn ghost sm" id="b-clear">Bersihkan chat</button></span></div>
+      <span class="right row"><button class="btn ghost sm" id="b-clear">Bersihkan obrolan</button></span></div>
     <div class="card pad">
       <div class="chat" id="chat">${msgs}</div>
       <div class="row" style="margin-top:12px"><input type="text" id="b-in" placeholder="Tanya apa saja…" style="flex:1;min-width:200px">
         <button class="btn" id="b-send">Kirim</button></div>
       <div class="row" style="margin-top:10px">${quick.map(q=>`<button class="btn ghost sm" data-bq="${q}">${q}</button>`).join("")}</div>
-      <p class="small muted" style="margin-top:10px">Aturan jawaban lokal (offline) — cocokkan dengan kata kunci rumus &amp; tips belajar.</p></div></div>`;
+      <p class="small muted" style="margin-top:10px">Aturan jawaban luring — cocokkan dengan kata kunci konsep &amp; kiat belajar.</p></div></div>`;
 };
 BIND.bot = () => {
   const chat = $("chat"); chat.scrollTop = chat.scrollHeight;
@@ -1158,28 +1647,30 @@ BIND.bot = () => {
 };
 
 /* ================= GOOGLE SHEETS (opsional) ================= */
+function gsUrl(){ return `https://script.google.com/macros/s/${D.gs}/exec`; }
 function gsNilai(opt, s){
   try{
     if(!D.gs) return;
     if(typeof fetch !== "function") return;
-    fetch(`https://script.google.com/macros/s/${D.gs}/exec`, { method:"POST",
+    fetch(gsUrl(), { method:"POST",
       body: JSON.stringify({ t:"skor", siswa:D.nama, kelas:D.kelas, mapel:META.name,
-        unit:(opt && opt.unit) || 0, jenis:(opt && opt.title) || "", skor:s, waktu:new Date().toISOString() })
+        unit:(opt && opt.unit) || 0, jenis:(opt && opt.title) || "", skor:s, kktp:KKTP,
+        waktu:new Date().toISOString() })
     }).catch(() => {});
   }catch(e){}
 }
 
 /* ================= SETTINGS ================= */
 VIEWS.set = () => {
-  const temas = [["","Auto"],["light","Terang"],["dark","Gelap"]];
+  const temas = [["","Otomatis"],["light","Terang"],["dark","Gelap"]];
   return `<div class="stack">
-    <div class="sec-h"><span class="ic">⚙️</span><h2>Settings</h2>
+    <div class="sec-h"><span class="ic">⚙️</span><h2>Pengaturan</h2>
       <span class="right pill">LMS ${META.short} X v1</span></div>
     <div class="card pad">
       <div class="sec-h" style="margin-bottom:10px"><span class="ic">👤</span><h2 style="font-size:18px">Profil</h2></div>
       <div class="grid3">
         <label class="f">Nama lengkap<input type="text" id="s-nama" value="${esc(D.nama)}" placeholder="mis. Nadia Rahma"></label>
-        <label class="f">Kelas<input type="text" id="s-kelas" value="${esc(D.kelas)}" placeholder="X-3"></label>
+        <label class="f">Kelas<input type="text" id="s-kelas" value="${esc(D.kelas)}" placeholder="mis. X-1"></label>
         <label class="f">Sekolah<input type="text" id="s-sekolah" value="${esc(D.sekolah)}"></label>
       </div>
       <button class="btn" id="s-save" style="margin-top:12px">Simpan profil</button></div>
@@ -1191,15 +1682,15 @@ VIEWS.set = () => {
       <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">💾</span><h2 style="font-size:18px">Penyimpanan</h2></div>
         <p class="small muted">Progres disimpan otomatis di perangkat ini (<code class="formula">${LS_KEY}</code>).</p>
         <div class="row" style="margin-top:10px">
-          <button class="btn ghost" id="s-export">Salin progres (JSON)</button>
-          <button class="btn ${resetArmed?"orange":""}" id="s-reset">${resetArmed?"⚠️ Klik lagi untuk hapus":"Reset progres"}</button></div></div>
+          <button class="btn ghost" id="s-export">Salin cadangan progres</button>
+          <button class="btn ${resetArmed?"orange":""}" id="s-reset">${resetArmed?"⚠️ Klik lagi untuk hapus":"Atur ulang progres"}</button></div></div>
     </div>
     <div class="card pad">
       <div class="sec-h" style="margin-bottom:10px"><span class="ic">🔗</span><h2 style="font-size:18px">Integrasi Google Sheets (opsional)</h2></div>
-      <p class="small muted">Tempel kode Apps Script Web App untuk mengirim skor ke sheet guru (seperti LMS referensi). Dibiarkan kosong bila tidak dipakai.</p>
-      <label class="f" style="margin-top:10px">Kode Web App<input type="text" id="s-gs" value="${esc(D.gs)}" placeholder="AKfycb..."></label>
+      <p class="small muted">Pengiriman skor otomatis ke Google Sheets guru. Kode aplikasi web dikunci permanen oleh pengaturan sekolah.</p>
+      <label class="f" style="margin-top:10px">Kode Aplikasi Web<input type="text" id="s-gs" value="${esc(D.gs)}" placeholder="AKfycb..." ${SHEET_URL_DEFAULT?'readonly title="Dikunci oleh pengaturan guru (permanen)"':""}></label>
       <div class="sendbox ${D.gs?"":"off"}" style="margin-top:10px">
-        <span>${D.gs?"🟢 Terhubung: siap mengirim skor":"⚪ Belum diatur — skor tersimpan lokal"}</span>
+        <span>${D.gs?"🟢 Terhubung"+(SHEET_URL_DEFAULT?" (permanen)":"")+": siap mengirim skor":"⚪ Belum diatur — skor tersimpan lokal"}</span>
         <button class="btn sm ghost" id="s-gstest">Uji koneksi</button></div></div>
     <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">ℹ️</span><h2 style="font-size:18px">Tentang</h2></div>
       <p class="small muted">${esc(META.about || "")} ${NU} unit · ${NU*JP_U} JP · KKTP ${KKTP}.</p></div></div>`;
@@ -1208,7 +1699,7 @@ let resetArmed = false;
 BIND.set = () => {
   $("s-save").onclick = () => {
     D.nama = $("s-nama").value.trim();
-    D.kelas = $("s-kelas").value.trim() || "X";
+    D.kelas = $("s-kelas").value.trim();
     D.sekolah = $("s-sekolah").value.trim() || D.sekolah;
     save(); updateUser(); toast("Profil tersimpan ✅"); render(); };
   document.querySelectorAll("[data-tema]").forEach(b => b.onclick = () => {
@@ -1217,22 +1708,24 @@ BIND.set = () => {
   $("s-export").onclick = () => {
     const txt = localStorage.getItem(LS_KEY) || "{}";
     if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(()=>{});
-    toast("Progres disalin ke clipboard 📋"); };
-  $("s-gs").addEventListener("change", e => { D.gs = e.target.value.trim(); save(); render(); });
+    toast("Progres disalin ke papan klip 📋"); };
+  $("s-gs").addEventListener("change", e => { D.gs = gsNorm(e.target.value); save(); render(); });
   $("s-gstest").onclick = () => {
-    if(!D.gs) return toast("Isi kode Web App dulu");
-    if(typeof fetch !== "function") return toast("Browser ini tidak mendukung fetch");
-    toast("Mengirim uji… (cek tab jaringan)");
-    fetch(`https://script.google.com/macros/s/${D.gs}/exec`, { method:"POST", body: JSON.stringify({ t:"uji" }) })
-      .then(r => toast(r.ok ? "Terhubung ✅" : "Respons tidak OK")).catch(() => toast("Gagal terhubung — cek kode")); };
+    if(!D.gs) return toast("Isi kode aplikasi web dulu");
+    if(typeof fetch !== "function") return toast("Peramban ini tidak mendukung pengiriman data");
+    toast("Mengirim uji…");
+    fetch(gsUrl(), { method:"POST", body: JSON.stringify({ t:"uji", siswa:D.nama || "", mapel:META.name || "" }) })
+      .then(r => r.json())
+      .then(d => toast(d && d.ok ? `Terhubung ✅ ${d.msg || ""}` : `Gagal: ${(d && d.error) || "respons tidak valid"}`))
+      .catch(() => toast("Gagal terhubung — cek kode & akses (Siapa saja)")) };
   const rb = $("s-reset");
   rb.onclick = () => {
     if(!resetArmed){ resetArmed = true; rb.textContent = "⚠️ Klik lagi untuk hapus"; rb.classList.add("orange");
-      setTimeout(() => { resetArmed = false; if($("s-reset")){ $("s-reset").textContent = "Reset progres"; $("s-reset").classList.remove("orange"); } }, 4000);
+      setTimeout(() => { resetArmed = false; if($("s-reset")){ $("s-reset").textContent = "Atur ulang progres"; $("s-reset").classList.remove("orange"); } }, 4000);
       return; }
     D.u = {}; D.ex = { uts:0, uas:0, rem:0 }; D.g = {}; D.lab = {}; D.seq = {}; D.forum = null;
     D.chat = [{ who:"bot", t:BOT_INTRO }];
-    resetArmed = false; save(); toast("Progres direset"); go("home"); };
+    resetArmed = false; save(); toast("Progres diatur ulang"); go("home"); };
 };
 
 /* ================= INIT (shell runtime) ================= */
@@ -1255,10 +1748,14 @@ function updateUser(){
   const nm = D.nama || "Murid Kelas X";
   $("userName").textContent = nm;
   $("userAv").textContent = initials(D.nama);
-  $("userMeta").textContent = `${META.fase || "Fase E"} · ${D.kelas || "X"}`;
+  $("userMeta").textContent = `${META.fase || "Fase E"}${D.kelas ? " · " + D.kelas : ""}`;
 }
 function boot(){
   load();
+  try{
+    const q = new URLSearchParams(location.search).get("gs");
+    if(q && q.trim()){ D.gs = gsNorm(q); save(); }
+  }catch(e){}
   theme();
   fillShell();
   soundOn = D.snd !== false;

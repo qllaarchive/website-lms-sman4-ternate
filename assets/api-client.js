@@ -1,5 +1,5 @@
-/* API Client — bridge antara portal.js (localStorage) dan backend API.
-   Jika API tersedia, data disinkronkan. Jika tidak, fallback ke localStorage. */
+/* API Client — jembatan portal.js ke backend API. Semua data LMS (tautan),
+   akun admin, dan profil sekolah tersimpan di database melalui API ini. */
 (function(){
   "use strict";
   var API_BASE = String(window.LMS_API_BASE || "http://localhost:3000/api").replace(/\/+$/, "");
@@ -41,7 +41,7 @@
       return _probe;
     },
 
-    /* Auth */
+    /* Auth (cookie JWT httpOnly) */
     login: function(username, password){
       return apiFetch("/auth/login", { method: "POST", body: JSON.stringify({ username: username, password: password }) });
     },
@@ -52,7 +52,7 @@
       return apiFetch("/auth/me");
     },
 
-    /* LMS entries */
+    /* Daftar LMS (tautan) */
     getEntries: function(klass){
       var q = klass ? "?klass=" + encodeURIComponent(klass) : "";
       return apiFetch("/lms" + q);
@@ -71,25 +71,12 @@
       return apiFetch("/lms/" + id, { method: "DELETE" });
     },
 
-    /* Progress */
-    saveProgress: function(lmsId, pct, source){
-      return apiFetch("/progress", { method: "POST", body: JSON.stringify({ lmsId: lmsId, pct: pct, source: source }) });
-    },
-    getProgressSummary: function(){
-      return apiFetch("/progress/summary");
-    },
-
-    /* School profile */
+    /* Profil sekolah */
     getProfile: function(){
-      return apiFetch("/admin/profile");
+      return apiFetch("/school");
     },
     saveProfile: function(profile){
-      return apiFetch("/admin/profile", { method: "PUT", body: JSON.stringify(profile) });
-    },
-
-    /* Backup / restore */
-    exportAll: function(){
-      return apiFetch("/admin/export");
+      return apiFetch("/school", { method: "PUT", body: JSON.stringify(profile) });
     }
   };
 })();

@@ -44,22 +44,37 @@ router.post("/", requireAuth, async (req, res) => {
     id: parsed.data.id || randomUUID(),
     short: parsed.data.short || parsed.data.name.slice(0, 40),
   });
-  const entry = await prisma.lmsEntry.create({ data });
-  res.status(201).json({ entry });
+  try {
+    const entry = await prisma.lmsEntry.create({ data });
+    res.status(201).json({ entry });
+  } catch (e) {
+    if (e && e.code === "P2002") return res.status(409).json({ error: "duplicate_id" });
+    throw e;
+  }
 });
 
 /* PUT /api/lms/:id — admin only */
 router.put("/:id", requireAuth, async (req, res) => {
   const parsed = EntrySchema.partial().safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "invalid_input" });
-  const entry = await prisma.lmsEntry.update({ where: { id: req.params.id }, data: parsed.data });
-  res.json({ entry });
+  try {
+    const entry = await prisma.lmsEntry.update({ where: { id: req.params.id }, data: parsed.data });
+    res.json({ entry });
+  } catch (e) {
+    if (e && e.code === "P2025") return res.status(404).json({ error: "not_found" });
+    throw e;
+  }
 });
 
 /* DELETE /api/lms/:id — admin only */
 router.delete("/:id", requireAuth, async (req, res) => {
-  await prisma.lmsEntry.delete({ where: { id: req.params.id } });
-  res.json({ ok: true });
+  try {
+    await prisma.lmsEntry.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  } catch (e) {
+    if (e && e.code === "P2025") return res.status(404).json({ error: "not_found" });
+    throw e;
+  }
 });
 
 export default router;

@@ -11,12 +11,13 @@ meta:{
   rasional:"Sejarah Fase E menelaah konsep dasar ilmu sejarah serta mengimplementasikan penelitian sejarah untuk merefleksikan keterhubungan masa lampau, masa kini, dan masa depan melalui peristiwa penting lingkup lokal, nasional, dan global dari masa kerajaan Hindu-Buddha hingga masa kerajaan Islam. Setiap unit memuat TP turunan, asesmen diagnostik–formatif–sumatif, proyek, dan refleksi.",
   refText:"Capaian Pembelajaran IPS Fase E — elemen Sejarah (CP_SMA/19_CP_SMA_ILMU_PENGETAHUAN_SOSIAL.pdf); pedoman karakteristik & elemen Sejarah (CP_SMA/20_CP_SMA_SEJARAH.pdf).",
   botName:"Teman Sejarah",
-  botIntro:"Halo! 👋 Saya Teman Sejarah Kelas X. Tanyakan konsep (mis. 'heuristik'), periode kerajaan, sejarah Maluku, atau tips belajar sejarah.",
+  botIntro:"Halo! 👋 Saya Teman Sejarah Kelas X. Tanyakan konsep (mis. 'heuristik'), periode kerajaan, sejarah Maluku, atau kiat belajar sejarah.",
   botQuick:["heuristik","kronologi","Majapahit","Ternate","cara belajar"],
   about:"LMS Sejarah Kelas X · Fase E · selaras CP IPS bagian Sejarah: konsep dasar & penelitian sejarah dari masa kerajaan Hindu-Buddha hingga kerajaan Islam, berkonteks Nusantara dan Maluku.",
   logoText:"📜",
+  homeLayout:"accordion",
   scene:["heuristik","kritis","interpretasi","historiografi"],
-  sceneExtra:'<path d="M300 148 H980" stroke="#7fd1ff" stroke-width="3" stroke-linecap="round" opacity=".45"/><circle cx="340" cy="148" r="5" fill="#ffd84d"/><circle cx="520" cy="148" r="5" fill="#46c97c"/><circle cx="700" cy="148" r="5" fill="#c084fc"/><circle cx="880" cy="148" r="5" fill="#ff8a5c"/>'
+  sceneExtra:'<path d="M300 148 H980" stroke="#b8860b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6" opacity=".55"/><circle cx="340" cy="148" r="5" fill="#d4a017"/><circle cx="520" cy="148" r="5" fill="#7a8b3c"/><circle cx="700" cy="148" r="5" fill="#b85c38"/><circle cx="880" cy="148" r="5" fill="#c92a2a"/>'
 },
 KKTP:70,
 ELEMENTS : [
@@ -51,11 +52,11 @@ UNITS : [
     { q:"Dalam mengkaji kerajaan Nusantara, perspektif yang dianjurkan adalah …", o:["Indonesia sentris yang mengaitkan lokal, nasional, dan global","hanya peristiwa luar negeri","hanya raja-raja besar","hanya ekonomi kerajaan"], a:0, w:"Sejarah berperspektif Indonesia sentris: perjalanan bangsa kita, dikaitkan dengan dunia." }],
   task:"Amati 1 benda peninggalan di sekitarmu (foto lama, alat dapur tua, bangunan, nama jalan). Tulis 3 pertanyaan sejarah beserta dugaan jawabannya dengan memakai konsep manusia, ruang, dan waktu.",
   disc:"Mengapa menghafal tahun saja belum berarti memahami sejarah? Jelaskan peran kronologi dan konteks dalam memahami sebuah peristiwa.",
-  proj:{ title:"Peta Waktu Kampungku", steps:["Kumpulkan 5 peristiwa penting di kampungmu dari wawancara warga atau foto keluarga.","Susun peristiwa dalam urutan kronologis dan verifikasi tahunnya dari 2 sumber.","Gambarkan timeline kampung (digital atau kertas milimeter) dengan penanda perubahan & keberlanjutan.","Presentasikan: apa arti sejarah kampung bagi kehidupanmu sekarang."],
+  proj:{ title:"Peta Waktu Kampungku", steps:["Kumpulkan 5 peristiwa penting di kampungmu dari wawancara warga atau foto keluarga.","Susun peristiwa dalam urutan kronologis dan verifikasi tahunnya dari 2 sumber.","Gambarkan garis waktu kampung (digital atau kertas milimeter) dengan penanda perubahan & keberlanjutan.","Presentasikan: apa arti sejarah kampung bagi kehidupanmu sekarang."],
     rub:[["Ketepatan kronologi & sumber","40"],["Kelengkapan peristiwa","30"],["Kualitas presentasi & refleksi","30"]] },
   refl:["Konsep sejarah mana yang paling mengubah cara kamu melihat sekitar?","Peristiwa apa di kampungmu yang layak jadi bahan belajar sejarah?","Bagaimana kesadaran sejarah membantumu mengambil keputusan hari ini?"],
-  meet:[{ jp:"4 JP", topic:"Manusia, ruang, & waktu", act:"Brainstorming: temukan sejarah di ruang sekitar kelas & sekolah." },
-        { jp:"4 JP", topic:"Kronologi, perubahan, kesadaran sejarah", act:"Menyusun timeline peristiwa keluarga & diskusi pola perubahan." },
+  meet:[{ jp:"4 JP", topic:"Manusia, ruang, & waktu", act:"Curah gagasan: temukan sejarah di ruang sekitar kelas & sekolah." },
+        { jp:"4 JP", topic:"Kronologi, perubahan, kesadaran sejarah", act:"Menyusun garis waktu peristiwa keluarga & diskusi pola perubahan." },
         { jp:"4 JP", topic:"Diakronis & sinkronis", act:"Studi kasus peristiwa lokal–nasional–global + kuis kelas." }] },
 
 { n:2, el:2, sem:1, title:"Metode Penelitian Sejarah", emoji:"🔍",
@@ -93,12 +94,12 @@ UNITS : [
 { n:3, el:1, sem:1, title:"Peradaban Awal Nusantara", emoji:"🗿",
   desc:"Menelusuri jejak manusia purba, zaman batu, kebudayaan megalitikum, dan perunggu Dongson di Nusantara.",
   tp:[
-    { c:"S.3.1", t:"Menjelaskan jejak manusia purba di Nusantara serta perkembangan zaman batu (palaeo–meso–neolitikum).", e:"Menjelaskan temuan Homo erectus (Java Man) dan kebudayaan batu di berbagai wilayah." },
+    { c:"S.3.1", t:"Menjelaskan jejak manusia purba di Nusantara serta perkembangan zaman batu (paleolitikum–mesolitikum–neolitikum).", e:"Menjelaskan temuan Homo erectus (Manusia Jawa) dan kebudayaan batu di berbagai wilayah." },
     { c:"S.3.2", t:"Menganalisis peninggalan megalitikum dan kebudayaan Dongson sebagai ekspresi kehidupan & kepercayaan nenek moyang.", e:"Mengidentifikasi fungsi menhir, dolmen, sarkofagus, dan benda perunggu." }],
-  focus:[["Manusia purba","Homo erectus / Java Man di Trinil"],["Zaman batu","palaeo, meso, neolitikum"],["Megalitikum","menhir, dolmen, sarkofagus, arca"],["Dongson","kebudayaan perunggu & kentongan"]],
-  model:"Eugene Dubois menemukan tengkorak & tulang paha [[Homo erectus]] di [[Trinil, Jawa Timur, 1891]] — dikenal sebagai “Java Man” berusia sekitar [[1,5 juta tahun]]. Zaman batu berkembang dari [[palaeolitikum]] (batu kasar, berburu) → [[mesolitikum]] (batu kepihan, hidup di tepi danau) → [[neolitikum]] (batu halus, bercocok tanam, menetap). Kebudayaan [[megalitikum]] meninggalkan [[menhir]], [[dolmen]], dan sarkofagus sebagai penghormatan leluhur; [[Dongson]] menambahkan kerajinan [[perunggu]] seperti kentongan & gong kecil.",
+  focus:[["Manusia purba","Homo erectus / Manusia Jawa di Trinil"],["Zaman batu","paleolitikum, mesolitikum, neolitikum"],["Megalitikum","menhir, dolmen, sarkofagus, arca"],["Dongson","kebudayaan perunggu & kentongan"]],
+  model:"Eugene Dubois menemukan tengkorak & tulang paha [[Homo erectus]] di [[Trinil, Jawa Timur, 1891]] — dikenal sebagai “Manusia Jawa” berusia sekitar [[1,5 juta tahun]]. Zaman batu berkembang dari [[paleolitikum]] (batu kasar, berburu) → [[mesolitikum]] (batu kepihan, hidup di tepi danau) → [[neolitikum]] (batu halus, bercocok tanam, menetap). Kebudayaan [[megalitikum]] meninggalkan [[menhir]], [[dolmen]], dan sarkofagus sebagai penghormatan leluhur; [[Dongson]] menambahkan kerajinan [[perunggu]] seperti kentongan & gong kecil.",
   diag:[
-    { q:"Temuan “Java Man” di Trinil (1891) adalah …", o:["Homo erectus","Homo sapiens","Homo neanderthalensis","Homo floresiensis"], a:0, w:"Homo erectus / Pithecanthropus erectus — manusia purba Jawa." },
+    { q:"Temuan “Manusia Jawa” di Trinil (1891) adalah …", o:["Homo erectus","Homo sapiens","Homo neanderthalensis","Homo floresiensis"], a:0, w:"Homo erectus / Pithecanthropus erectus — manusia purba Jawa." },
     { q:"Zaman batu ditandai alat-alat dari …", o:["batu","perunggu","besi","kaca"], a:0, w:"“Batu” = litos; alat utama dari batu sebelum logam dikuasai." },
     { q:"Dolmen berfungsi sebagai …", o:["meja kubur / meja persembahan","alat musik","senjata berburu","wadah makan"], a:0, w:"Dolmen = batu datar di atas batu penyangga, terkait penghormatan jenazah/leluhur." }],
   form:[
@@ -108,7 +109,7 @@ UNITS : [
     { q:"Kebudayaan Dongson terkenal dengan …", o:["kerajinan perunggu seperti kentongan & gong kecil","gerabah warna merah","alat dari tulang ikan","menhir raksasa"], a:0, w:"Dongson (Vietnam) berpengaruh ke Nusantara: benda perunggu & motif spiral." },
     { q:"Punden berundak berkaitan dengan …", o:["kepercayaan nenek moyang & penghormatan arwah","perdagangan rempah","pelayaran antarpulau","pertanian terasering modern"], a:0, w:"Bentuk bertingkat melambangkan dunia atas–tengah–bawah dalam kepercayaan lama." }],
   quiz:[
-    { q:"Urutan zaman batu yang benar adalah …", o:["palaeolitikum → mesolitikum → neolitikum","neolitikum → mesolitikum → palaeolitikum","mesolitikum → palaeolitikum → neolitikum","palaeolitikum → neolitikum → mesolitikum"], a:0, w:"Dari alat paling kasar menuju paling halus & maju." },
+    { q:"Urutan zaman batu yang benar adalah …", o:["paleolitikum → mesolitikum → neolitikum","neolitikum → mesolitikum → paleolitikum","mesolitikum → paleolitikum → neolitikum","paleolitikum → neolitikum → mesolitikum"], a:0, w:"Dari alat paling kasar menuju paling halus & maju." },
     { q:"Manusia purba yang dikenal sebagai Homo soloensis ditemukan di daerah …", o:["Ngandong, Jawa Tengah","Trinil, Jawa Timur","Sangiran, Jawa Tengah","Wajak, Jawa Timur"], a:0, w:"Homo soloensis (manusia Solo) dari Ngandong." },
     { q:"Peninggalan megalitikum paling tepat dihubungkan dengan …", o:["kehidupan keagamaan & penghormatan leluhur","industri kerajinan perunggu","perdagangan internasional","pemerintahan kerajaan maritim"], a:0, w:"Megalitikum: ekspresi kepercayaan & tradisi melestarikan arwah." },
     { q:"Sarkofagus/peti batu berfungsi sebagai …", o:["wadah jenazah","alat musik pesta","tempat penyimpanan beras","perahu batu"], a:0, w:"Peti batu menyimpan jenazah bersama peralatan." },
@@ -146,7 +147,7 @@ UNITS : [
     { q:"Kesimpulan paling tepat tentang awal berdirinya kerajaan di Nusantara adalah …", o:["Tumbuh dari masyarakat sungai/pesisir yang maju & pengaruh budaya luar","Langsung dibentuk oleh bangsa asing","Berawal dari kerajaan maritim Islam","Tidak meninggalkan bukti tertulis sama sekali"], a:0, w:"Masyarakat sungai (Mahakam, Citarum) berkembang & berinteraksi dengan dunia luar." }],
   task:"Buatlah “lembar analisis prasasti”: pilih 1 prasasti (Yupa, Ciaruteun, Kebon Kopi, atau Tugu), tuliskan lokasi temuan, isi singkat, dan 2 kesimpulan yang bisa kamu ambil tentang masa itu.",
   disc:"Mengapa sejarawan lebih mempercayai prasasti daripada cerita lisan saja ketika meneliti kerajaan awal?",
-  proj:{ title:"Pameran Prasasti Mini", steps:["Pilih 2 prasasti (1 dari Kutai, 1 dari Tarumanegara).","Buat replika prasasti dari clay/kardus lengkap dengan “aksara” & terjemahan isinya.","Susun papan pameran: lokasi peta, foto temuan, ringkasan isi, makna sejarah.","Buka pameran kelas — setiap pengunjung menulis 1 kesan di buku tamu."],
+  proj:{ title:"Pameran Prasasti Mini", steps:["Pilih 2 prasasti (1 dari Kutai, 1 dari Tarumanegara).","Buat replika prasasti dari tanah liat/kardus lengkap dengan “aksara” & terjemahan isinya.","Susun papan pameran: lokasi peta, foto temuan, ringkasan isi, makna sejarah.","Buka pameran kelas — setiap pengunjung menulis 1 kesan di buku tamu."],
     rub:[["Ketepatan isi & informasi","40"],["Kualitas replika & papan","30"],["Keaktifan memandu pameran","30"]] },
   refl:["Apa yang membuat Kutai & Tarumanegara layak disebut “kerajaan”?","Bagaimana sungai memengaruhi kehidupan kerajaan awal?","Pelajaran apa tentang dokumentasi masa lalu yang kamu dapat dari unit ini?"],
   meet:[{ jp:"4 JP", topic:"Kutai & Yupa", act:"Menggambar peta Sungai Mahakam + menganalisis terjemahan yupa." },
@@ -278,7 +279,7 @@ UNITS : [
   refl:["Jejak budaya mana yang paling kamu rasakan dalam keseharianmu?","Bagaimana cara melestarikan warisan tanpa mengabaikan kritik sejarah?","Apa hubungan seni dan nilai dalam peninggalan candi?"],
   meet:[{ jp:"4 JP", topic:"Candi & relief", act:"Bedah foto Borobudur–Prambanan: fungsi, cerita, nilai." },
         { jp:"4 JP", topic:"Akulturasi budaya", act:"Diskusi jejak Saka, wayang, gamelan, istilah warisan." },
-        { jp:"4 JP", topic:"Pelestarian & proyek", act:"Workshop katalog digital + kuis unit." }] },
+        { jp:"4 JP", topic:"Pelestarian & proyek", act:"Lokakarya katalog digital + kuis unit." }] },
 
 { n:9, el:1, sem:2, title:"Kedatangan Islam & Samudera Pasai", emoji:"🕌",
   desc:"Islam masuk melalui jalur perdagangan & dakwah; lahirnya Samudera Pasai di pesisir Sumatera.",
@@ -390,7 +391,7 @@ UNITS : [
     { q:"Tahap kritik sumber bertujuan …", o:["memastikan kebenaran & keandalan informasi","mempercepat penulisan","menghias laporan","memilih topik"], a:0, w:"Kritis = menyaring sebelum dipakai dalam tafsir." },
     { q:"Interpretasi yang baik harus …", o:["berpijak pada sumber yang sudah dikritik & logika yang jelas","hanya mengikuti opini terkenal","mengabaikan sumber primer","bersifat spekulasi bebas"], a:0, w:"Interpretasi = tafsir berbasis bukti." },
     { q:"Laporan penelitian yang baik memuat …", o:["latar belakang, sumber, temuan, tafsir, kesimpulan","hanya judul & gambar","hanya kutipan tanpa analisis","hanya daftar tahun"], a:0, w:"Struktur laporan ilmiah mini: konteks → metode → temuan → simpulan." },
-    { q:"Presentasi ilmiah menekankan …", o:["kejelasan argumen & bukti","gaya berpakaian","lamanya berbicara","jumlah slide"], a:0, w:"Isi & bukti lebih penting daripada hiasan berlebihan." },
+    { q:"Presentasi ilmiah menekankan …", o:["kejelasan argumen & bukti","gaya berpakaian","lamanya berbicara","jumlah tayangan"], a:0, w:"Isi & bukti lebih penting daripada hiasan berlebihan." },
     { q:"Menyajikan fakta & tafsir secara terpisah menunjukkan …", o:["integritas ilmiah","kelemahan penelitian","kurangnya sumber","minat pada hiburan"], a:0, w:"Pisahkan fakta (temuan) dari tafsir (interpretasi) agar pembaca bisa menilai." }],
   quiz:[
     { q:"Keterampilan proses sejarah yang tepat untuk menelusuri asal nama jalan di kotamu adalah …", o:["heuristik → kritik → interpretasi → historiografi","interpretasi → heuristik → kritik → historiografi","historiografi → heuristik → interpretasi → kritik","kritik → historiografi → heuristik → interpretasi"], a:0, w:"Urutan baku penelitian sejarah." },
@@ -403,9 +404,9 @@ UNITS : [
   proj:{ title:"Mini Penelitian Sejarah Maluku", steps:["Tentukan topik (benteng, rempah, tokoh, atau peristiwa lokal).","Kumpulkan minimal 3 sumber primer & 2 sekunder; lakukan kritik ekstern & intern.","Susun naskah 2–3 halaman: latar belakang, metode, temuan, tafsir, kesimpulan, refleksi.","Presentasikan 8–10 menit + tanya jawab; arsipkan di perpustakaan kelas/sekolah."],
     rub:[["Kualitas sumber & kritik","40"],["Kedalaman tafsir & kesimpulan","30"],["Presentasi & diskusi","30"]] },
   refl:["Apa tantangan terbesar selama meneliti sejarah lokal?","Bagaimana cara memastikan kebenaran informasi dari wawancara?","Rencana apa yang akan kamu lakukan untuk melestarikan sejarah daerahmu?"],
-  meet:[{ jp:"4 JP", topic:"Merancang penelitian lokal", act:"Brainstorming topik Ternate/Maluku + penyusunan proposal." },
+  meet:[{ jp:"4 JP", topic:"Merancang penelitian lokal", act:"Curah gagasan topik Ternate/Maluku + penyusunan proposal." },
         { jp:"4 JP", topic:"Heuristik & kritik lapangan", act:"Klinik sumber: benda, foto, wawancara; latihan kritik ekstern/intern." },
-        { jp:"4 JP", topic:"Menulis & presentasi", act:"Workshop penulisan naskah + presentasi & refleksi akhir semester." }] }
+        { jp:"4 JP", topic:"Menulis & presentasi", act:"Lokakarya penulisan naskah + presentasi & refleksi akhir semester." }] }
 ],
 
 EXAM : {
@@ -451,16 +452,71 @@ EXAM : {
 },
 
 LABS : [
-  { id:"labkron", name:"Lab Kronologi", emoji:"⏳", el:2, type:"seq",
-    desc:"Susun urutan langkah penelusuran kronologi peristiwa sejarah secara tepat.",
-    hint:"Urutan logis: tentukan topik → kumpulkan tanggal dari sumber primer → urutkan menurut waktu → cocokkan sumber sekunder → simpulkan pola perubahan.",
-    steps:[
-      "Tentukan peristiwa/periode yang akan ditelusuri kronologinya.",
-      "Kumpulkan keterangan tahun/tanggal dari sumber primer (prasasti, foto, dokumen, wawancara).",
-      "Verifikasi tahun dari sumber sekunder yang tepercaya.",
-      "Urutkan semua peristiwa dari yang paling awal ke paling akhir.",
-      "Amati pola: peristiwa apa sebab-akibat dari yang sebelumnya?",
-      "Tulis kesimpulan kronologis 3–5 kalimat." ] },
+  { id:"labkron", name:"Lab Kronologi", emoji:"⏳", el:2, type:"timeline",
+    desc:"Seret peristiwa Nusantara ke garis waktu — susun dari yang paling awal hingga paling akhir.",
+    hint:"Tonggak besar: Kutai → Tarumanegara → Sriwijaya → Singasari → Majapahit → Ternate. Tahun muncul setelah diperiksa.",
+    events:[
+      { y:"400 M", t:"Yupa Kutai (Mulawarman)" },
+      { y:"450 M", t:"Prasasti Ciaruteun (Purnawarman)" },
+      { y:"682 M", t:"Prasasti Kedukan Bukit (Sriwijaya)" },
+      { y:"800 M", t:"Borobudur dibangun" },
+      { y:"1222", t:"Singasari berdiri (Ken Arok)" },
+      { y:"1293", t:"Majapahit berdiri (Raden Wijaya)" },
+      { y:"1575", t:"Baabullah membebaskan Ternate" } ] },
+  { id:"labwaktu", name:"Lab Mesin Waktu", emoji:"🕰️", el:1, type:"timeslider",
+    desc:"Geser tahun 300–1700 M dan lihat era, kerajaan, serta peristiwa yang hidup pada masa itu.",
+    hint:"Amati pergantian era: kerajaan awal → Sriwijaya → Singasari → Majapahit → kesultanan Islam → awal kolonial.",
+    min:300, max:1700, step:10, start:400,
+    eras:[
+      { from:300, to:399, name:"Masa Praaksara", desc:"Tradisi megalitik masih hidup; belum ada kerajaan dengan bukti tertulis." },
+      { from:400, to:681, name:"Kerajaan Awal", desc:"Kutai dan Tarumanegara meninggalkan yupa serta prasasti — tonggak sejarah tertulis Nusantara." },
+      { from:682, to:1099, name:"Sriwijaya", desc:"Kerajaan maritim menguasai Selat Malaka; Kedukan Bukit 682 menjadi bukti awal." },
+      { from:1100, to:1292, name:"Kediri & Singasari", desc:"Zaman kakawin dan sastra Jawa; Ken Arok mendirikan Singasari pada 1222." },
+      { from:1293, to:1477, name:"Majapahit", desc:"Puncak kekuasaan Nusantara: Gajah Mada, Hayam Wuruk, dan Nagarakretagama 1365." },
+      { from:1478, to:1599, name:"Kesultanan Islam", desc:"Demak, Aceh, Gowa-Tallo, dan Ternate-Tidore tumbuh menjadi kekuatan baru berbasis Islam." },
+      { from:1600, to:1700, name:"Awal Kolonial", desc:"VOC dan kekuatan Eropa membangun benteng serta monopoli rempah di Nusantara." } ],
+    events:[
+      { y:400, t:"Yupa Kutai", d:"Catatan pemberian raja Mulawarman kepada Brahmana." },
+      { y:450, t:"Prasasti Ciaruteun", d:"Jejak Purnawarman, raja Tarumanegara." },
+      { y:682, t:"Prasasti Kedukan Bukit", d:"Bukti awal ekspedisi maritim Sriwijaya." },
+      { y:800, t:"Borobudur dibangun", d:"Mahakarya Buddha dari masa Dinasti Syailendra." },
+      { y:1222, t:"Singasari berdiri", d:"Ken Arok mengakhiri kekuasaan Kediri." },
+      { y:1293, t:"Majapahit berdiri", d:"Raden Wijaya membangun kerajaan besar di Jawa Timur." },
+      { y:1297, t:"Malik al-Salih wafat", d:"Sultan pertama Samudera Pasai." },
+      { y:1478, t:"Demak berdiri", d:"Kesultanan Islam pertama di Jawa." },
+      { y:1511, t:"Melaka jatuh ke Portugis", d:"Perebutan jalur rempah mulai memanas." },
+      { y:1575, t:"Ternate membebaskan diri", d:"Sultan Baabullah mengusir Portugis dari Ternate." },
+      { y:1605, t:"Gowa-Tallo masuk Islam", d:"Sultan Alauddin menjadikan Islam agama kerajaan." },
+      { y:1609, t:"Banda dikuasai VOC", d:"Monopoli pala dimulai dengan kekerasan." },
+      { y:1613, t:"Sultan Agung memerintah", d:"Mataram Islam mencapai puncak kekuasaan." },
+      { y:1628, t:"Serangan ke Batavia", d:"Dua serangan Mataram menghadapi VOC." } ] },
+  { id:"labsumber", name:"Lab Bedah Sumber", emoji:"🏺", el:1, type:"sortbin",
+    desc:"Pisahkan sumber primer dan sekunder — klik sumber lalu klik kotaknya.",
+    hint:"Primer = lahir pada masa peristiwa (prasasti, foto lama, surat, wawancara). Sekunder = interpretasi kemudian (buku, ensiklopedia, dokumenter).",
+    bins:[
+      { id:"primer", name:"Sumber Primer", emoji:"🏺" },
+      { id:"sekunder", name:"Sumber Sekunder", emoji:"📚" } ],
+    items:[
+      { t:"Prasasti Yupa Kutai", bin:"primer" },
+      { t:"Nagarakretagama 1365", bin:"primer" },
+      { t:"Buku pelajaran sejarah SMA", bin:"sekunder" },
+      { t:"Wawancara sesepuh kampung", bin:"primer" },
+      { t:"Artikel ensiklopedia Majapahit", bin:"sekunder" },
+      { t:"Foto benteng Portugis", bin:"primer" },
+      { t:"Video dokumenter modern", bin:"sekunder" },
+      { t:"Surat dagang VOC abad ke-17", bin:"primer" } ] },
+  { id:"labrempah", name:"Lab Jalur Rempah", emoji:"🗺️", el:1, type:"map",
+    desc:"Klik pelabuhan pada peta untuk menelusuri jaringan cengkih dan pala dari Maluku ke dunia.",
+    hint:"Ikuti alurnya: Banda & Ternate → Makassar → Gresik/Demak → Banten → Malaka → Pasai.",
+    ports:[
+      { id:"pasai", name:"Pasai", x:120, y:102, emoji:"🕌", year:"1297", info:"Kesultanan Islam pertama di Nusantara; Malik al-Salih wafat 1297. Menjadi simpul dagang di ujung utara Sumatra." },
+      { id:"malaka", name:"Malaka", x:176, y:126, emoji:"⛵", year:"1511", info:"Pelabuhan tersibuk di Selat Malaka. Jatuh ke tangan Portugis pada 1511 — pintu masuk kolonialisme di Nusantara." },
+      { id:"banten", name:"Banten", x:262, y:268, emoji:"🌶️", year:"1526", info:"Pelabuhan lada di Jawa Barat; menjadi pintu ekspor rempah dan penghubung dengan pedagang Eropa." },
+      { id:"demak", name:"Demak", x:352, y:258, emoji:"🕌", year:"1478", info:"Kesultanan Islam pertama di Jawa; menguasai jalur dagang pesisir utara bersama Gresik." },
+      { id:"makassar", name:"Makassar", x:486, y:238, emoji:"⚓", year:"1605", info:"Pelabuhan bebas yang menghubungkan Maluku dengan Jawa. Gowa-Tallo masuk Islam pada 1605." },
+      { id:"ternate", name:"Ternate", x:566, y:170, emoji:"🌋", year:"1575", info:"Pusat cengkih. Sultan Baabullah mengusir Portugis pada 1575; Ternate menjadi kekuatan maritim Maluku." },
+      { id:"tidore", name:"Tidore", x:588, y:190, lx:32, ly:4, emoji:"🏝️", year:"1522", info:"Saingan Ternate, bersekutu dengan Spanyol. Bersama Ternate menguasai perdagangan cengkih." },
+      { id:"banda", name:"Banda", x:630, y:228, ly:26, emoji:"🌰", year:"1609", info:"Kepulauan penghasil pala satu-satunya di dunia. VOC merebutnya pada 1609 dan menerapkan monopoli." } ] },
   { id:"labpasang", name:"Lab Pasang Konsep", emoji:"🧩", el:2, type:"match",
     desc:"Pasangkan istilah sejarah dengan definisi atau contohnya yang tepat.",
     hint:"Baca dulu semua istilah, lalu cocokkan dengan definisi yang paling spesifik — hindari jebakan definisi umum.",
@@ -482,11 +538,7 @@ LABS : [
       "Kritik ekstern: catat asal, keaslian, & konteks lahir sumber.",
       "Kritik intern: uji isi & konsistensi antar sumber.",
       "Interpretasi: susun tafsir berbasis bukti yang sudah dikritik.",
-      "Historiografi: tulis naskah mini 1–2 halaman dengan kesimpulan." ] },
-  { id:"labsumber", name:"Lab Bedah Sumber", emoji:"🏺", el:1, type:"info",
-    desc:"Panduan bedah sumber primer vs sekunder dengan contoh nyata dari sejarah Nusantara & Maluku.",
-    hint:"Gunakan panduan ini setiap kali menemukan sumber baru.",
-    body:"Contoh Sumber PRIMER:\n• Prasasti (Yupa, Kedukan Bukit, Ciaruteun) — lahir pada masa kerajaan.\n• Nagarakretagama 1365 — catatan istana Majapahit.\n• Catatan perjalanan I-Tsing, Marco Polo, Ib Battuta.\n• Foto lama, surat kolonial, benda peninggalan, wawancara tokoh.\n\nContoh Sumber SEKUNDER:\n• Buku pelajaran sejarah SMA.\n• Ensiklopedia & artikel sejarah modern.\n• Video dokumenter berbasis arsip.\n\nLangkah kritis:\n1. Siapa pembuat/ sumbernya? Kapan dibuat?\n2. Untuk apa dibuat? (propaganda, catatan ibadah, dagang?)\n3. Apakah isinya konsisten dengan sumber lain?\n4. Baru boleh dipakai untuk interpretasi." }
+      "Historiografi: tulis naskah mini 1–2 halaman dengan kesimpulan." ] }
 ],
 
 EBOOKS : [
@@ -501,8 +553,8 @@ EBOOKS : [
     { h:"Islam & Maluku", t:"Pasai: Malik al-Salih wafat 1297; Marco Polo 1292; Ib Battuta 1345.\nDemak 1478–1568: Raden Patah, Pati Unus gugur Melaka 1521, Trenggono 1521–1546.\nMataram: Sultan Agung 1613–1646, serang Batavia 1628/1629.\nGowa-Tallo Islam 1605, Aceh Iskandar Muda 1607–1636, Ternate Baabullah 1575." },
     { h:"Warisan & Akulturasi", t:"Candi: Borobudur (Buddha), Prambanan (Hindu Siwa).\nRelief: Ramayana, Karmawibhangga.\nAkulturasi: wayang & gamelan dipakai Wali Songo; kalender Saka; aksara Kawi." } ] },
   { id:"eb3", title:"Cara Belajar Sejarah", emoji:"📙", pages:[
-    { h:"Strategi Belajar Efektif", t:"1. Pahami konsep dulu, tahun menyusul.\n2. Buat mind-map antar peristiwa (sebab–akibat).\n3. Jelaskan ke teman (efek Feynman).\n4. Ulangi H+1, H+7, H+30.\n5. Latihan soal campuran, bukan satu topik terus." },
-    { h:"Menyusun Kronologi", t:"Buat timeline bergambar:\n• Pilih 5–7 peristiwa penting.\n• Tandai tahun & wilayah.\n• Hubungkan dengan panah sebab–akibat.\n• Warnai menurut periode (purba, kerajaan, Islam)." },
+    { h:"Strategi Belajar Efektif", t:"1. Pahami konsep dulu, tahun menyusul.\n2. Buat peta pikiran antar peristiwa (sebab–akibat).\n3. Jelaskan ke teman (efek Feynman).\n4. Ulangi H+1, H+7, H+30.\n5. Latihan soal campuran, bukan satu topik terus." },
+    { h:"Menyusun Kronologi", t:"Buat garis waktu bergambar:\n• Pilih 5–7 peristiwa penting.\n• Tandai tahun & wilayah.\n• Hubungkan dengan panah sebab–akibat.\n• Warnai menurut periode (purba, kerajaan, Islam)." },
     { h:"Menjawab Soal & Ujian", t:"• Baca soal: tandai kata kunci (menjelaskan, menganalisis, membandingkan).\n• Untuk analisis: gunakan struktur fakta → tafsir → kesimpulan.\n• Soal mudah dulu (1 menit/soal).\n• Sisakan 5 menit koreksi.\n• KKTP = 70. Remedial untuk skor < 70." } ] }
 ],
 
@@ -526,7 +578,7 @@ GLOS : [
 SUMBER : [
   ["📜 CP Sejarah Fase E (IPS)","CP_SMA/19_CP_SMA_ILMU_PENGETAHUAN_SOSIAL.pdf — elemen Sejarah: konsep dasar & penelitian sejarah."],
   ["📖 Karakteristik CP Sejarah","CP_SMA/20_CP_SMA_SEJARAH.pdf — referensi karakteristik & elemen Sejarah (Fase F sebagai pembanding)."],
-  ["🏛️ Museum & Arsip Nasional","Sumber benda & naskah: Museum Nasional, Arsip Nasional RI, museum daerah (Maluku: Fort Orange, Museum Sultan Baabullah)."],
+  ["🏛️ Museum & Arsip Nasional","Sumber benda & naskah: Museum Nasional, Arsip Nasional RI, museum daerah (Maluku: Benteng Oranje, Museum Sultan Baabullah)."],
   ["🌐 Primbon & Ensiklopedia Sejarah","Ensiklopedia Indonesia, Kamus Sejarah — sumber sekunder untuk cross-check."],
   ["📍 Sejarah Lokal Ternate/Maluku","Benteng Kalamata/Tahula, kota tua Ternate, sumber arsip kesultanan — bahan penelitian mini unit 12."]
 ],
@@ -538,15 +590,15 @@ FORUM_SEED : [
   { id:2, av:"NS", who:"Nabila S.", role:"", time:"3 hari lalu", title:"Kenapa Sriwijaya bisa disebut kedatuan maritim?",
     body:"Apa bedanya sama kerajaan biasa yang juga punya pelabuhan?",
     replies:[{ av:"RM", who:"Rizky M.", role:"", time:"2 hari lalu", body:"Kedatuan maritim = kekuasaan utamanya di jalur laut & pelabuhan, bukan wilayah darat yang luas. Sriwijaya menguasai Selat Malaka dan mengontrol perdagangan antara Cina–India, jadi pengaruhnya lewat air, bukan penaklukan darat besar-besaran." }] },
-  { id:3, av:"FA", who:"Fikri A.", role:"", time:"5 hari lalu", title:"Tips menyusun kronologi biar gak ketuker tahunnya?",
+  { id:3, av:"FA", who:"Fikri A.", role:"", time:"5 hari lalu", title:"Kiat menyusun kronologi biar gak ketuker tahunnya?",
     body:"Banyak banget tahun: 1222, 1293, 1365, 1575... sering tertuker waktu ulangan.",
-    replies:[{ av:"GR", who:"Bu Guru", role:"guru", time:"4 hari lalu", body:"Buat timeline visual tempel di meja: garis mendatar, tiap peristiwa digambar simbol (candi, kapal, bulan sabit, rempah). Hubungkan dengan sebab–akibat, bukan hafalan mati. Misal: gugurnya Kertanegara 1292 → Majapahit 1293 (sebab–akibat berurutan)." }] }
+    replies:[{ av:"GR", who:"Bu Guru", role:"guru", time:"4 hari lalu", body:"Buat garis waktu visual tempel di meja: garis mendatar, tiap peristiwa digambar simbol (candi, kapal, bulan sabit, rempah). Hubungkan dengan sebab–akibat, bukan hafalan mati. Misal: gugurnya Kertanegara 1292 → Majapahit 1293 (sebab–akibat berurutan)." }] }
 ],
 
 BOT_RULES : [
-  [/halo|hai|assalam|pagi|siang|sore|malam/i, "Halo! 👋 Saya Teman Sejarah. Tanyakan konsep (mis. 'heuristik'), periode kerajaan, sejarah Maluku, atau tips belajar sejarah."],
+  [/halo|hai|assalam|pagi|siang|sore|malam/i, "Halo! 👋 Saya Teman Sejarah. Tanyakan konsep (mis. 'heuristik'), periode kerajaan, sejarah Maluku, atau kiat belajar sejarah."],
   [/heuristik/i, "Heuristik = tahap pertama penelitian sejarah: mengumpulkan sumber primer & sekunder dari berbagai tempat (arsip, museum, wawancara, lapangan). Setelah heuristik baru dilakukan kritik sumber."],
-  [/kronologi|urutan tahun/i, "Kronologi = urutan peristiwa menurut waktu. Untuk menghafal: buat timeline visual + hubungkan sebab–akibat. Contoh: Singasari 1222 → gugurnya Kertanegara 1292 → Majapahit 1293."],
+  [/kronologi|urutan tahun/i, "Kronologi = urutan peristiwa menurut waktu. Untuk menghafal: buat garis waktu visual + hubungkan sebab–akibat. Contoh: Singasari 1222 → gugurnya Kertanegara 1292 → Majapahit 1293."],
   [/majapahit|gajah mada|palapa/i, "Majapahit berdiri 1293 (Raden Wijaya). Gajah Mada bersumpah Palapa: tidak kenal dunia lapang sebelum Nusantara bersatu. Puncak di bawah Hayam Wuruk 1350–1389, dicatat Nagarakretagama 1365 oleh Mpu Prapanca."],
   [/ternate|tidore|maluku|baabullah|cengkih/i, "Ternate & Tidore di Maluku Utara menguasai cengkih. Sultan Baabullah (1575) membebaskan Ternate dari Portugis; Sultan Zainal Abidin (~1486) memantapkan dakwah; Hairun menjaga politik. Benteng Kalamata/Tahula dibangun Portugis 1522."],
   [/pasai|malik al.?salih|marco polo|ib.?battuta/i, "Samudera Pasai = kerajaan Islam pertama di Nusantara (Aceh Utara). Malik al-Salih wafat 1297. Marco Polo singgah 1292; Ib Battuta 1345 — keduanya menulis catatan (sumber primer asing)."],
@@ -554,9 +606,9 @@ BOT_RULES : [
   [/sultan agung|mataram|batavia/i, "Sultan Agung Mataram (1613–1646) menyerang Batavia pada 1628 & 1629 untuk mengusir Belanda. Beliau juga sastrawan (Serat Wirasraya, Babad Tanah Jawi)."],
   [/sriwijaya|malaka|it.?sing/i, "Sriwijaya berpusat di Palembang, bercorak Buddha Mahayana. Menguasai Selat Malaka. Prasasti Kedukan Bukit 682 M; I-Tsing belajar di sana 671 M (6 bulan)."],
   [/kritik|sumber primer|sumber sekunder/i, "Sumber primer = lahir bersama peristiwa (prasasti, foto, surat, benda, wawancara). Sekunder = interpretasi atas primer (buku modern). Kritik ekstern = asal & keaslian fisik; kritik intern = isi & konsistensi."],
-  [/belajar|cara belajar|tips|strategi/i, "Tips belajar sejarah:\n1. Pahami konsep dulu, tahun menyusul.\n2. Buat mind-map sebab–akibat.\n3. Timeline visual tempel di meja.\n4. Jelaskan ke teman (efek Feynman).\n5. Ulangi H+1, H+7, H+30."],
+  [/belajar|cara belajar|tips|strategi/i, "Kiat belajar sejarah:\n1. Pahami konsep dulu, tahun menyusul.\n2. Buat peta pikiran sebab–akibat.\n3. Garis waktu visual tempel di meja.\n4. Jelaskan ke teman (efek Feynman).\n5. Ulangi H+1, H+7, H+30."],
   [/nilai|skor|kktp|remedial/i, "KKTP = 70. Jika nilai asesmenmu < 70, menu Asesmen akan memberi akses Remedial. Kerjakan remedial untuk pemulihan skor."],
-  [/proyek|tugas/i, "Tiap unit punya proyek di tab 📝 Proyek. Kumpulkan sesuai langkah & rubrik, lalu tandai selesai di menu Assignments."],
+  [/proyek|tugas/i, "Tiap unit punya proyek di tab 📝 Proyek. Kumpulkan sesuai langkah & rubrik, lalu tandai selesai di menu Tugas."],
   [/gowa|tallo|alauddin|pattasa/i, "Gowa-Tallo menerima Islam pada 1605 (Sultan Alauddin) dengan hukum Pattasa. Pusat lama Somba Opu; Empat Serangkai = sultan, datu, tunijang, & Karaeng Pattingalloang."],
   [/aceh|iskandar muda/i, "Aceh mencapai puncak di bawah Sultan Iskandar Muda (1607–1636) — penguasa barat Sumatera yang dikenal kuat & adil."],
   [/terima kasih|makasih|thanks/i, "Sama-sama! Semangat menelusuri jejak sejarah. Jangan ragu bertanya lagi. 📜"]
@@ -568,8 +620,8 @@ GAMES: [
     desc:"Tempuh perjalanan lintas zaman dengan menjawab soal kerajaan Nusantara!",
     levels:[
       { name:"Zaman Purba", q:[
-        { p:"“Java Man” (Homo erectus) ditemukan di …", o:["Trinil, Jawa Timur","Sangiran, Jawa Tengah","Ngandong, Jateng","Wajak, Jatim"], a:0 },
-        { p:"Urutan zaman batu yang benar …", o:["palaeo → meso → neolitikum","neolitikum → meso → palaeo","meso → palaeo → neolitikum","palaeo → neolitikum → meso"], a:0 },
+        { p:"“Manusia Jawa” (Homo erectus) ditemukan di …", o:["Trinil, Jawa Timur","Sangiran, Jawa Tengah","Ngandong, Jateng","Wajak, Jatim"], a:0 },
+        { p:"Urutan zaman batu yang benar …", o:["paleolitikum → mesolitikum → neolitikum","neolitikum → mesolitikum → paleolitikum","mesolitikum → paleolitikum → neolitikum","paleolitikum → neolitikum → mesolitikum"], a:0 },
         { p:"Dolmen berfungsi sebagai …", o:["meja kubur / persembahan","alat musik","perahu batu","wadah beras"], a:0 },
         { p:"Kebudayaan Dongson terkenal dengan …", o:["kerajinan perunggu","gerabah merah","alat tulang ikan","menhir raksasa"], a:0 },
         { p:"Neolitikum ditandai …", o:["batu halus & bercocok tanam","batu kasar berburu","alat perunggu massal","kemampuan berlayar"], a:0 } ] },

@@ -8,17 +8,14 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  username      String        @unique
+  id            String   @id @default(cuid())
+  username      String   @unique
   passwordHash  String
-  role          String        @default("admin")
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  auditLogs     AuditLog[]
+  createdAt     DateTime @default(now())
 }
 
 model LmsEntry {
-  id        String   @id @default(cuid())
+  id        String   @id
   klass     String
   name      String
   short     String
@@ -27,53 +24,20 @@ model LmsEntry {
   color     String
   file      String
   pub       Boolean  @default(true)
-  seed      Boolean  @default(false)
+  scriptId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([klass])
 }
 
-model Progress {
-  id        String   @id @default(cuid())
-  lmsId     String
-  pct       Int
-  at        DateTime @default(now())
-  source    String?  // device/browser id
-  createdAt DateTime @default(now())
-
-  @@index([lmsId])
-}
-
-model Announcement {
-  id        String   @id @default(cuid())
-  title     String
-  date      String
-  body      String
-  createdAt DateTime @default(now())
-}
-
 model SchoolProfile {
-  id        String   @id @default(cuid())
+  id        String   @id @default("default")
   name      String
-  npsn      String?
-  addr      String?
-  telp      String?
-  email     String?
-  ppdb      String?
+  npsn      String   @default("")
+  addr      String   @default("")
+  telp      String   @default("")
+  email     String   @default("")
+  ppdb      String   @default("")
   updatedAt DateTime @updatedAt
-}
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action    String
-  ip        String?
-  userAgent String?
-  detail    Json?
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
 }

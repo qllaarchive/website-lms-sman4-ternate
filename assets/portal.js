@@ -1,103 +1,59 @@
 /* Portal LMS — kartu mapel, kelas X/XI/XII, tema terang/gelap/sistem,
-   login admin (perangkat), CRUD tautan Netlify, pantau progres. Offline, localStorage. */
+   login admin (API + cookie JWT), CRUD tautan, pantau progres.
+   Semua data (tautan LMS, akun admin, profil sekolah) tersimpan di database melalui API. */
 (function(){
   "use strict";
   var I = window.LMS_I || function(){ return ""; };
   var $ = function(id){ return document.getElementById(id); };
   var grid = $("grid"), empty = $("empty"), emptyText = $("empty-text"), q = $("q");
-  var stOpen = $("st-open"), stAvg = $("st-avg"), stDone = $("st-done");
   var seg = $("seg"), segThumb = $("seg-thumb");
   var metaTheme = $("meta-theme");
-  var THEME_KEY = "lms_theme", PORTAL_KEY = "lms_portal_v1";
+  var THEME_KEY = "lms_theme";
   var CLASS_KEY = "lms_class";
   var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   var mqDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
   var DRIVE = "https://drive.google.com/drive/folders/1Bs190ZCurEjyAfIUVcZ3u91eh6r3J_FA";
-  var SESSION_MS = 12 * 60 * 60 * 1000;
   var CLASSES = ["X", "XI", "XII"];
 
   if($("s-ic")) $("s-ic").innerHTML = I("search");
   if($("e-ic")) $("e-ic").innerHTML = I("search");
   if($("btn-login-ic")) $("btn-login-ic").innerHTML = I("log-in");
   if($("k-add-ic")) $("k-add-ic").innerHTML = I("plus");
+  if($("k-back-ic")) $("k-back-ic").innerHTML = I("chevron-left");
+  if($("back-intro-ic")) $("back-intro-ic").innerHTML = I("home");
   if($("drive-ic")) $("drive-ic").innerHTML = I("external-link");
-  if($("ab-pantau-ic")) $("ab-pantau-ic").innerHTML = I("bar-chart");
   if($("ab-kelola-ic")) $("ab-kelola-ic").innerHTML = I("settings");
-  if($("ab-drive-ic")) $("ab-drive-ic").innerHTML = I("external-link");
-  if($("ab-backup-ic")) $("ab-backup-ic").innerHTML = I("save");
+  if($("ab-sheet-ic")) $("ab-sheet-ic").innerHTML = I("table");
   if($("ab-logout-ic")) $("ab-logout-ic").innerHTML = I("log-out");
   if($("pantau-csv-ic")) $("pantau-csv-ic").innerHTML = I("save");
   if($("pantau-drive-ic")) $("pantau-drive-ic").innerHTML = I("external-link");
   if($("q-clear-ic")) $("q-clear-ic").innerHTML = I("x");
   if($("to-top-ic")) $("to-top-ic").innerHTML = I("chevron-up");
+  if($("login-mail-ic")) $("login-mail-ic").innerHTML = I("mail");
   document.querySelectorAll(".sheet-wrap .x").forEach(function(b){
     if(!b.innerHTML) b.innerHTML = I("x");
   });
-  var abDrive = $("ab-drive");
-  if(abDrive && !abDrive.getAttribute("href")) abDrive.href = DRIVE;
+  var abSheet = $("ab-sheet");
+  if(abSheet && !abSheet.getAttribute("href")) abSheet.href = DRIVE;
 
-  /* ---------- store portal ---------- */
-  function emptyStore(){
-    return {
-      entries: { X: [], XI: [], XII: [] },
-      admin: null,
-      session: null,
-      school: null
-    };
-  }
-  function loadStore(){
-    var s = null;
-    try{ s = JSON.parse(localStorage.getItem(PORTAL_KEY) || "null"); }catch(e){}
-    if(!s || typeof s !== "object") s = emptyStore();
-    if(!s.entries || typeof s.entries !== "object") s.entries = emptyStore().entries;
-    CLASSES.forEach(function(k){
-      if(!Array.isArray(s.entries[k])) s.entries[k] = [];
-    });
-    return s;
-  }
-  var store = loadStore();
+  /* ---------- sumber data LMS (database via API; tanpa API: bawaan registry, baca-saja) ---------- */
+  var state = {
+    entries: { X: [], XI: [], XII: [] },
+    school: null
+  };
   var reg = window.LMS_REGISTRY || [];
-  if(store.entries.X.length === 0){
-    store.entries.X = reg.map(function(e){
+  function registryEntries(){
+    return reg.map(function(e){
       return {
         id: e.id, name: e.name, short: e.short, teacher: e.teacher || "", icon: e.icon,
         color: e.color, lsKey: e.lsKey, file: e.file, pub: true, seed: true,
         scriptId: e.scriptId || ""
       };
     });
-    saveStore();
-  } else {
-    // sinkronkan scriptId/file/lsKey dari registry untuk entri bawaan (seed) yang tersimpan lama
-    var byId = {};
-    reg.forEach(function(e){ byId[e.id] = e; });
-    var changed = false;
-    store.entries.X.forEach(function(en){
-      var r = byId[en.id];
-      if(!en.seed || !r) return;
-      if(en.scriptId !== (r.scriptId || "")){ en.scriptId = r.scriptId || ""; changed = true; }
-      var localFile = !/^[a-z]+:\/\//i.test(en.file || "");
-      if(localFile && en.file !== r.file){ en.file = r.file; changed = true; }
-      if(en.lsKey !== r.lsKey){ en.lsKey = r.lsKey; changed = true; }
-    });
-    if(changed) saveStore();
   }
-  function saveStore(){
-    try{ localStorage.setItem(PORTAL_KEY, JSON.stringify(store)); }catch(e){}
-  }
-
-  /* ---------- sinkronisasi daftar LMS dari API ---------- */
-  function findLocalEntry(id){
-    for(var i = 0; i < CLASSES.length; i++){
-      var arr = store.entries[CLASSES[i]] || [];
-      for(var j = 0; j < arr.length; j++){
-        if(arr[j].id === id) return arr[j];
-      }
-    }
-    return null;
-  }
+  state.entries.X = registryEntries();
   function fromServer(e){
     if(!e || CLASSES.indexOf(e.klass) < 0) return null;
-    var local = findLocalEntry(e.id);
     var r = null;
     for(var i = 0; i < reg.length; i++){ if(reg[i].id === e.id){ r = reg[i]; break; } }
     var slug = String(e.id).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-|-$/g, "") || "mapel";
@@ -108,10 +64,10 @@
       teacher: e.teacher || "",
       icon: e.icon || "book",
       color: e.color || "#0d9488",
-      lsKey: (local && local.lsKey) || (r && r.lsKey) || ("lms_" + slug + "_" + String(e.klass).toLowerCase() + "_v1"),
+      lsKey: (r && r.lsKey) || ("lms_" + slug + "_" + String(e.klass).toLowerCase() + "_v1"),
       file: e.file || "#",
       pub: e.pub !== false,
-      seed: !!r || !!(local && local.seed),
+      seed: !!r,
       scriptId: e.scriptId || (r && r.scriptId) || "",
       server: true
     };
@@ -123,10 +79,8 @@
       var rec = fromServer(e);
       if(rec) grouped[e.klass].push(rec);
     });
-    CLASSES.forEach(function(k){ store.entries[k] = grouped[k]; });
-    saveStore();
+    state.entries = grouped;
     render(true);
-    stats();
     syncKelolaUI();
     return true;
   }
@@ -181,10 +135,9 @@
     syncClassUI();
     syncPhaseUI();
     render(true);
-    stats();
   }
 
-  /* ---------- auth (akun admin tetap; API jika tersedia) ---------- */
+  /* ---------- auth (API + cookie JWT; tanpa akun tersimpan di perangkat) ---------- */
   var apiAvailable = false;
   if(window.LMS_API){
     LMS_API.available().then(function(ok){
@@ -193,32 +146,17 @@
       return LMS_API.me().then(function(r){
         if(r && r.ok && r.data && r.data.user) window._apiUser = r.data.user;
         syncAuthUI();
-        return loadServerEntries();
+        return loadSchool().then(function(){ return loadServerEntries(); });
       });
     }).then(function(){ syncAuthUI(); });
   }
 
-  var ADMIN_USER = "smanfourtte26@gmail.com";
-  var ADMIN_PASS = "smanfour#4";
-
-  function isAdmin(){
-    if(apiAvailable) return !!window._apiUser;
-    return !!(store.session && store.session.user === ADMIN_USER && store.session.exp > Date.now());
-  }
-  function loginOK(user, pass){
-    return String(user || "").trim().toLowerCase() === ADMIN_USER && String(pass || "") === ADMIN_PASS;
-  }
-  function startSession(){
-    store.session = { user: ADMIN_USER, exp: Date.now() + SESSION_MS };
-    saveStore();
-  }
+  function isAdmin(){ return apiAvailable && !!window._apiUser; }
   function endSession(){
-    store.session = null;
     window._apiUser = null;
     if(apiAvailable && window.LMS_API){
       LMS_API.logout().then(function(){ return loadServerEntries(); }).then(function(){ syncAuthUI(); });
     }
-    saveStore();
   }
 
   /* ---------- identitas admin (nav + bar) ---------- */
@@ -226,14 +164,21 @@
   var adminBar = $("admin-bar");
   function syncAuthUI(){
     var on = isAdmin();
-    var user = (apiAvailable && window._apiUser) ? window._apiUser : (on && store.session ? store.session : null);
+    var user = window._apiUser || null;
     if(btnLogin) btnLogin.hidden = on;
     if(who) who.hidden = !on;
     if(whoName) whoName.textContent = user ? user.username || user.user || "" : "";
     if(avatar) avatar.textContent = (user ? (user.username || user.user || "A")[0] : "A").toUpperCase();
     if(adminBar) adminBar.hidden = !on;
+    var logoutBtn = $("ab-logout");
+    if(logoutBtn) logoutBtn.hidden = !on;
   }
   if(btnLogin) btnLogin.addEventListener("click", function(){ openModal("modal-login"); });
+  var btnProfil = $("btn-profil");
+  if(btnProfil) btnProfil.addEventListener("click", function(){
+    renderProfil();
+    openModal("modal-profil");
+  });
   var abLogout = $("ab-logout");
   if(abLogout) abLogout.addEventListener("click", function(){
     endSession();
@@ -243,40 +188,84 @@
   var abKelola = $("ab-kelola");
   if(abKelola) abKelola.addEventListener("click", function(){
     kelolaClass = klass;
+    resetKForm();
     syncKelolaUI();
     openModal("modal-kelola");
   });
-  var abPantau = $("ab-pantau");
-  if(abPantau) abPantau.addEventListener("click", function(){
-    syncPantauUI();
-    renderPantau();
-    openModal("modal-pantau");
+  var backIntro = $("back-intro");
+  if(backIntro) backIntro.addEventListener("click", function(){
+    try { sessionStorage.removeItem("lms_intro_seen"); } catch(e){}
+    try {
+      var u = new URL(location.href);
+      u.searchParams.set("pembuka", "1");
+      u.hash = "";
+      location.href = u.toString();
+    } catch(e){
+      location.href = "index.html?pembuka=1";
+    }
   });
-  var abBackup = $("ab-backup");
-  if(abBackup) abBackup.addEventListener("click", function(){ openModal("modal-backup"); });
   var fYear = $("f-year");
   if(fYear) fYear.textContent = new Date().getFullYear();
-  if(abDrive) abDrive.href = DRIVE;
+  if(abSheet) abSheet.href = DRIVE;
 
   /* ---------- modals ---------- */
   var finePointer = window.matchMedia ? window.matchMedia("(hover: hover) and (pointer: fine)").matches : true;
   var lastFocus = null;
+  var closeTimers = new WeakMap();
   function openModal(id){
     var m = $(id);
     if(!m) return;
     lastFocus = document.activeElement;
+    var pend = closeTimers.get(m);
+    if(pend){ clearTimeout(pend); closeTimers.delete(m); }
+    delete m.dataset.closing;
+    m.classList.remove("is-closing");
+    var wasVisible = !m.hidden;
     m.hidden = false;
     document.body.classList.add("modal-open");
+    var sheetEl = m.querySelector(":scope > .sheet");
+    if(sheetEl && sheetEl.classList.contains("login-sheet") && wasVisible){
+      /* masih terbuka/animasi keluar — paksa ulang animasi masuk */
+      sheetEl.classList.remove("is-out");
+      void sheetEl.offsetWidth;
+    }
     var sheet = m.querySelector(".sheet");
     if(sheet) sheet.setAttribute("tabindex", "-1");
+    if(m.classList.contains("page-wrap")){
+      var sc = m.querySelector(".page-scroll");
+      if(sc) sc.scrollTop = 0;
+      var pageTitle = m.querySelector(".page-heading h2");
+      if(pageTitle){ try{ pageTitle.focus({ preventScroll: true }); }catch(e){ try{ pageTitle.focus(); }catch(e2){} } return; }
+    }
     var f = finePointer ? m.querySelector("input:not([type=hidden]), button.btn.primary") : null;
     if(f) try{ f.focus(); }catch(e){}
     else if(sheet) try{ sheet.focus(); }catch(e){}
   }
   function closeModal(m){
     if(!m || m.hidden) return;
+    var sheetEl = m.querySelector(":scope > .sheet");
+    var animated = !!(sheetEl && sheetEl.classList.contains("login-sheet")) && !reduce;
+    if(animated){
+      if(m.dataset.closing) return;
+      m.dataset.closing = "1";
+      m.classList.add("is-closing");
+      sheetEl.classList.add("is-out");
+      var t = setTimeout(function(){
+        closeTimers.delete(m);
+        finishClose(m);
+      }, 300);
+      closeTimers.set(m, t);
+      return;
+    }
+    finishClose(m);
+  }
+  function finishClose(m){
     m.hidden = true;
+    delete m.dataset.closing;
+    m.classList.remove("is-closing");
     document.body.classList.remove("modal-open");
+    var sheetEl = m.querySelector(":scope > .sheet");
+    if(sheetEl && sheetEl.classList.contains("login-sheet")) sheetEl.classList.remove("is-out");
     var back = lastFocus;
     lastFocus = null;
     if(back && document.contains(back) && back.offsetParent !== null){
@@ -314,7 +303,21 @@
   });
 
   /* ---------- form masuk admin ---------- */
+  function backendErr(){
+    if(location.protocol === "file:")
+      return "Portal dibuka lewat file:// — buka lewat http:// (localhost) dan nyalakan backend terlebih dahulu.";
+    return "Backend tidak tersedia. Hubungi admin sekolah.";
+  }
   var loginForm = $("login-form"), loginErr = $("login-err");
+  var passIn = $("login-pass"), eyeBtn = $("login-eye");
+  if(eyeBtn && passIn){
+    eyeBtn.innerHTML = I("eye");
+    eyeBtn.addEventListener("click", function(){
+      var show = passIn.type === "password";
+      passIn.type = show ? "text" : "password";
+      eyeBtn.innerHTML = I(show ? "eye-off" : "eye");
+    });
+  }
   function syncLoginUI(){
     if(loginErr) loginErr.hidden = true;
   }
@@ -329,27 +332,18 @@
     }
     if(!u || !p) return fail("Isi email dan kata sandi.");
 
-    // Coba API dulu
-    if(apiAvailable && window.LMS_API){
-      LMS_API.login(u.toLowerCase(), p).then(function(r){
-        if(r.ok){
-          window._apiUser = r.data.user;
-          syncAuthUI();
-          closeModal($("modal-login"));
-          toast("Berhasil masuk. Selamat bekerja.");
-          loadServerEntries();
-        }else fail("Email atau kata sandi salah.");
-      });
-      return;
+    if(!apiAvailable || !window.LMS_API){
+      return fail(backendErr());
     }
-
-    // Mode offline: akun admin tetap
-    if(!loginOK(u, p)) return fail("Email atau kata sandi salah.");
-    startSession();
-    if(loginForm.reset) loginForm.reset();
-    syncAuthUI();
-    closeModal($("modal-login"));
-    toast("Berhasil masuk. Selamat bekerja.");
+    LMS_API.login(u.toLowerCase(), p).then(function(r){
+      if(r.ok){
+        window._apiUser = r.data.user;
+        syncAuthUI();
+        closeModal($("modal-login"));
+        toast("Berhasil masuk. Selamat bekerja.");
+        loadServerEntries();
+      }else fail(r.status === 0 ? backendErr() : "Email atau kata sandi salah.");
+    });
   });
 
   /* ---------- tema ---------- */
@@ -446,12 +440,7 @@
       };
     }catch(_){ return null; }
   }
-  function progOf(e){
-    var info = progInfo(e);
-    return info ? info.pct : null;
-  }
-
-  function entries(){ return store.entries[klass] || []; }
+  function entries(){ return state.entries[klass] || []; }
 
   function entryHref(e){
     var href = e.file || "#";
@@ -466,7 +455,7 @@
   }
   function card(e, i){
     var ext = /^https?:\/\//i.test(e.file || "");
-    var href = entryHref(e);
+    var href = esc(entryHref(e));
     var name = String(e.name || "Tanpa nama");
     return '<a class="card" href="' + href + '" data-id="' + esc(e.id) + '" style="--c:' + esc(e.color || "#0d9488") + ';--i:' + i + '"' +
       (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>' +
@@ -532,12 +521,6 @@
     render();
     if(focus) try{ q.focus(); }catch(e){}
   }
-  if(grid) grid.addEventListener("click", function(ev){
-    var a = ev.target.closest(".card[data-id]");
-    if(!a) return;
-    if(/^https?:\/\//i.test(a.getAttribute("href") || "")) return;
-    setTimeout(stats, 350);
-  });
   if(q) q.addEventListener("input", render);
   if(qClear) qClear.addEventListener("click", function(){ clearSearch(true); });
   if(emptyReset) emptyReset.addEventListener("click", function(){ clearSearch(true); });
@@ -560,7 +543,7 @@
     q.focus();
   });
 
-  /* ---------- stat ---------- */
+  /* ---------- statistik ringan (count-up; dipakai ring pantau) ---------- */
   function countUp(el, target, suffix){
     if(!el) return;
     suffix = suffix || "";
@@ -576,18 +559,6 @@
       if(k < 1) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
-  }
-  function stats(){
-    if(!stOpen && !stAvg && !stDone) return;
-    var open = 0, sum = 0, done = 0;
-    entries().forEach(function(e){
-      var pct = progOf(e);
-      if(pct !== null){ open++; sum += pct; if(pct >= 100) done++; }
-    });
-    countUp(stOpen, open);
-    countUp(stDone, done);
-    if(open) countUp(stAvg, Math.round(sum / open), "%");
-    else if(stAvg) stAvg.textContent = "—";
   }
 
   /* ---------- kelola (CRUD) ---------- */
@@ -613,7 +584,16 @@
   }
 
   function kelolaEntries(){
-    return store.entries[kelolaClass] || [];
+    return state.entries[kelolaClass] || [];
+  }
+  function setKFormMode(mode){
+    var editing = mode === "edit";
+    var title = $("k-form-title"), sub = $("k-form-sub"), save = $("k-save");
+    if(title) title.textContent = (editing ? "Ubah LMS" : "Tambah LMS") + " · Kelas " + kelolaClass;
+    if(sub) sub.textContent = editing
+      ? "Perbarui data LMS untuk kelas " + kelolaClass + "."
+      : "Lengkapi data LMS untuk kelas " + kelolaClass + ".";
+    if(save) save.textContent = editing ? "Simpan perubahan" : "Simpan LMS";
   }
   function syncKelolaUI(){
     var idx = CLASSES.indexOf(kelolaClass);
@@ -623,9 +603,14 @@
       b.setAttribute("aria-checked", on ? "true" : "false");
       b.tabIndex = on ? 0 : -1;
     });
-    if(kList) kList.innerHTML = kelolaEntries().map(function(e, i){
-      return '<div class="k-row" data-id="' + esc(e.id) + '" data-i="' + i + '">' +
-        '<span class="k-dot" style="background:' + esc(e.color || "#0d9488") + '"></span>' +
+    var entries = kelolaEntries();
+    var shown = entries.filter(function(e){ return e.pub !== false; }).length;
+    var pageSub = document.querySelector("#modal-kelola .page-sub");
+    if(pageSub) pageSub.textContent = "Atur tautan LMS untuk kelas " + kelolaClass + ".";
+    if($("k-count")) $("k-count").textContent = entries.length + " LMS · " + shown + " tampil";
+    if(kList) kList.innerHTML = entries.map(function(e, i){
+      return '<div class="k-row" data-id="' + esc(e.id) + '" data-i="' + i + '" style="--i:' + i + '">' +
+        '<span class="k-mark" style="color:' + esc(e.color || "#0d9488") + '">' + I(e.icon || "book") + "</span>" +
         '<span class="k-info"><b>' + esc(e.name || "Tanpa nama") + "</b>" +
         "<small>" + esc(e.file || "—") + (e.teacher ? " · " + esc(e.teacher) : "") + "</small></span>" +
         (e.pub === false ? '<span class="k-off">arsip</span>' : "") +
@@ -646,10 +631,12 @@
       kForm.hidden = true;
     }
     if(kErr) kErr.hidden = true;
+    setKFormMode("add");
   }
   var kAdd = $("k-add");
   if(kAdd) kAdd.addEventListener("click", function(){
     resetKForm();
+    setKFormMode("add");
     if(kForm) kForm.hidden = false;
     var n = $("k-name");
     if(n) try{ n.focus(); }catch(e){}
@@ -683,31 +670,41 @@
     if(isNaN(i) || !arr[i]) return;
     if(b.dataset.act === "del"){
       if(!confirm("Hapus " + (arr[i].name || "entri ini") + " dari daftar kelas " + kelolaClass + "?")) return;
+      if(!apiAvailable || !window.LMS_API){ toast(backendErr(), "err"); return; }
       var removed = arr[i];
-      arr.splice(i, 1);
-      saveStore();
-      syncKelolaUI();
-      render();
-      stats();
-      var delMsg = "LMS dihapus dari daftar.";
-      if(apiAvailable && window.LMS_API && removed.server){
-        LMS_API.deleteEntry(removed.id).then(function(r){
-          toast(r && r.ok ? delMsg : "Terhapus di perangkat, tetapi gagal di server.", r && r.ok ? "" : "err");
-        });
-      }else{
-        toast(delMsg);
-      }
+      LMS_API.deleteEntry(removed.id).then(function(r){
+        if(r && r.ok){
+          var ref = kelolaEntries();
+          var idx = ref.indexOf(removed);
+          if(idx >= 0){ ref.splice(idx, 1); }
+          syncKelolaUI();
+          render();
+          toast("LMS dihapus dari daftar.");
+        }else{
+          toast(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menghapus di server.", "err");
+        }
+      });
       return;
     }
     if(b.dataset.act === "edit"){
       resetKForm();
       editingId = arr[i].id;
+      setKFormMode("edit");
       if($("k-name")) $("k-name").value = arr[i].name || "";
       if($("k-short")) $("k-short").value = arr[i].short || "";
       if($("k-url")) $("k-url").value = arr[i].file || "";
       if($("k-teacher")) $("k-teacher").value = arr[i].teacher || "";
       if($("k-script")) $("k-script").value = arr[i].scriptId || "";
-      if(kIconSel) kIconSel.value = arr[i].icon || "book";
+      if(kIconSel){
+        var v = arr[i].icon || "book";
+        var has = Array.prototype.some.call(kIconSel.options, function(o){ return o.value === v; });
+        if(!has){
+          var opt = document.createElement("option");
+          opt.value = v; opt.textContent = v;
+          kIconSel.appendChild(opt);
+        }
+        kIconSel.value = v;
+      }
       if($("k-color")) $("k-color").value = arr[i].color || COLOR_CHOICES[0];
       if($("k-pub")) $("k-pub").checked = arr[i].pub !== false;
       if(kForm) kForm.hidden = false;
@@ -732,6 +729,7 @@
     }
     if(!name) return fail("Nama mata pelajaran wajib diisi.");
     if(!/^https?:\/\/\S+$/i.test(url)) return fail("Tautan harus diawali http:// atau https://.");
+    if(!apiAvailable || !window.LMS_API){ return fail("Backend tidak tersedia. Hubungi admin sekolah."); }
     var arr = kelolaEntries();
     var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "mapel";
     var id = editingId || slug + "-" + Date.now().toString(36);
@@ -743,61 +741,37 @@
       teacher: teacher,
       icon: icon,
       color: color,
-      lsKey: "lms_" + slug + "_" + klass.toLowerCase() + "_v" + Date.now().toString(36),
+      lsKey: (same && same.lsKey) || ("lms_" + slug + "_" + kelolaClass.toLowerCase() + "_v" + Date.now().toString(36)),
       file: url,
       pub: pub,
-      seed: false,
+      seed: !!(same && same.seed),
       scriptId: scriptId
     };
-    if(same){
-      rec.lsKey = same.lsKey;
-      rec.file = url;
-      rec.name = name;
-      rec.short = short || name;
-      rec.teacher = teacher;
-      rec.icon = icon;
-      rec.color = color;
-      rec.pub = pub;
-      rec.scriptId = scriptId;
-      rec.server = !!same.server;
-      arr[arr.indexOf(same)] = rec;
-    }else{
-      arr.push(rec);
-    }
-    saveStore();
 
     var msg = same ? "Perubahan LMS disimpan." : "LMS baru ditambahkan.";
-    var apiOn = apiAvailable && window.LMS_API;
-    if(apiOn){
-      var apiPayload = { klass: kelolaClass, name: name, short: short || name, teacher: teacher, icon: icon, color: color, file: url, pub: pub, scriptId: scriptId };
-      var apiReq;
-      if(same && same.server){
-        apiReq = LMS_API.updateEntry(same.id, apiPayload);
-      }else{
-        apiPayload.id = rec.id;
-        apiReq = LMS_API.createEntry(apiPayload);
-      }
-      apiReq.then(function(r){
-        if(r && r.ok && r.data && r.data.entry){
-          rec.id = r.data.entry.id || rec.id;
-          rec.server = true;
-          saveStore();
-          syncKelolaUI();
-          render();
-          stats();
-          toast(msg);
-        }else{
-          toast("Tersimpan di perangkat, tetapi gagal sinkron ke server.", "err");
-        }
-      });
+    var apiPayload = { klass: kelolaClass, name: name, short: short || name, teacher: teacher, icon: icon, color: color, file: url, pub: pub, scriptId: scriptId };
+    var apiReq;
+    if(same){
+      apiReq = LMS_API.updateEntry(same.id, apiPayload);
     }else{
-      toast(msg);
+      apiPayload.id = rec.id;
+      apiReq = LMS_API.createEntry(apiPayload);
     }
-
-    resetKForm();
-    syncKelolaUI();
-    render();
-    stats();
+    apiReq.then(function(r){
+      if(r && r.ok && r.data && r.data.entry){
+        rec.id = r.data.entry.id || rec.id;
+        rec.server = true;
+        var ref = kelolaEntries();
+        if(same && ref.indexOf(same) >= 0){ ref[ref.indexOf(same)] = rec; }
+        else{ ref.push(rec); }
+        syncKelolaUI();
+        render();
+        toast(msg);
+        resetKForm();
+      }else{
+        fail(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menyimpan ke server.");
+      }
+    });
   });
 
   /* ---------- pantau ---------- */
@@ -841,7 +815,7 @@
   function pantauRows(keys){
     var rows = [];
     keys.forEach(function(k){
-      (store.entries[k] || []).forEach(function(e){
+      (state.entries[k] || []).forEach(function(e){
         rows.push({ klass: k, entry: e, info: progInfo(e) });
       });
     });
@@ -942,7 +916,7 @@
     }
     var html = "";
     keys.forEach(function(k){
-      var list = (store.entries[k] || []);
+      var list = (state.entries[k] || []);
       if(!list.length){
         html += '<div class="p-section"><h3>Kelas ' + k + ' <span class="cnt">0</span></h3>' +
           '<p class="p-empty">Belum ada LMS terbit.</p></div>';
@@ -977,7 +951,7 @@
     var keys = pantauClasses();
     var rows = [["Kelas","Mapel","Guru","Tautan","Modul selesai","Total modul","Progres (%)"]];
     keys.forEach(function(k){
-      (store.entries[k] || []).forEach(function(e){
+      (state.entries[k] || []).forEach(function(e){
         var info = progInfo(e);
         rows.push([
           k, e.name || "", e.teacher || "", e.file || "",
@@ -1005,11 +979,22 @@
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
   }
 
-  /* ---------- profil sekolah ---------- */
+  /* ---------- profil sekolah (database via API) ---------- */
+  function loadSchool(){
+    if(!apiAvailable || !window.LMS_API) return Promise.resolve(false);
+    return LMS_API.getProfile().then(function(r){
+      if(r && r.ok && r.data && r.data.profile){
+        state.school = r.data.profile;
+        renderProfil();
+        return true;
+      }
+      return false;
+    });
+  }
   function renderProfil(){
     var body = $("profil-body");
     if(!body) return;
-    var p = store.school || {};
+    var p = state.school || {};
     if(isAdmin()){
       body.innerHTML = '<form id="profil-form" style="display:flex;flex-direction:column;gap:10px">' +
         '<label>Nama sekolah<input id="pf-name" value="' + esc(p.name || "SMA Negeri 4 Ternate") + '"></label>' +
@@ -1022,16 +1007,23 @@
       var form = $("profil-form");
       form.addEventListener("submit", function(ev){
         ev.preventDefault();
-        store.school = {
+        if(!apiAvailable || !window.LMS_API){ toast(backendErr(), "err"); return; }
+        LMS_API.saveProfile({
           name: ($("pf-name").value || "").trim(),
           npsn: ($("pf-npsn").value || "").trim(),
           addr: ($("pf-addr").value || "").trim(),
           telp: ($("pf-telp").value || "").trim(),
           email: ($("pf-email").value || "").trim(),
           ppdb: ($("pf-ppdb").value || "").trim()
-        };
-        saveStore();
-        renderProfil();
+        }).then(function(r){
+          if(r && r.ok && r.data && r.data.profile){
+            state.school = r.data.profile;
+            toast("Profil sekolah disimpan.");
+          }else{
+            toast(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menyimpan profil.", "err");
+          }
+          renderProfil();
+        });
       });
     }else{
       body.innerHTML =
@@ -1045,40 +1037,6 @@
         '<div class="p-section"><h3>PPDB</h3><p class="p-empty">' + esc(p.ppdb || "Informasi PPDB akan diumumkan.") + "</p></div>";
     }
   }
-
-  /* ---------- cadangkan / pulihkan ---------- */
-  var backupExport = $("backup-export");
-  if(backupExport) backupExport.addEventListener("click", function(){
-    downloadBlob("lms-backup-" + new Date().toISOString().slice(0, 10) + ".json",
-      JSON.stringify(store, null, 2), "application/json");
-    toast("File backup diunduh.");
-  });
-  var backupImport = $("backup-import");
-  if(backupImport) backupImport.addEventListener("change", function(){
-    var f = backupImport.files && backupImport.files[0];
-    if(!f) return;
-    var r = new FileReader();
-    r.onload = function(){
-      try{
-        var s = JSON.parse(r.result);
-        if(!s || typeof s !== "object" || !s.entries) throw new Error("format");
-        store = s;
-        if(!store.entries) store.entries = emptyStore().entries;
-        CLASSES.forEach(function(k){ if(!Array.isArray(store.entries[k])) store.entries[k] = []; });
-        saveStore();
-        closeModal($("modal-backup"));
-        syncAuthUI();
-        syncClassUI();
-        render();
-        stats();
-        toast("Data berhasil dipulihkan.");
-      }catch(e){
-        toast("File tidak valid. Pilih file JSON hasil unduhan dari LMS ini.", "err");
-      }
-      backupImport.value = "";
-    };
-    r.readAsText(f);
-  });
 
   /* ---------- gulir: bayangan header + kembali ke atas ---------- */
   var navEl = document.querySelector(".nav");
@@ -1106,11 +1064,6 @@
   });
 
   /* ---------- init ---------- */
-  if("serviceWorker" in navigator){
-    window.addEventListener("load", function(){
-      navigator.serviceWorker.register("sw.js").catch(function(){});
-    });
-  }
   syncClassUI();
   syncPhaseUI();
   syncPantauUI();
@@ -1118,7 +1071,6 @@
   syncAuthUI();
   syncLoginUI();
   syncKelolaUI();
-  stats();
   render();
   syncScrollUI();
 })();

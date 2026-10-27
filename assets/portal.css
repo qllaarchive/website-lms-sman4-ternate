@@ -130,19 +130,30 @@ a{ color:var(--accent); text-decoration:none }
 /* ——— aksi admin (teks datar di header) ——— */
 .admin-bar{ display:inline-flex; align-items:center; gap:2px }
 .ab-group{ display:inline-flex; align-items:center; gap:2px }
-.ab-group + .ab-group{ margin-left:8px }
 .ab-btn{
-  display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 8px;
+  display:inline-flex; align-items:center; gap:7px; height:32px; padding:0 9px;
   border:0; border-radius:8px; background:none; cursor:pointer; text-decoration:none;
   color:var(--ink2); white-space:nowrap;
   font:600 12.5px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
-  transition:color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  transition:color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease),
+             transform var(--dur-fast) var(--ease);
 }
-.ab-btn:hover{ color:var(--accent) }
+@media (hover: hover) and (pointer: fine){
+  .ab-btn:hover{ color:var(--ink); background:var(--fill) }
+  .ab-btn.ab-danger:hover{ color:var(--danger); background:color-mix(in srgb, var(--danger) 10%, transparent) }
+}
 .ab-btn:active{ transform:scale(.94) }
-.ab-btn.ab-danger{ color:var(--danger) }
-.ab-btn .ab-ic{ display:inline-grid; place-items:center; width:14px; height:14px }
-.ab-btn .ab-ic svg{ width:14px; height:14px }
+.ab-btn.ab-danger{ width:32px; padding:0; justify-content:center; color:var(--danger) }
+.ab-btn.ab-danger .ab-label{ display:none }
+.ab-btn .ab-ic{ display:inline-grid; place-items:center; width:15px; height:15px; color:var(--ink3) }
+.ab-btn .ab-ic svg{ width:15px; height:15px }
+.ab-btn.ab-primary .ab-ic{ color:var(--accent) }
+.ab-btn.ab-danger .ab-ic{ color:currentColor }
+#ab-logout{ position:relative; margin-left:2px }
+#ab-logout::before{
+  content:""; position:absolute; left:-6px; top:50%; width:1px; height:16px;
+  margin-top:-8px; background:var(--line);
+}
 .ab-label{ white-space:nowrap }
 a.btn{ text-decoration:none }
 
@@ -321,6 +332,104 @@ body.modal-open{ overflow:hidden }
   font-size:12px; color:var(--ink2); line-height:1.45;
 }
 
+/* ——— sheet masuk: form kiri + foto sekolah kanan ——— */
+.sheet.login-sheet{ max-width:920px; padding:0; overflow:hidden; border-radius:26px;
+  animation:login-card-in 480ms cubic-bezier(.16,1,.3,1) both }
+.sheet.login-sheet:focus{ outline:none }
+.sheet-wrap.is-closing{ pointer-events:none }
+.sheet-wrap.is-closing .sheet-backdrop{ opacity:0; transition:opacity 240ms ease }
+.login-sheet.is-out{ animation:login-card-out 260ms cubic-bezier(.4,0,.7,.2) both }
+
+@keyframes login-card-in{
+  from{ opacity:0; transform:translateY(26px) scale(.955); filter:saturate(.8) }
+  60%{ filter:saturate(1.06) }
+  to{ opacity:1; transform:none; filter:none }
+}
+@keyframes login-card-out{
+  from{ opacity:1; transform:none }
+  to{ opacity:0; transform:translateY(14px) scale(.97) }
+}
+
+.login-x{ position:absolute; top:16px; right:16px; z-index:2; background:rgba(255,255,255,.9); color:#111;
+  transition:transform var(--dur) var(--ease), background-color var(--dur) var(--ease), color 160ms ease }
+.login-x:hover{ background:#fff; color:#000; transform:rotate(90deg) }
+.login-grid{ display:grid; grid-template-columns:1fr 1.15fr; min-height:560px }
+.login-side{ padding:64px 42px 44px; display:flex; flex-direction:column; justify-content:center }
+.login-side > *{ animation:login-rise 560ms cubic-bezier(.22,1,.36,1) both }
+.login-side .login-eyebrow{ animation-delay:180ms }
+.login-side h2{ animation-delay:120ms }
+.login-side .login-sub{ animation-delay:240ms }
+.login-side form{ animation-delay:320ms }
+.login-side .login-note{ animation-delay:440ms }
+@keyframes login-rise{
+  from{ opacity:0; transform:translateY(18px) }
+  to{ opacity:1; transform:none }
+}
+.login-eyebrow{
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink2);
+}
+.login-eyebrow::before{
+  content:""; width:8px; height:8px; border-radius:50%; flex:none;
+  background:var(--accent);
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.login-side h2{ font-size:30px; font-weight:800; letter-spacing:-.02em }
+.login-sub{ margin-top:30px; font-size:13.5px; color:var(--ink2); line-height:1.55; max-width:30ch }
+.login-grid form{ margin-top:22px; gap:12px }
+.f-field{ position:relative }
+.f-field input{
+  width:100%; height:48px; border-radius:999px; padding:0 48px 0 18px;
+  background:transparent; font-size:14px;
+  transition:border-color var(--dur) var(--ease), background-color var(--dur) var(--ease)
+}
+.f-field input:hover{ border-color:var(--ink2) }
+.f-field ::placeholder{ color:var(--ink2); opacity:.75 }
+.f-ic{
+  position:absolute; right:16px; top:50%; transform:translateY(-50%);
+  width:18px; height:18px; color:var(--ink2); display:grid; place-items:center;
+  transition:color var(--dur) var(--ease);
+}
+.f-ic svg{ width:18px; height:18px }
+.f-ic-btn{ border:none; background:none; cursor:pointer; pointer-events:auto; padding:0 }
+.f-ic-btn:hover{ color:var(--ink) }
+.f-ic-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px }
+.login-submit{ width:100%; height:48px; border-radius:999px; font-size:15px; margin-top:8px }
+.login-note{ margin-top:18px; font-size:12.5px; color:var(--ink2); text-align:center }
+.login-pic{ position:relative; margin:12px 12px 12px 0; border-radius:16px; overflow:hidden;
+  background:linear-gradient(150deg, var(--accent), #0b4c2a);
+  animation:login-clip-in 720ms cubic-bezier(.22,1,.36,1) both; animation-delay:140ms }
+.login-pic img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+  animation:login-zoom-in 1100ms cubic-bezier(.22,1,.36,1) both; animation-delay:140ms }
+.login-pic img.is-missing{ display:none }
+.login-sheet.is-out .login-side > *{ animation:login-fade-out-down 210ms ease-in both }
+.login-sheet.is-out .login-pic{ animation:login-clip-out 230ms ease-in both }
+.login-sheet.is-out .login-pic img{ animation:login-fade-out-down 230ms ease-in both }
+@keyframes login-clip-in{
+  from{ clip-path:inset(0 0 0 100%) }
+  to{ clip-path:inset(0) }
+}
+@keyframes login-zoom-in{
+  from{ transform:scale(1.12) }
+  to{ transform:none }
+}
+@keyframes login-clip-out{
+  from{ clip-path:inset(0) }
+  to{ clip-path:inset(0 0 0 100%) }
+}
+@keyframes login-fade-out-down{
+  from{ opacity:1; transform:none }
+  to{ opacity:0; transform:translateY(10px) }
+}
+@media (max-width:820px){
+  .sheet.login-sheet{ max-width:460px }
+  .login-grid{ grid-template-columns:1fr; min-height:0 }
+  .login-pic{ min-height:160px; margin:0; border-radius:0; order:-1 }
+  .login-side{ padding:40px 30px 34px }
+  .login-sub{ margin-top:18px }
+}
+
 /* ——— kelola: daftar entri ——— */
 .kelola-tools{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px }
 .k-list{ display:flex; flex-direction:column; gap:8px; margin-top:14px }
@@ -335,7 +444,10 @@ body.modal-open{ overflow:hidden }
 .k-info small{ display:block; font-size:12px; color:var(--ink3); line-height:1.35; overflow-wrap:anywhere }
 .k-actions{ display:flex; gap:4px; flex:none }
 .k-actions .btn{ height:30px; padding:0 10px; font-size:12px }
-.k-off{ font-size:11px; font-weight:700; color:var(--ink3); text-transform:uppercase; letter-spacing:.04em; flex:none }
+.k-off{
+  font-size:10px; font-weight:700; color:var(--ink2); text-transform:uppercase; letter-spacing:.04em;
+  flex:none; padding:3px 8px; border-radius:999px; background:var(--fill);
+}
 
 /* ——— pantau: ringkasan + tabel ——— */
 .p-toolbar{
@@ -578,10 +690,16 @@ a.p-next:active{ transform:scale(.995) }
 }
 @media (max-width:1024px){
   .admin-bar{ padding-right:8px; margin-right:2px; border-right:1px solid var(--line) }
-  .admin-bar .ab-label{ display:none }
-  .admin-bar .ab-btn{ width:34px; height:34px; padding:0; justify-content:center }
   #seg{ height:34px }
   #seg button{ min-width:32px; height:32px; padding:0 }
+}
+@media (max-width:880px){
+  .who-name{ display:none }
+}
+@media (max-width:700px){
+  .admin-bar .ab-label{ display:none }
+  .admin-bar .ab-btn{ width:34px; height:34px; padding:0; justify-content:center }
+  .admin-bar .ab-btn.ab-danger{ width:34px }
 }
 @media (max-width:640px){
   .sheet-wrap{ padding:14px }
@@ -593,7 +711,6 @@ a.p-next:active{ transform:scale(.995) }
   .to-top{ width:38px; height:38px; right:14px; bottom:calc(14px + env(safe-area-inset-bottom)) }
 }
 @media (max-width:430px){
-  #ab-drive{ display:none }
   .admin-bar .ab-btn{ width:32px; height:32px }
 }
 @media (max-width:400px){
@@ -615,4 +732,283 @@ a.p-next:active{ transform:scale(.995) }
   .brand-text small{ display:none }
   .who-name{ display:none }
   .form-row{ grid-template-columns:1fr }
+}
+
+/* ——— halaman pembuka ——— */
+html:not(.intro-seen) body{ overflow:hidden }
+html.intro-seen .intro{ display:none !important }
+.intro{
+  --intro-cream:#f4efe2;
+  --intro-plum:#2b132c;
+  --intro-daisy:#e7c75b;
+  position:fixed; inset:0; z-index:200;
+  overflow:auto; background:#1a2b19; color:var(--intro-cream);
+  isolation:isolate;
+  will-change:opacity, transform;
+}
+/* Keluar: konten pergi lebih dulu (stagger), lalu tirai geser naik-lembut. */
+.intro.is-leaving{
+  opacity:0;
+  transform:translateY(-2.4%) scale(1.03);
+  pointer-events:none;
+  transition:
+    opacity .5s cubic-bezier(.32,.72,.24,1),
+    transform .5s cubic-bezier(.32,.72,.24,1);
+  will-change:opacity, transform;
+}
+.intro.is-leaving .intro-bg{
+  opacity:.28;
+  transition:opacity .5s cubic-bezier(.32,.72,.24,1);
+}
+.intro.is-leaving .intro-bg img{
+  transform:scale(1.07);
+  transition:transform .56s cubic-bezier(.32,.72,.24,1);
+  animation:none;
+}
+.intro.is-leaving .intro-title{
+  opacity:0; transform:translateY(-30px) scale(.97);
+  transition:opacity .3s cubic-bezier(.4,0,.7,.2), transform .3s cubic-bezier(.4,0,.7,.2);
+}
+.intro.is-leaving .intro-school{
+  opacity:0; transform:translateY(-14px);
+  transition:opacity .26s cubic-bezier(.4,0,.7,.2) 40ms, transform .26s cubic-bezier(.4,0,.7,.2) 40ms;
+}
+.intro.is-leaving .intro-cta{
+  opacity:0; transform:translateY(16px) scale(.94);
+  transition:opacity .28s cubic-bezier(.4,0,.7,.2) 70ms, transform .28s cubic-bezier(.4,0,.7,.2) 70ms;
+}
+.intro-bg{ position:absolute; inset:0; z-index:0; width:100%; height:100%; overflow:hidden }
+.intro-bg img{
+  display:block; width:100%; height:100%; object-fit:cover; object-position:center 46%;
+  filter:saturate(.88) contrast(1.03) brightness(.91);
+  animation:introZoom 12s cubic-bezier(.2,.6,.2,1) both;
+}
+.intro-shade{
+  position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:
+    radial-gradient(64% 58% at 50% 43%, rgba(4,20,15,.42), transparent 76%),
+    linear-gradient(180deg, rgba(5,24,18,.44) 0%, rgba(5,24,18,.03) 30%, rgba(5,24,18,.12) 58%, rgba(3,19,14,.75) 100%),
+    linear-gradient(180deg, rgba(10,39,28,.10), rgba(31,49,25,.05));
+}
+.intro-inner{
+  position:relative; z-index:2;
+  min-height:100vh; min-height:100svh;
+  display:grid; place-items:center;
+  padding:max(24px, calc(18px + env(safe-area-inset-top))) 24px
+          max(24px, calc(18px + env(safe-area-inset-bottom)));
+}
+.intro-main{ width:100%; max-width:1100px; text-align:center; margin-top:-2vh }
+.intro-title{
+  display:flex; align-items:flex-start; justify-content:center;
+  font-size:clamp(46px, 13.8vw, 184px); line-height:.9;
+  letter-spacing:-.07em; font-weight:800; color:var(--intro-cream);
+  white-space:nowrap;
+  text-shadow:0 2px 18px rgba(5,18,12,.32), 0 18px 60px rgba(5,18,12,.3);
+  animation:introUp .9s cubic-bezier(.16,.84,.28,1) .08s both;
+}
+.intro-bloom{
+  display:block; flex:none; width:.24em; height:.24em;
+  margin-top:.055em; margin-left:.06em; color:var(--intro-cream);
+  transform:rotate(9deg);
+  animation:introBloom .9s cubic-bezier(.16,.84,.28,1) .32s both;
+}
+.intro-bloom svg{ display:block; width:100%; height:100% }
+.intro-bloom circle{ fill:var(--intro-daisy); stroke:none }
+.intro-school{
+  margin-top:26px; font-size:clamp(11px, 1.2vw, 14px); font-weight:500;
+  letter-spacing:.30em; text-transform:uppercase;
+  color:color-mix(in srgb, var(--intro-cream) 88%, transparent);
+  text-shadow:0 1px 12px rgba(5,18,12,.42);
+  animation:introUp .9s cubic-bezier(.16,.84,.28,1) .26s both;
+}
+.intro-cta{
+  margin-top:44px; display:inline-flex; align-items:center; justify-content:center; gap:14px;
+  height:52px; padding:0 12px 0 24px; border:0; border-radius:999px; cursor:pointer;
+  background:var(--intro-cream); color:var(--intro-plum);
+  font:650 14.5px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  letter-spacing:.01em;
+  box-shadow:0 18px 40px -18px rgba(8,18,8,.65);
+  transition:transform .22s var(--ease), background-color .22s var(--ease), box-shadow .22s var(--ease);
+  animation:introUp .9s cubic-bezier(.16,.84,.28,1) .38s both;
+}
+.intro-cta:hover{ background:#fffdf5; transform:translateY(-2px); box-shadow:0 24px 50px -20px rgba(8,18,8,.7) }
+.intro-cta:active{ transform:translateY(0) scale(.985) }
+.intro-cta:focus-visible{ outline:2px solid var(--intro-cream); outline-offset:4px }
+.intro-cta:disabled{ opacity:.85; cursor:default; pointer-events:none }
+.intro-cta-ic{
+  width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+  background:var(--intro-plum); color:var(--intro-cream);
+  transition:transform .22s var(--ease);
+}
+.intro-cta-ic svg{ width:14px; height:14px }
+.intro-cta:hover .intro-cta-ic{ transform:translateX(2px) }
+#portal-title:focus{ outline:none }
+@keyframes introUp{ from{ opacity:0; transform:translateY(18px) } to{ opacity:1; transform:none } }
+@keyframes introBloom{ from{ opacity:0; transform:rotate(-38deg) scale(.65) } to{ opacity:1; transform:rotate(9deg) scale(1) } }
+@keyframes introZoom{ from{ transform:scale(1.055) } to{ transform:scale(1) } }
+
+/* ——— transisi intro → portal: portal "bangun" saat tirai naik ——— */
+@keyframes wake{
+  from{ opacity:0; transform:translateY(16px) scale(.985) }
+  to{ opacity:1; transform:none }
+}
+@keyframes wakeDown{
+  from{ opacity:0; transform:translateY(-10px) }
+  to{ opacity:1; transform:none }
+}
+body.waking .nav{ animation:wakeDown .5s cubic-bezier(.24,.9,.24,1) 60ms both }
+body.waking .hero .eyebrow{ animation:wake .5s cubic-bezier(.22,1,.36,1) 130ms both }
+body.waking .hero h1{ animation:wake .56s cubic-bezier(.22,1,.36,1) 185ms both }
+body.waking .hero .sub{ animation:wake .52s cubic-bezier(.22,1,.36,1) 240ms both }
+body.waking .hero-actions{ animation:wake .52s cubic-bezier(.24,.9,.24,1) 300ms both }
+body.waking .search{ animation:wake .52s cubic-bezier(.24,.9,.24,1) 350ms both }
+body.waking .cards .card{
+  animation:wake .56s cubic-bezier(.22,1,.36,1) backwards;
+  animation-delay:calc(400ms + var(--i, 0) * 45ms);
+}
+body.waking footer{ animation:wake .6s cubic-bezier(.22,1,.36,1) 560ms both }
+
+@media (max-width:700px){
+  .intro-bg img{ object-position:center 48%; filter:saturate(.9) contrast(1.03) brightness(.9) }
+  .intro-inner{ padding-inline:20px }
+  .intro-main{ margin-top:-3vh }
+  .intro-title{ font-size:clamp(44px, 13.4vw, 76px) }
+  .intro-school{ margin-top:19px; font-size:10.5px; letter-spacing:.24em }
+  .intro-cta{ margin-top:34px }
+}
+@media (max-width:360px){
+  .intro-title{ font-size:42px }
+  .intro-school{ font-size:9.5px; letter-spacing:.18em }
+}
+
+/* ——— kelola: halaman penuh ——— */
+.sheet-wrap.page-wrap{
+  position:fixed; inset:0; z-index:50; display:block; padding:0;
+  overflow:hidden; background:var(--bg);
+}
+.sheet.page{
+  width:100%; height:100%; max-width:none; max-height:none;
+  padding:0; border:0; border-radius:0; box-shadow:none;
+  background:var(--bg); overflow:hidden;
+  display:flex; flex-direction:column;
+  animation:pagein 260ms var(--ease) both;
+}
+@keyframes pagein{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+.page-bar{
+  position:relative; z-index:2; flex:none;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(18px); backdrop-filter:saturate(180%) blur(18px);
+  border-bottom:1px solid var(--line);
+}
+.page-bar-in{ display:flex; align-items:center; gap:14px; min-height:76px }
+.page-back{
+  width:38px; height:38px; flex:none; display:grid; place-items:center;
+  border:1px solid var(--line); border-radius:50%; background:var(--surface);
+  color:var(--ink2); cursor:pointer;
+  transition:background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
+             border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.page-back svg{ width:18px; height:18px }
+.page-back:active{ transform:scale(.94) }
+@media (hover: hover) and (pointer: fine){
+  .page-back:hover{ background:var(--fill); color:var(--ink); border-color:transparent }
+}
+.page-heading{ min-width:0 }
+.page-heading h2{ font-size:clamp(19px, 2.2vw, 23px); font-weight:700; letter-spacing:-.02em; line-height:1.15 }
+#kelola-title:focus{ outline:none }
+.page-sub{ margin-top:3px; font-size:12.5px; line-height:1.35; color:var(--ink3) }
+.page-scroll{
+  flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch; scrollbar-gutter:stable;
+}
+.page-body{ padding-block:26px 48px }
+.manage-tools{
+  display:flex; align-items:center; flex-wrap:wrap; gap:12px;
+  padding-bottom:18px; margin-bottom:24px; border-bottom:1px solid var(--line);
+}
+.manage-label{
+  font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--ink3);
+}
+#kelola-seg{ height:38px }
+#kelola-seg button{ height:34px; min-width:66px; font-size:13px }
+.manage-tools #k-add{ margin-left:auto; height:38px; padding:0 16px }
+
+.k-workspace{ display:flex; align-items:flex-start; gap:26px }
+.k-form-card{
+  flex:0 0 380px; min-width:0; position:sticky; top:22px;
+  display:flex; flex-direction:column; gap:12px; margin-top:0;
+  padding:20px; border:1px solid var(--line); border-radius:18px;
+  background:var(--surface); box-shadow:var(--shadow-rest);
+  animation:rise 260ms var(--ease) both;
+}
+.k-form-head{ display:flex; flex-direction:column; gap:5px; padding-bottom:14px; border-bottom:1px solid var(--line) }
+.k-form-head h3{ font-size:16px; font-weight:700; letter-spacing:-.015em; line-height:1.25 }
+.k-form-head p{ font-size:12.5px; line-height:1.45; color:var(--ink3) }
+.k-form-card .form-row{ grid-template-columns:minmax(0,1fr) minmax(0,1fr) }
+.k-form-card label{ min-width:0 }
+.k-form-card input:not([type="checkbox"]), .k-form-card select{ width:100%; min-width:0 }
+.k-form-card .form-check input{ flex:none }
+.k-form-card .form-row-color{ grid-template-columns:96px minmax(0,1fr); align-items:end }
+.k-form-card .form-row-color .form-check{ padding-bottom:9px }
+.k-form-card .sheet-actions{ padding-top:4px }
+.k-form-card .sheet-actions .btn{ height:38px; padding:0 16px }
+.k-section{ flex:1; min-width:0 }
+.k-section-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+  margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--line);
+}
+.k-section-head h3{ font-size:15px; font-weight:700; letter-spacing:-.01em }
+.k-count{ font-size:12px; color:var(--ink3); text-align:right; line-height:1.4 }
+.k-list{ margin-top:0; gap:10px }
+.k-row{
+  gap:13px; padding:13px 14px; border-radius:14px;
+  animation:rise 260ms var(--ease) backwards;
+  animation-delay:calc(min(var(--i, 0), 8) * 30ms);
+}
+@media (hover: hover) and (pointer: fine){
+  .k-row:hover{ background:color-mix(in srgb, var(--fill) 52%, var(--surface)); border-color:color-mix(in srgb, var(--ink) 14%, var(--line)) }
+}
+.k-mark{
+  width:38px; height:38px; flex:none; display:grid; place-items:center;
+  border-radius:11px; background:var(--fill);
+}
+.k-mark svg{ width:18px; height:18px }
+.k-info b{ font-size:14.5px }
+.k-info small{ font-size:12px }
+.k-actions .btn{ height:32px; padding:0 11px }
+.f-home{ margin-top:15px; height:34px; padding:0 13px; font-size:12.5px; color:var(--ink2) }
+.f-home svg{ width:15px; height:15px }
+
+@media (max-width:980px){
+  .k-workspace{ display:block }
+  .k-form-card{ position:static; flex:none; width:100%; max-width:680px; margin-bottom:24px }
+}
+@media (max-width:640px){
+  .page-bar-in{ min-height:68px; gap:12px }
+  .page-back{ width:44px; height:44px }
+  .page-back svg{ width:19px; height:19px }
+  .page-sub{ font-size:12px }
+  .page-body{ padding-block:20px 40px }
+  .manage-tools{ padding-bottom:16px; margin-bottom:18px; gap:10px }
+  .manage-label{ display:none }
+  #kelola-seg{ flex:1; height:42px }
+  #kelola-seg button{ height:38px; min-width:0 }
+  .manage-tools #k-add{ height:42px; padding:0 14px }
+  .k-form-card{ padding:16px; border-radius:16px }
+  .k-section-head{ flex-direction:column; align-items:flex-start; gap:3px; margin-bottom:10px }
+  .k-count{ text-align:left }
+  .k-row{ padding:12px; gap:10px }
+  .k-actions .btn{ height:34px }
+  .k-mark{ width:36px; height:36px; border-radius:10px }
+  .k-info b{ font-size:14px }
+  .k-info small{ font-size:11.5px }
+}
+@media (max-width:560px){
+  .k-form-card .form-row{ grid-template-columns:1fr }
+  .k-form-card .form-row-color{ grid-template-columns:96px minmax(0,1fr) }
+}
+@media (max-width:480px){
+  .manage-tools #k-add{ margin-left:0; width:100%; justify-content:center }
+  .k-actions{ width:100%; justify-content:flex-end }
 }

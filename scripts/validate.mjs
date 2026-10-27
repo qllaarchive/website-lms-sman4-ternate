@@ -59,7 +59,7 @@ function validate(id, M, f){
   if(!isNum(M.KKTP) || M.KKTP < 1 || M.KKTP > 100) E(f, "KKTP tidak valid");
 
   // ELEMENTS
-  if(!isArr(M.ELEMENTS, 1) || M.ELEMENTS.length > 4) E(f, "ELEMENTS harus 1..4");
+  if(!isArr(M.ELEMENTS, 1) || M.ELEMENTS.length > 5) E(f, "ELEMENTS harus 1..5");
   else M.ELEMENTS.forEach((e,i) => {
     if(e.id !== i+1) E(f, `ELEMENTS[${i}].id = ${e.id}, harus ${i+1}`);
     if(!isStr(e.name) || !isStr(e.emoji) || !isStr(e.desc)) E(f, `ELEMENTS[${i}] field kurang`);
@@ -150,8 +150,25 @@ function validate(id, M, f){
         else l.pairs.forEach((p,j) => {
           if(!Array.isArray(p) || p.length !== 2 || !isStr(p[0]) || !isStr(p[1])) E(f, `LABS[${i}].pairs[${j}] harus [k,v] string`);
         });
+      }else if(t === "timeline"){
+        if(!isArr(l.events, 4)) E(f, `LABS[${i}] type=timeline butuh events minimal 4`);
+        else l.events.forEach((e,j) => { if(!isStr(e.t) || !isStr(e.y)) E(f, `LABS[${i}].events[${j}] butuh t & y`); });
+      }else if(t === "sortbin"){
+        if(!isArr(l.bins, 2)) E(f, `LABS[${i}] type=sortbin butuh bins minimal 2`);
+        if(!isArr(l.items, 4)) E(f, `LABS[${i}] type=sortbin butuh items minimal 4`);
+        else {
+          const bids = new Set((l.bins || []).map(b => b.id));
+          l.items.forEach((it,j) => { if(!isStr(it.t) || !bids.has(it.bin)) E(f, `LABS[${i}].items[${j}] t/bin tidak valid`); });
+        }
+      }else if(t === "map"){
+        if(!isArr(l.ports, 4)) E(f, `LABS[${i}] type=map butuh ports minimal 4`);
+        else l.ports.forEach((p,j) => { if(!isStr(p.id) || !isStr(p.name) || typeof p.x !== "number" || typeof p.y !== "number") E(f, `LABS[${i}].ports[${j}] id/name/x/y tidak valid`); });
+      }else if(t === "timeslider"){
+        if(typeof l.min !== "number" || typeof l.max !== "number" || l.max <= l.min) E(f, `LABS[${i}] type=timeslider butuh min/max angka`);
+        if(!isArr(l.eras, 2)) E(f, `LABS[${i}] type=timeslider butuh eras minimal 2`);
+        if(!isArr(l.events, 2)) E(f, `LABS[${i}] type=timeslider butuh events minimal 2`);
       }else if(t === "sim"){
-        if(!["labgraf","labtrigo","labstat"].includes(l.id)) E(f, `LABS[${i}] sim id tidak dikenal: ${l.id}`);
+        if(!["labgraf","labtrigo","labstat","labukur","labgerak","labenergi"].includes(l.id)) E(f, `LABS[${i}] sim id tidak dikenal: ${l.id}`);
       }else if(t === "info"){
         if(!isStr(l.hint) && !isStr(l.body)) W(f, `LABS[${i}] info tanpa hint/body`);
       }else E(f, `LABS[${i}].type tidak dikenal: ${l.type}`);
