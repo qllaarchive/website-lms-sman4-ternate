@@ -91,14 +91,6 @@
     },
     deleteEntry: function(id){
       return apiFetch("/lms/" + id, { method: "DELETE" });
-    },
-
-    /* Profil sekolah */
-    getProfile: function(){
-      return apiFetch("/school");
-    },
-    saveProfile: function(profile){
-      return apiFetch("/school", { method: "PUT", body: JSON.stringify(profile) });
     }
   };
 })();

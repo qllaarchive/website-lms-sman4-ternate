@@ -1,6 +1,6 @@
 /* Portal LMS — kartu mapel, kelas X/XI/XII, tema terang/gelap/sistem,
    login admin (API + cookie JWT), CRUD tautan, pantau progres.
-   Semua data (tautan LMS, akun admin, profil sekolah) tersimpan di database melalui API. */
+   Semua data (tautan LMS, akun admin) tersimpan di database melalui API. */
 (function(){
   "use strict";
   var I = window.LMS_I || function(){ return ""; };
@@ -20,7 +20,7 @@
   if($("btn-login-ic")) $("btn-login-ic").innerHTML = I("log-in");
   if($("k-add-ic")) $("k-add-ic").innerHTML = I("plus");
   if($("k-back-ic")) $("k-back-ic").innerHTML = I("chevron-left");
-  if($("back-intro-ic")) $("back-intro-ic").innerHTML = I("home");
+  if($("brand-home-ic")) $("brand-home-ic").innerHTML = I("home");
   if($("drive-ic")) $("drive-ic").innerHTML = I("external-link");
   if($("ab-kelola-ic")) $("ab-kelola-ic").innerHTML = I("settings");
   if($("ab-sheet-ic")) $("ab-sheet-ic").innerHTML = I("table");
@@ -39,8 +39,7 @@
 
   /* ---------- sumber data LMS (database via API; tanpa API: bawaan registry, baca-saja) ---------- */
   var state = {
-    entries: { X: [], XI: [], XII: [] },
-    school: null
+    entries: { X: [], XI: [], XII: [] }
   };
   var reg = window.LMS_REGISTRY || [];
   function registryEntries(){
@@ -152,7 +151,7 @@
       return LMS_API.me().then(function(r){
         if(r && r.ok && r.data && r.data.user) window._apiUser = r.data.user;
         syncAuthUI();
-        return loadSchool().then(function(){ return loadServerEntries(); });
+        return loadServerEntries();
       });
     }).then(function(){ syncAuthUI(); });
   }
@@ -180,10 +179,18 @@
     if(logoutBtn) logoutBtn.hidden = !on;
   }
   if(btnLogin) btnLogin.addEventListener("click", function(){ openModal("modal-login"); });
-  var btnProfil = $("btn-profil");
-  if(btnProfil) btnProfil.addEventListener("click", function(){
-    renderProfil();
-    openModal("modal-profil");
+  /* Tombol rumah di header: balik ke halaman pembuka */
+  var brandHome = $("brand-home");
+  if(brandHome) brandHome.addEventListener("click", function(){
+    try { sessionStorage.removeItem("lms_intro_seen"); } catch(e){}
+    try {
+      var u = new URL(location.href);
+      u.searchParams.set("pembuka", "1");
+      u.hash = "";
+      location.href = u.toString();
+    } catch(e){
+      location.href = "index.html?pembuka=1";
+    }
   });
   var abLogout = $("ab-logout");
   if(abLogout) abLogout.addEventListener("click", function(){
@@ -197,18 +204,6 @@
     resetKForm();
     syncKelolaUI();
     openModal("modal-kelola");
-  });
-  var backIntro = $("back-intro");
-  if(backIntro) backIntro.addEventListener("click", function(){
-    try { sessionStorage.removeItem("lms_intro_seen"); } catch(e){}
-    try {
-      var u = new URL(location.href);
-      u.searchParams.set("pembuka", "1");
-      u.hash = "";
-      location.href = u.toString();
-    } catch(e){
-      location.href = "index.html?pembuka=1";
-    }
   });
   var fYear = $("f-year");
   if(fYear) fYear.textContent = new Date().getFullYear();
@@ -330,7 +325,9 @@
   if(loginForm) loginForm.addEventListener("submit", function(ev){
     ev.preventDefault();
     var u = ($("login-user") && $("login-user").value || "").trim();
-    var p = $("login-pass") && $("login-pass").value || "";
+    /* Sandi diberes: baris baru tertempel saat tempel hasil tempelan sering membuat
+       "salah" palsu — buang spasi/baris kosong di tepi. */
+    var p = ($("login-pass") && $("login-pass").value || "").trim();
     function fail(msg){
       if(!loginErr) return;
       loginErr.textContent = msg;
@@ -348,7 +345,13 @@
         closeModal($("modal-login"));
         toast("Berhasil masuk. Selamat bekerja.");
         loadServerEntries();
-      }else fail(r.status === 0 ? backendErr() : "Email atau kata sandi salah.");
+      }else if(r.status === 0){
+        fail(backendErr());
+      }else if(r.status === 429){
+        fail("Terlalu banyak percobaan. Tunggu satu menit lalu coba lagi.");
+      }else{
+        fail("Email atau kata sandi salah.");
+      }
     });
   });
 
@@ -611,15 +614,16 @@
     });
     var entries = kelolaEntries();
     var shown = entries.filter(function(e){ return e.pub !== false; }).length;
+    var off = entries.length - shown;
     var pageSub = document.querySelector("#modal-kelola .page-sub");
     if(pageSub) pageSub.textContent = "Atur tautan LMS untuk kelas " + kelolaClass + ".";
-    if($("k-count")) $("k-count").textContent = entries.length + " LMS · " + shown + " tampil";
+    if($("k-count")) $("k-count").textContent = entries.length + " LMS · " + shown + " tampil" + (off ? " · " + off + " arsip" : "");
     if(kList) kList.innerHTML = entries.map(function(e, i){
       return '<div class="k-row" data-id="' + esc(e.id) + '" data-i="' + i + '" style="--i:' + i + '">' +
         '<span class="k-mark" style="color:' + esc(e.color || "#0d9488") + '">' + I(e.icon || "book") + "</span>" +
         '<span class="k-info"><b>' + esc(e.name || "Tanpa nama") + "</b>" +
         "<small>" + esc(e.file || "—") + (e.teacher ? " · " + esc(e.teacher) : "") + "</small></span>" +
-        (e.pub === false ? '<span class="k-off">arsip</span>' : "") +
+        (e.pub === false ? '<span class="k-off" title="Tidak tampil di daftar siswa">arsip — tak tampil</span>' : "") +
         '<span class="k-actions">' +
         '<button type="button" class="btn ghost" data-act="edit">Ubah</button>' +
         '<button type="button" class="btn danger" data-act="del">Hapus</button>' +
@@ -678,15 +682,25 @@
       if(!confirm("Hapus " + (arr[i].name || "entri ini") + " dari daftar kelas " + kelolaClass + "?")) return;
       if(!apiAvailable || !window.LMS_API){ toast(backendErr(), "err"); return; }
       var removed = arr[i];
+      var rowEl = kList.querySelector('.k-row[data-id="' + removed.id + '"]');
+      var finishDel = function(){
+        var ref = kelolaEntries();
+        var idx = ref.indexOf(removed);
+        if(idx >= 0){ ref.splice(idx, 1); }
+        syncKelolaUI();
+        render();
+        toast("LMS dihapus dari daftar.");
+      };
+      if(!reduce && rowEl){
+        /* keluar animasi dulu (180ms), baru dihapus dari state & render */
+        rowEl.classList.add("is-out");
+        setTimeout(finishDel, 180);
+      }else{
+        finishDel();
+      }
       LMS_API.deleteEntry(removed.id).then(function(r){
-        if(r && r.ok){
-          var ref = kelolaEntries();
-          var idx = ref.indexOf(removed);
-          if(idx >= 0){ ref.splice(idx, 1); }
-          syncKelolaUI();
-          render();
-          toast("LMS dihapus dari daftar.");
-        }else{
+        if(!(r && r.ok)){
+          if(rowEl) rowEl.classList.remove("is-out");
           toast(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menghapus di server.", "err");
         }
       });
@@ -755,6 +769,13 @@
     };
 
     var msg = same ? "Perubahan LMS disimpan." : "LMS baru ditambahkan.";
+    /* Pengaman: kotak centang bisa tak sengaja terklik (label ikut toggle).
+       Konfirmasi dulu bila entri akan disimpan tidak tampil di daftar siswa. */
+    if(!pub && !confirm(
+      (name || "LMS") + " akan disimpan sebagai ARSIP — tidak akan tampil di daftar siswa.\n" +
+      "Lanjutkan (OK) untuk arsip, atau Batal (Cancel) lalu centang \"Tampilkan di daftar siswa\".")){
+      return fail("Belum disimpan — centang \"Tampilkan di daftar siswa\" agar muncul di portal.");
+    }
     var apiPayload = { klass: kelolaClass, name: name, short: short || name, teacher: teacher, icon: icon, color: color, file: url, pub: pub, scriptId: scriptId };
     var apiReq;
     if(same){
@@ -772,7 +793,7 @@
         else{ ref.push(rec); }
         syncKelolaUI();
         render();
-        toast(msg);
+        toast(pub === false ? "LMS tersimpan sebagai arsip (tak tampil di daftar siswa)." : msg);
         resetKForm();
       }else{
         fail(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menyimpan ke server.");
@@ -983,65 +1004,6 @@
     document.body.appendChild(a);
     a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-  }
-
-  /* ---------- profil sekolah (database via API) ---------- */
-  function loadSchool(){
-    if(!apiAvailable || !window.LMS_API) return Promise.resolve(false);
-    return LMS_API.getProfile().then(function(r){
-      if(r && r.ok && r.data && r.data.profile){
-        state.school = r.data.profile;
-        renderProfil();
-        return true;
-      }
-      return false;
-    });
-  }
-  function renderProfil(){
-    var body = $("profil-body");
-    if(!body) return;
-    var p = state.school || {};
-    if(isAdmin()){
-      body.innerHTML = '<form id="profil-form" style="display:flex;flex-direction:column;gap:10px">' +
-        '<label>Nama sekolah<input id="pf-name" value="' + esc(p.name || "SMA Negeri 4 Ternate") + '"></label>' +
-        '<label>NPSN<input id="pf-npsn" value="' + esc(p.npsn || "") + '" placeholder="cth. 10400000"></label>' +
-        '<label>Alamat<textarea id="pf-addr" rows="2">' + esc(p.addr || "Ternate, Maluku Utara") + '</textarea></label>' +
-        '<label>Telepon<input id="pf-telp" value="' + esc(p.telp || "") + '"></label>' +
-        '<label>Email<input id="pf-email" type="email" value="' + esc(p.email || "") + '"></label>' +
-        '<label>PPDB (tautan/info)<textarea id="pf-ppdb" rows="2">' + esc(p.ppdb || "") + '</textarea></label>' +
-        '<button type="submit" class="btn primary">Simpan Profil</button></form>';
-      var form = $("profil-form");
-      form.addEventListener("submit", function(ev){
-        ev.preventDefault();
-        if(!apiAvailable || !window.LMS_API){ toast(backendErr(), "err"); return; }
-        LMS_API.saveProfile({
-          name: ($("pf-name").value || "").trim(),
-          npsn: ($("pf-npsn").value || "").trim(),
-          addr: ($("pf-addr").value || "").trim(),
-          telp: ($("pf-telp").value || "").trim(),
-          email: ($("pf-email").value || "").trim(),
-          ppdb: ($("pf-ppdb").value || "").trim()
-        }).then(function(r){
-          if(r && r.ok && r.data && r.data.profile){
-            state.school = r.data.profile;
-            toast("Profil sekolah disimpan.");
-          }else{
-            toast(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menyimpan profil.", "err");
-          }
-          renderProfil();
-        });
-      });
-    }else{
-      body.innerHTML =
-        '<div class="p-section"><h3>Identitas</h3><table class="p-table"><tbody>' +
-        "<tr><td class=\"p-name\">Nama</td><td>" + esc(p.name || "SMA Negeri 4 Ternate") + "</td></tr>" +
-        "<tr><td class=\"p-name\">NPSN</td><td>" + esc(p.npsn || "—") + "</td></tr>" +
-        "<tr><td class=\"p-name\">Alamat</td><td>" + esc(p.addr || "Ternate, Maluku Utara") + "</td></tr>" +
-        "<tr><td class=\"p-name\">Telepon</td><td>" + esc(p.telp || "—") + "</td></tr>" +
-        "<tr><td class=\"p-name\">Email</td><td>" + esc(p.email || "—") + "</td></tr>" +
-        "</tbody></table></div>" +
-        '<div class="p-section"><h3>PPDB</h3><p class="p-empty">' + esc(p.ppdb || "Informasi PPDB akan diumumkan.") + "</p></div>";
-    }
   }
 
   /* ---------- gulir: bayangan header + kembali ke atas ---------- */

@@ -44,13 +44,16 @@
 
 <header class="nav">
   <div class="nav-in gut">
-    <a class="brand" href="index.html" aria-label="Beranda LMS SMA Negeri 4 Ternate">
-      <img class="brand-logo" src="assets/logo-sma4.png" alt="" width="38" height="38">
-      <span class="brand-text">
-        <b>SMA Negeri 4 Ternate</b>
-        <small>Learning Management System</small>
-      </span>
-    </a>
+    <div class="brand-area">
+      <button type="button" class="brand-home" id="brand-home" title="Balik ke beranda" aria-label="Balik ke beranda"><span id="brand-home-ic" class="brand-home-ic" aria-hidden="true"></span></button>
+      <a class="brand" href="index.html" aria-label="Beranda LMS SMA Negeri 4 Ternate">
+        <img class="brand-logo" src="assets/logo-sma4.png" alt="" width="38" height="38">
+        <span class="brand-text">
+          <b>SMA Negeri 4 Ternate</b>
+          <small>Learning Management System</small>
+        </span>
+      </a>
+    </div>
     <div class="nav-right">
       <div class="admin-bar" id="admin-bar" hidden>
         <div class="ab-group">
@@ -121,7 +124,6 @@
         </span>
       </div>
       <p class="f-desc">Portal LMS SMA Negeri 4 Ternate adalah rumah belajar digital siswa Kelas X&ndash;XII. Pilih kelas dan mata pelajaran, lalu buka materi, e-book, asesmen, gim edukatif, serta lab maya dalam satu tempat. Progres belajar tersimpan otomatis di perangkat.</p>
-      <button type="button" class="btn ghost f-home" id="back-intro"><span id="back-intro-ic" aria-hidden="true"></span> Kembali ke halaman awal</button>
     </div>
     <div class="f-cols">
       <div class="f-col">
@@ -146,7 +148,6 @@
   </div>
   <div class="gut f-bottom">
     <p>&copy; <span id="f-year">2026</span> SMA Negeri 4 Ternate &middot; Ternate, Maluku Utara</p>
-    <button type="button" class="btn ghost" id="btn-profil">Profil Sekolah</button>
   </div>
 </footer>
 
@@ -225,8 +226,8 @@
               <input id="k-short" placeholder="cth. MTK">
             </label>
           </div>
-          <label>Tautan LMS (Netlify) *
-            <input id="k-url" type="url" required placeholder="https://….netlify.app">
+          <label>Tautan LMS *
+            <input id="k-url" type="url" required placeholder="https://…">
           </label>
           <label>Apps Script Deployment ID (opsional, untuk integrasi Spreadsheet)
             <input id="k-script" placeholder="AKfycb… — kosongkan jika tidak pakai Spreadsheet">
@@ -296,21 +297,6 @@
     <div class="p-hero" id="pantau-summary"></div>
 
     <div id="pantau-body"></div>
-  </div>
-</div>
-
-<!-- Profil sekolah -->
-<div class="sheet-wrap" id="modal-profil" hidden>
-  <div class="sheet-backdrop" data-close></div>
-  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="profil-title">
-    <div class="sheet-head">
-      <div>
-        <h2 id="profil-title">Profil SMA Negeri 4 Ternate</h2>
-        <p class="sheet-sub">Identitas sekolah &amp; informasi PPDB.</p>
-      </div>
-      <button type="button" class="x" data-close aria-label="Tutup"></button>
-    </div>
-    <div id="profil-body"></div>
   </div>
 </div>
 

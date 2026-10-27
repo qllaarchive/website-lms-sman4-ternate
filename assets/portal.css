@@ -56,6 +56,20 @@ a{ color:var(--accent); text-decoration:none }
 }
 .nav.is-scrolled{ box-shadow:0 10px 30px -18px rgba(0,0,0,.35) }
 .nav-in{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; min-height:60px; padding-block:8px }
+.brand-area{ display:inline-flex; align-items:center; gap:10px; min-width:0 }
+.brand-home{
+  width:34px; height:34px; flex:none; display:grid; place-items:center;
+  border:1px solid var(--line); border-radius:999px; background:var(--surface);
+  color:var(--ink2); cursor:pointer;
+  transition:background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
+             border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.brand-home svg{ width:16px; height:16px }
+.brand-home:active{ transform:scale(.92) }
+.brand-home:focus-visible{ outline:2px solid var(--accent); outline-offset:3px }
+@media (hover: hover) and (pointer: fine){
+  .brand-home:hover{ background:var(--fill); color:var(--ink); border-color:transparent }
+}
 .brand{ display:inline-flex; align-items:center; gap:11px; color:var(--ink); border-radius:8px; min-width:0 }
 .brand-logo{ width:38px; height:38px; flex:none; border-radius:50%; box-shadow:var(--shadow-rest) }
 .brand-text{ display:flex; flex-direction:column; min-width:0; line-height:1.2 }
@@ -305,7 +319,7 @@ footer{ margin-top:48px; border-top:1px solid var(--line); transition:border-col
   .f-cols{ gap:18px 16px }
   .f-col h3{ margin-bottom:8px }
   .f-col ul{ gap:6px }
-  .f-bottom p:last-child{ display:none }
+  .f-bottom p{ margin-inline:auto }
 }
 
 /* ——— lembar modal (sheet) ——— */
@@ -621,7 +635,7 @@ a.p-next:active{ transform:scale(.995) }
 .p-table tbody tr:hover{ background:color-mix(in srgb, var(--fill) 55%, transparent) }
 .p-table tbody tr:last-child td{ border-bottom:none }
 .p-table .p-name{ font-weight:600; white-space:nowrap }
-.p-empty{ font-size:13px; color:var(--ink3); padding:8px }
+.p-empty{ font-size:13px; color:var(--ink3); padding:8px; animation:rise var(--dur) var(--ease) backwards }
 
 @media (max-width:640px){
   .p-hero{ grid-template-columns:1fr; justify-items:center; gap:14px; padding:16px }
@@ -755,6 +769,9 @@ a.p-next:active{ transform:scale(.995) }
 
 @media (max-width:560px){
   .brand-text small{ display:none }
+  .brand-home{ width:32px; height:32px }
+  .brand-home svg{ width:14px; height:14px }
+  .brand-logo{ width:32px; height:32px }
   .who-name{ display:none }
   .form-row{ grid-template-columns:1fr }
 }
@@ -825,7 +842,7 @@ html.intro-seen .intro{ display:none !important }
 .intro-main{ width:100%; max-width:1100px; text-align:center; margin-top:-2vh }
 .intro-title{
   display:flex; align-items:flex-start; justify-content:center;
-  font-size:clamp(46px, 13.8vw, 184px); line-height:.9;
+  font-size:clamp(44px, 10.6vw, 124px); line-height:.92;
   letter-spacing:-.07em; font-weight:800; color:var(--intro-cream);
   white-space:nowrap;
   text-shadow:0 2px 18px rgba(5,18,12,.32), 0 18px 60px rgba(5,18,12,.3);
@@ -916,9 +933,9 @@ body.waking footer{ animation:wake .6s cubic-bezier(.22,1,.36,1) 560ms both }
   padding:0; border:0; border-radius:0; box-shadow:none;
   background:var(--bg); overflow:hidden;
   display:flex; flex-direction:column;
-  animation:pagein 260ms var(--ease) both;
+  animation:pagein 200ms var(--ease) both;
 }
-@keyframes pagein{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+@keyframes pagein{ from{ opacity:0 } to{ opacity:1 } }
 .page-bar{
   position:relative; z-index:2; flex:none;
   background:color-mix(in srgb, var(--bg) 88%, transparent);
@@ -950,6 +967,7 @@ body.waking footer{ animation:wake .6s cubic-bezier(.22,1,.36,1) 560ms both }
 .manage-tools{
   display:flex; align-items:center; flex-wrap:wrap; gap:12px;
   padding-bottom:18px; margin-bottom:24px; border-bottom:1px solid var(--line);
+  animation:rise var(--dur-enter) var(--ease) 40ms backwards;
 }
 .manage-label{
   font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
@@ -965,7 +983,12 @@ body.waking footer{ animation:wake .6s cubic-bezier(.22,1,.36,1) 560ms both }
   display:flex; flex-direction:column; gap:12px; margin-top:0;
   padding:20px; border:1px solid var(--line); border-radius:18px;
   background:var(--surface); box-shadow:var(--shadow-rest);
-  animation:rise 260ms var(--ease) both;
+  animation:rise var(--dur-enter) var(--ease) 90ms backwards;
+}
+.k-form-card.is-out{
+  opacity:0; transform:translateY(8px) scale(.985);
+  transition:opacity 180ms var(--ease), transform 180ms var(--ease);
+  animation:none; pointer-events:none;
 }
 .k-form-head{ display:flex; flex-direction:column; gap:5px; padding-bottom:14px; border-bottom:1px solid var(--line) }
 .k-form-head h3{ font-size:16px; font-weight:700; letter-spacing:-.015em; line-height:1.25 }
@@ -982,28 +1005,36 @@ body.waking footer{ animation:wake .6s cubic-bezier(.22,1,.36,1) 560ms both }
 .k-section-head{
   display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
   margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--line);
+  animation:rise var(--dur) var(--ease) 70ms backwards;
 }
 .k-section-head h3{ font-size:15px; font-weight:700; letter-spacing:-.01em }
 .k-count{ font-size:12px; color:var(--ink3); text-align:right; line-height:1.4 }
 .k-list{ margin-top:0; gap:10px }
 .k-row{
   gap:13px; padding:13px 14px; border-radius:14px;
-  animation:rise 260ms var(--ease) backwards;
-  animation-delay:calc(min(var(--i, 0), 8) * 30ms);
+  animation:rise var(--dur-enter) var(--ease) backwards;
+  animation-delay:calc(90ms + min(var(--i, 0), 9) * 35ms);
+  transition:opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease),
+             background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.k-row.is-out{
+  opacity:0; transform:translateX(12px) scale(.985);
+  transition:opacity 180ms var(--ease), transform 180ms var(--ease);
+  animation:none; pointer-events:none;
 }
 @media (hover: hover) and (pointer: fine){
   .k-row:hover{ background:color-mix(in srgb, var(--fill) 52%, var(--surface)); border-color:color-mix(in srgb, var(--ink) 14%, var(--line)) }
+  .k-row:hover .k-mark{ transform:scale(1.06) }
 }
 .k-mark{
   width:38px; height:38px; flex:none; display:grid; place-items:center;
   border-radius:11px; background:var(--fill);
+  transition:transform var(--dur-fast) var(--ease);
 }
 .k-mark svg{ width:18px; height:18px }
 .k-info b{ font-size:14.5px }
 .k-info small{ font-size:12px }
 .k-actions .btn{ height:32px; padding:0 11px }
-.f-home{ margin-top:15px; height:34px; padding:0 13px; font-size:12.5px; color:var(--ink2) }
-.f-home svg{ width:15px; height:15px }
 
 @media (max-width:980px){
   .k-workspace{ display:block }
