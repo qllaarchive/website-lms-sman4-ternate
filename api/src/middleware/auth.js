@@ -4,7 +4,9 @@ import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 
 export async function requireAuth(req, res, next) {
-  const token = req.cookies?.lms_session;
+  let token = req.cookies?.lms_session || null;
+  const bearer = req.headers?.authorization;
+  if (bearer && bearer.startsWith("Bearer ")) token = bearer.slice(7) || token;
   if (!token) return res.status(401).json({ error: "unauthorized" });
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);

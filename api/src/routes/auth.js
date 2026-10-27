@@ -38,7 +38,9 @@ router.post("/login", async (req, res) => {
 
   const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
   setSessionCookie(res, token);
-  res.json({ user: { id: user.id, username: user.username } });
+  /* Token juga dikirim di body sebagai cadangan untuk portal lintas origin
+     (mis. GitHub Pages) yang tidak bisa menyimpan/mengirim cookie pihak ketiga. */
+  res.json({ user: { id: user.id, username: user.username }, token });
 });
 
 router.post("/logout", (_req, res) => {
@@ -47,7 +49,7 @@ router.post("/logout", (_req, res) => {
 });
 
 router.get("/me", async (req, res) => {
-  const token = req.cookies?.[COOKIE];
+  const token = req.cookies?.[COOKIE] || bearerToken(req);
   if (!token) return res.json({ user: null });
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
@@ -58,5 +60,10 @@ router.get("/me", async (req, res) => {
     res.json({ user: null });
   }
 });
+
+function bearerToken(req) {
+  const h = req.headers?.authorization;
+  return h && h.startsWith("Bearer ") ? h.slice(7) : null;
+}
 
 export default router;

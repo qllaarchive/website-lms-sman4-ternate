@@ -30,6 +30,7 @@
   if($("q-clear-ic")) $("q-clear-ic").innerHTML = I("x");
   if($("to-top-ic")) $("to-top-ic").innerHTML = I("chevron-up");
   if($("login-mail-ic")) $("login-mail-ic").innerHTML = I("mail");
+  if($("nb-ic")) $("nb-ic").innerHTML = I("alert-triangle");
   document.querySelectorAll(".sheet-wrap .x").forEach(function(b){
     if(!b.innerHTML) b.innerHTML = I("x");
   });
@@ -80,6 +81,9 @@
       if(rec) grouped[e.klass].push(rec);
     });
     state.entries = grouped;
+    var nb = $("noback");
+    if(nb) nb.hidden = true;
+    apiAvailable = true;
     render(true);
     syncKelolaUI();
     return true;
@@ -142,6 +146,8 @@
   if(window.LMS_API){
     LMS_API.available().then(function(ok){
       apiAvailable = !!ok;
+      var nb = $("noback");
+      if(nb && !apiAvailable) nb.hidden = false;
       if(!apiAvailable) return;
       return LMS_API.me().then(function(r){
         if(r && r.ok && r.data && r.data.user) window._apiUser = r.data.user;

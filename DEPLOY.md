@@ -2,10 +2,14 @@
 
 ## Ringkasnya
 
+**Backend (API + database) wajib ikut dideploy di semua opsi** — tanpa backend,
+portal hanya mode baca dengan data bawaan: login admin, kelola LMS, dan profil
+sekolah tidak berfungsi.
+
 ```
-Netlify / Vercel → website portal (gratis selamanya)
-Neon             → database PostgreSQL (gratis selamanya, 0,5–1 GB)
-Render           → backend API (gratis selamanya, 750 jam/bln)
+Netlify / Vercel / GitHub Pages → website portal (statis)
+Neon                            → database PostgreSQL (wajib — pusat data)
+Render                          → backend API (wajib — login & kelola LMS)
 ```
 
 > Semua tanpa kartu kredit. Batasnya jauh di atas kebutuhan sekolah.
@@ -56,12 +60,14 @@ postgresql://USER:PASSWORD@ep-xxxx.region.aws.neon.tech/neondb?sslmode=require
 
 ---
 
-## 3. Netlify / Vercel (website portal)
+## 3. Portal — Netlify / Vercel / GitHub Pages
 
-Konfigurasi di repo sudah siap (`netlify.toml` + `vercel.json`) — tinggal ganti 1 URL.
+Semua jalur di bawah memanggil API yang dideploy di langkah 2 — backend wajib hidup.
 
-1. Import repo ke **app.netlify.com** (via `netlify.toml`) **atau** **vercel.com** (via `vercel.json`)
-2. Ganti URL API didalam file config itu dengan URL Render:
+### Jalur A — Netlify (`netlify.toml`)
+
+1. Import repo ke **app.netlify.com**
+2. Ganti URL API di `netlify.toml` dengan URL Render:
 
 ```toml
 # netlify.toml
@@ -72,6 +78,13 @@ Konfigurasi di repo sudah siap (`netlify.toml` + `vercel.json`) — tinggal gant
   force = true
 ```
 
+3. Push → otomatis deploy → salin URL portal (mis. `https://lms.netlify.app`)
+
+### Jalur B — Vercel (`vercel.json`)
+
+1. Import repo ke **vercel.com**
+2. Ganti URL API di `vercel.json`:
+
 ```json
 // vercel.json
 "rewrites": [
@@ -79,9 +92,45 @@ Konfigurasi di repo sudah siap (`netlify.toml` + `vercel.json`) — tinggal gant
 ]
 ```
 
-3. Push → otomatis deploy → salin URL portal (mis. `https://lms.netlify.app`)
-4. Kembali ke **Render** → pilih API → Settings → Environment → tab `ALLOWED_ORIGINS` →
-   isi URL portal: `https://lms.netlify.app` → Save → API restart otomatis
+3. Push → otomatis deploy → salin URL portal
+
+### Jalur C — GitHub Pages
+
+GitHub Pages **tidak bisa** memproksi `/api/*` (statis), jadi portal memanggil
+API langsung lintas-origin. Portal mengirim session dalam bentuk
+`Authorization: Bearer` (setelah login, API mengembalikan token — lihat
+`assets/api-client.js`), jadi masalah cookie pihak ketiga tak berpengaruh:
+
+1. Buat workflow Pages (mis. `.github/workflows/pages.yml`) yang menjalankan:
+
+   ```yaml
+   # sebelum upload artifact:
+   - run: node scripts/build-config.mjs
+     env:
+       LMS_API_BASE: https://LMS-API-ANDA.onrender.com/api
+   # lalu upload seluruh repo sebagai artifact Pages
+   ```
+
+2. Aktifkan **Settings → Pages → Source: GitHub Actions**
+3. Kembali ke **Render** → `ALLOWED_ORIGINS` → isi `https://<username>.github.io`
+   (wajib — tanpa itu portal lintas origin diblokir CORS saat login)
+
+> Perlindungan samakan dengan jalur lain: `NODE_ENV=production` memastikan
+> cookie/token diberi flag Secure, dan `JWT_SECRET` acak wajib.
+
+### Jalur D — VPS + Nginx (punya sendiri)
+
+`portal-nginx.conf` sudah memproksi `/api/` ke `api:3000` (docker-compose) —
+tinggal uang ganti domain & certbot HTTPS, lalu sesuaikan `ALLOWED_ORIGINS`.
+
+---
+
+## 4. Hubungkan: `ALLOWED_ORIGINS`
+
+Kembali ke **Render** → pilih API → Settings → Environment → `ALLOWED_ORIGINS`:
+isi URL portal final (contoh: `https://lms.netlify.app`) → Save → API restart
+otomatis. Langkah ini **wajib** — tanpa itu, portal GitHub Pages/Netlify akan
+diblokir CORS saat login.
 
 ---
 

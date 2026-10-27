@@ -2,14 +2,29 @@
    akun admin, dan profil sekolah tersimpan di database melalui API ini. */
 (function(){
   "use strict";
-  var API_BASE = String(window.LMS_API_BASE || "http://localhost:3000/api").replace(/\/+$/, "");
+  var API_BASE = String(window.LMS_API_BASE || "/api").replace(/\/+$/, "");
   var _probe = null;
   var TIMEOUT = 6000;
+
+  /* Sesi lintas origin (mis. portal di GitHub Pages): cookie pihak ketiga bisa
+     diblokir browser — token JWT di sessionStorage jadi saluran cadangan. */
+  var _token = null;
+  try { _token = sessionStorage.getItem("lms_token") || null; } catch(e){}
+  function storeToken(t){
+    _token = t;
+    try {
+      if (t) sessionStorage.setItem("lms_token", t);
+      else sessionStorage.removeItem("lms_token");
+    } catch(e){}
+  }
+  function authHeaders(){
+    return _token ? { "Authorization": "Bearer " + _token } : {};
+  }
 
   function apiFetch(path, opts) {
     opts = opts || {};
     opts.credentials = "include";
-    opts.headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+    opts.headers = Object.assign({ "Content-Type": "application/json" }, authHeaders(), opts.headers || {});
     var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = null;
     if (ctrl) {
@@ -41,12 +56,19 @@
       return _probe;
     },
 
-    /* Auth (cookie JWT httpOnly) */
+    /* Auth (cookie JWT httpOnly + bearer cadangan) */
     login: function(username, password){
-      return apiFetch("/auth/login", { method: "POST", body: JSON.stringify({ username: username, password: password }) });
+      return apiFetch("/auth/login", { method: "POST", body: JSON.stringify({ username: username, password: password }) })
+        .then(function(r){
+          if (r.ok && r.data && r.data.token) storeToken(r.data.token);
+          return r;
+        });
     },
     logout: function(){
-      return apiFetch("/auth/logout", { method: "POST" });
+      return apiFetch("/auth/logout", { method: "POST" }).then(function(r){
+        storeToken(null);
+        return r;
+      });
     },
     me: function(){
       return apiFetch("/auth/me");

@@ -5,7 +5,7 @@
 ![API](https://img.shields.io/badge/backend-Node%20%2B%20PostgreSQL-336791)
 ![Lisensi](https://img.shields.io/badge/license-MIT-green)
 
-Portal pembelajaran digital **SMA Negeri 4 Ternate** — kumpulan LMS mata pelajaran kelas X, XI, dan XII dalam satu portal: materi, asesmen, gim edukatif, lab maya, e-book, dan forum diskusi. Dibangun statis (HTML/CSS/JS) agar ringan dan cepat, dengan backend opsional untuk sinkronisasi pusat.
+Portal pembelajaran digital **SMA Negeri 4 Ternate** — kumpulan LMS mata pelajaran kelas X, XI, dan XII dalam satu portal: materi, asesmen, gim edukatif, lab maya, e-book, dan forum diskusi. Dibangun statis (HTML/CSS/JS) agar ringan dan cepat, dengan **backend wajib** sebagai pusat data (tautan LMS, akun admin, profil sekolah). Tanpa backend portal hanya membaca data bawaan (mode baca saja).
 
 > **Coba langsung:** buka [`index.html`](index.html) di browser — tidak perlu build, tidak perlu server.
 
@@ -66,9 +66,9 @@ Progres belajar disimpan otomatis di `localStorage` per perangkat — data tauta
 |---|---|
 | Frontend portal | HTML, CSS (variabel tema, tanpa framework), JavaScript ES5-siap-browser |
 | Data LMS | Skrip JS berstruktur (`data/*.js`) yang divalidasi oleh alat uji |
-| Backend (opsional) | Node.js, Express, Prisma, PostgreSQL |
+| **Backend (wajib)** | Node.js, Express, Prisma, PostgreSQL |
 | Keamanan API | Helmet, CORS terbatas, rate-limit, JWT/cookie, hash sandi ber-salt |
-| Infrastruktur | Docker Compose, Nginx, GitHub Actions CI/CD, Netlify/Vercel, Neon, Render, Railway |
+| Infrastruktur | Docker Compose, Nginx, GitHub Actions CI/CD, Netlify/Vercel/GitHub Pages, Neon, Render, Railway |
 | Mobile (rencana) | Flutter — lihat [`mobile/README.md`](mobile/README.md) |
 
 ---
@@ -115,39 +115,34 @@ Progres belajar disimpan otomatis di `localStorage` per perangkat — data tauta
 
 ## Menjalankan di Lokal
 
-### A. Portal saja (paling cepat)
-
-```bash
-git clone https://github.com/qllaarchive/website-lms-sman4-ternate.git
-cd website-lms-sman4-ternate
-
-# Buka langsung di browser (cukup, tanpa server):
-open index.html
-
-# — atau sajikan lewat server statis:
-npx serve .
-# lalu buka http://localhost:3000
-```
-
-### B. Portal + API + Database (pengembangan penuh)
+### A. Portal + API + Database (pengembangan penuh — backend tetap hidup)
 
 ```bash
 docker compose up -d              # nyalakan db, api, dan portal
 cd api && npx prisma migrate dev  # jalankan migrasi database
-npm run seed                      # (opsional) isi data awal
+npm run seed                      # isi data awal (akun admin + 4 entri LMS)
 
 # Portal  → http://localhost:8080
 # API     → http://localhost:3000
 ```
 
-### C. Backend saja (tanpa Docker)
+### B. Backend saja (tanpa Docker — untuk pengembangan cepat)
 
 ```bash
 cd api
 npm ci
 npx prisma migrate dev
+npm run seed
 npm run dev          # node --watch src/index.js
+# Portal disajikan dari server statis apa pun (python/npx serve) yang
+# memproksi /api → http://localhost:3000, atau sementara langsung
+# LMS_API_BASE=http://localhost:3000/api (CORS localhost diizinkan).
 ```
+
+> **Aturan:** backend **selalu wajib nyala** saat portal dipakai. Tanpa backend,
+> portal hanya menampilkan data bawaan (baca saja) — login, kelola LMS,
+> dan profil sekolah tidak berfungsi, dan portal menampilkan banner
+> "backend tidak terhubung".
 
 ---
 
@@ -178,20 +173,23 @@ SMOKE OK — matematika.js · 137 view dirender
 
 ## Deploy
 
-Ringkasnya:
+Ringkasnya — **backend wajib** di setiap opsi hosting:
 
 ```
-Netlify/Vercel → portal statis (index.html + halaman LMS)
-Neon           → database PostgreSQL (gratis selamanya)
-Render         → backend API (gratis selamanya)
+Netlify/Vercel/GitHub Pages → portal statis (index.html + halaman LMS)
+Neon                        → database PostgreSQL (gratis selamanya)
+Render                      → backend API (gratis selamanya)
 ```
 
 Langkah lengkap ada di **[DEPLOY.md](DEPLOY.md)**:
 
 1. **Neon** — buat project → copy connection string `DATABASE_URL` (gratis, tanpa kartu).
 2. **Render** — Web Service (Root Directory `api`) → isi `DATABASE_URL`, `JWT_SECRET`, `ADMIN_USER`, `ADMIN_PASS` → deploy.
-3. **Netlify/Vercel** — import repo (konfigurasi sudah ada di `netlify.toml`/`vercel.json`) → ganti URL Render di file redirect tersebut → isi `ALLOWED_ORIGINS` di Render.
-4. **Login** — buka situs portal → tombol *Masuk* → akun admin dari variabel Render.
+3. **Portal** — import repo:
+   - **Netlify/Vercel** — konfigurasi sudah ada (`netlify.toml`/`vercel.json`); ganti URL Render di file redirect tersebut.
+   - **GitHub Pages** — saat build set environment `LMS_API_BASE=https://url-render/api` (mis. via Actions/workflow) — portal memanggil API langsung lintas origin, jadi `ALLOWED_ORIGINS` di Render wajib memuat `https://<username>.github.io`.
+4. Isi `ALLOWED_ORIGINS` di Render dengan URL portal final.
+5. **Login** — buka situs portal → tombol *Masuk* → akun admin dari variabel Render.
 
 Alternatif satu-dashboard: Railway — API + PostgreSQL berbayar (mulai ~$5/bulan), panduan di DEPLOY.md.
 

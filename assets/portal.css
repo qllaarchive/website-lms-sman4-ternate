@@ -196,6 +196,31 @@ a.btn{ text-decoration:none }
 .q-clear:active{ transform:translateY(-50%) scale(.92) }
 .q-clear svg{ width:14px; height:14px }
 .search-meta{ margin:8px 2px 0; font-size:12.5px; color:var(--ink3) }
+
+/* ——— peringatan backend mati: mode baca saja ——— */
+.noback{
+  display:flex; align-items:flex-start; gap:10px;
+  margin:14px 0 -6px; padding:11px 14px;
+  border:1px solid color-mix(in srgb, #b45309 38%, transparent);
+  border-radius:12px;
+  background:color-mix(in srgb, #b45309 12%, var(--surface));
+  color:color-mix(in srgb, #92400e 86%, var(--ink));
+  font-size:13px; font-weight:500; line-height:1.45;
+}
+:root[data-theme="dark"] .noback{
+  border-color:color-mix(in srgb, #fbbf24 32%, transparent);
+  background:color-mix(in srgb, #fbbf24 9%, var(--surface));
+  color:color-mix(in srgb, #fbbf24 70%, var(--ink));
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .noback{
+    border-color:color-mix(in srgb, #fbbf24 32%, transparent);
+    background:color-mix(in srgb, #fbbf24 9%, var(--surface));
+    color:color-mix(in srgb, #fbbf24 70%, var(--ink));
+  }
+}
+.noback .nb-ic{ flex:none; margin-top:1px; display:grid }
+.noback .nb-ic svg{ width:16px; height:16px }
 .search input:focus{ outline:2px solid var(--accent); outline-offset:2px }
 .search input::-webkit-search-decoration,
 .search input::-webkit-search-cancel-button{ -webkit-appearance:none }
