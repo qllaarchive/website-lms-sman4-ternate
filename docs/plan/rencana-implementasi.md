@@ -17,12 +17,12 @@ Rencana ini disusun untuk memenuhi syarat konversi 5 Mata Kuliah Teknik Informat
 
 ---
 
-## FASE 1 — Deploy Website (Mata Kuliah: Website)
-*Target: Aplikasi tersedia secara publik melalui HTTPS.*
+## FASE 1 — Deploy Website menggunakan Vercel (Mata Kuliah: Website)
+*Target: Aplikasi tersedia secara publik melalui HTTPS dengan performa Global Edge.*
 
-1.  **Deployment:** Hubungkan repositori ke **Netlify**.
+1.  **Deployment:** Hubungkan repositori ke **Vercel** (`vercel.json` sudah tersedia di dalam repositori).
 2.  **Verifikasi:** 
-    *   Portal dapat diakses via HTTPS.
+    *   Portal dapat diakses via HTTPS secara instan.
     *   Fungsi CRUD (Tambah/Edit/Hapus) LMS berjalan normal melalui API Render.
     *   Lighthouse Audit (Performance & Accessibility) skor ≥ 90.
 
