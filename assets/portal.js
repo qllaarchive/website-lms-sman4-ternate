@@ -209,6 +209,76 @@
   if(fYear) fYear.textContent = new Date().getFullYear();
   if(abSheet) abSheet.href = DRIVE;
 
+  /* ---------- header mobile: menu hamburger admin + tema pindah ke footer ---------- */
+  var adminCluster = $("admin-cluster"), btnMenu = $("btn-menu"), menuPop = $("menu-pop");
+  var segEl = $("seg"), fThemeCol = $("f-theme-col"), segSlot = $("seg-footer-slot");
+  var abGroup = document.querySelector(".admin-bar .ab-group");
+  var navRight = document.querySelector(".nav-right");
+  var mqNarrow = window.matchMedia ? window.matchMedia("(max-width: 700px)") : null;
+  var mqReduce = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function menuCloseAdmin(instant){
+    if(!menuPop || menuPop.hidden) return;
+    function fin(){
+      menuPop.hidden = true;
+      if(adminCluster) adminCluster.classList.remove("is-open", "is-closing");
+      if(btnMenu) btnMenu.setAttribute("aria-expanded", "false");
+    }
+    if(instant || (mqReduce && mqReduce.matches)){ fin(); return; }
+    if(adminCluster) adminCluster.classList.add("is-closing");
+    setTimeout(fin, 160);
+  }
+  function menuOpenAdmin(){
+    if(!menuPop || !adminCluster || adminCluster.hidden || !menuPop.hidden) return;
+    menuPop.hidden = false;
+    adminCluster.classList.add("is-open");
+    if(btnMenu) btnMenu.setAttribute("aria-expanded", "true");
+  }
+  function placeAdminUI(){
+    var m = mqNarrow ? mqNarrow.matches : false;
+    var kelola = $("ab-kelola"), sheet = $("ab-sheet"), out = $("ab-logout");
+    if(m){
+      if(menuPop && kelola) menuPop.appendChild(kelola);
+      if(menuPop && sheet) menuPop.appendChild(sheet);
+      if(menuPop && out) menuPop.appendChild(out);
+      if(segEl && segSlot){ segSlot.appendChild(segEl); segEl.classList.add("seg--footer"); }
+    } else {
+      menuCloseAdmin(true);
+      if(abGroup && kelola) abGroup.appendChild(kelola);
+      if(abGroup && sheet) abGroup.appendChild(sheet);
+      if(out && navRight) navRight.appendChild(out);
+      if(segEl){
+        segEl.classList.remove("seg--footer");
+        if(navRight && btnLogin) navRight.insertBefore(segEl, btnLogin);
+      }
+    }
+    if(fThemeCol) fThemeCol.hidden = !(m && segEl);
+  }
+  if(btnMenu && menuPop){
+    btnMenu.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(menuPop.hidden) menuOpenAdmin(); else menuCloseAdmin();
+    });
+    document.addEventListener("click", function(e){
+      if(menuPop.hidden) return;
+      if(e.target.closest && e.target.closest("#admin-cluster")) return;
+      menuCloseAdmin();
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape" && menuPop && !menuPop.hidden){
+        menuCloseAdmin();
+        if(btnMenu) btnMenu.focus();
+      }
+    });
+    menuPop.addEventListener("click", function(e){
+      if(e.target.closest && e.target.closest("button, a")) menuCloseAdmin();
+    });
+  }
+  if(mqNarrow){
+    if(mqNarrow.addEventListener) mqNarrow.addEventListener("change", placeAdminUI);
+    else if(mqNarrow.addListener) mqNarrow.addListener(placeAdminUI);
+  }
+  placeAdminUI();
+
   /* ---------- modals ---------- */
   var finePointer = window.matchMedia ? window.matchMedia("(hover: hover) and (pointer: fine)").matches : true;
   var lastFocus = null;
@@ -474,9 +544,9 @@
     '</a>';
   }
   function esc(s){
-    return String(s).replace(/[&<>"']/g, function(c){
-      return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c];
-    });
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
   }
 
   var first = true;

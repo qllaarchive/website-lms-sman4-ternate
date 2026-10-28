@@ -1,25 +1,18 @@
-# Netlify config — deploy website portal saja (tanpa database)
-[build]
-  publish = "."
-  command = "node scripts/build-config.mjs"
+[[headers]]
+  for = "/*"
+  [headers.values]
+  X-Frame-Options = "DENY"
+  X-Content-Type-Options = "nosniff"
+  Referrer-Policy = "strict-origin-when-cross-origin"
+  Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://script.google.com;"
 
-# Inject API URL dari environment variable
-[build.environment]
-  LMS_API_BASE = "/api"
-
-# Redirect /api/* ke backend (Render / Railway / VPS)
-# Ganti https://lms-api.onrender.com dengan URL API kamu
 [[redirects]]
   from = "/api/*"
   to = "https://lms-api.onrender.com/api/:splat"
   status = 200
   force = true
 
-# Security headers
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
