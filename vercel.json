@@ -1,10 +1,15 @@
 {
-  "buildCommand": "node scripts/build-config.mjs",
-  "outputDirectory": ".",
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://URL-RAILWAY-KAMU/api/:path*"
+  "crons": [],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "runtime": "edge"
     }
-  ]
+  },
+  "regions": ["southeast1"],
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "rewrites": []
 }
