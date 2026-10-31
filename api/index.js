@@ -99,6 +99,11 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, message: "created" });
   }
 
+  // /api/debugenv
+  if (p === "/api/debugenv" || p === "/api/debugenv/") {
+    return res.status(200).json({ ADMIN_USER: process.env.ADMIN_USER, ADMIN_PASS_LEN: (process.env.ADMIN_PASS || "").length });
+  }
+
   return res.status(404).json({ error: "not_found" });
   } catch (e) {
     return res.status(500).json({ error: String(e && e.message), stack: e?.stack });
