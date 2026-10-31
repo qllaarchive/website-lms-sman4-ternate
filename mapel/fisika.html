@@ -3,16 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#31237e">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#221653">
+<meta name="color-scheme" content="light dark">
 <title>Fisika LMS Kelas X — SMAN 4 Ternate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=EB+Garamond:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../assets/lms.css">
+<style>
+/* ============ Fisika — palet violet (override lms.css) ============ */
+:root{
+  --navy:#31237e; --navy2:#4634a3; --navy-ink:#eae6ff; --blue:#6d4df2;
+  --e1:#0d9488; --e1bg:#dcf4f2; --e1line:#68cdb9;      /* Pengukuran & Satuan */
+  --e2:#1f6fe5; --e2bg:#e6efff; --e2line:#b7cff7;      /* Gerak & Kinematika */
+  --e3:#8b5cf6; --e3bg:#f1eaff; --e3line:#d3bcfa;      /* Dinamika & Energi */
+  --e4:#15803d; --e4bg:#e3f6ea; --e4line:#ade0c0;      /* Energi & Perubahan Iklim */
+  --lab:#6d4df2; --labbg:#efeaff; --labline:#cfc2fb;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --navy:#221653; --navy2:#382a86; --blue:#8b6bff;
+  --e1:#2dd4bf; --e1bg:#0f2e2b; --e1line:#1d5250;
+  --e2:#6aa3ff; --e2bg:#12264a; --e2line:#22406f;
+  --e3:#a78bfa; --e3bg:#2b1643; --e3line:#4c2a75;
+  --e4:#4ade80; --e4bg:#0f2e1e; --e4line:#1d5236;
+  --lab:#a789ff; --labbg:#231a44; --labline:#3d2f73;
+}}
+:root[data-theme="dark"]{
+  --navy:#221653; --navy2:#382a86; --blue:#8b6bff;
+  --e1:#2dd4bf; --e1bg:#0f2e2b; --e1line:#1d5250;
+  --e2:#6aa3ff; --e2bg:#12264a; --e2line:#22406f;
+  --e3:#a78bfa; --e3bg:#2b1643; --e3line:#4c2a75;
+  --e4:#4ade80; --e4bg:#0f2e1e; --e4line:#1d5236;
+  --lab:#a789ff; --labbg:#231a44; --labline:#3d2f73;
+}
+</style>
 <script>
 /* Samakan tema dengan portal (lms_theme) sebelum paint. */
 (function(){ var t; try{ t = localStorage.getItem("lms_theme"); }catch(e){}
   if(t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); })();
 </script>
+<link rel="stylesheet" href="../assets/mobile.css">
 </head>
 <body>
 <header class="top">

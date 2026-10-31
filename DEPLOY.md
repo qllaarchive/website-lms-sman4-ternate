@@ -120,8 +120,9 @@ API langsung lintas-origin. Portal mengirim session dalam bentuk
 
 ### Jalur D — VPS + Nginx (punya sendiri)
 
-`portal-nginx.conf` sudah memproksi `/api/` ke `api:3000` (docker-compose) —
-tinggal uang ganti domain & certbot HTTPS, lalu sesuaikan `ALLOWED_ORIGINS`.
+Panduan lengkap Ubuntu server (gratis via Oracle Cloud Free Tier juga dibahas):
+**`docs/deploy-vps.md`** — provisioning otomatis lewat `scripts/setup-ubuntu.sh`.
+`portal-nginx.conf` dipakai jika memilih jalur docker-compose di VPS.
 
 ---
 

@@ -29,6 +29,10 @@
   if($("pantau-drive-ic")) $("pantau-drive-ic").innerHTML = I("external-link");
   if($("q-clear-ic")) $("q-clear-ic").innerHTML = I("x");
   if($("to-top-ic")) $("to-top-ic").innerHTML = I("chevron-up");
+  if($("sk-add-ic")) $("sk-add-ic").innerHTML = I("plus");
+  if($("sk-add-head-ic")) $("sk-add-head-ic").innerHTML = I("plus");
+  if($("slider-prev-ic")) $("slider-prev-ic").innerHTML = I("chevron-left");
+  if($("slider-next-ic")) $("slider-next-ic").innerHTML = I("chevron-right");
   if($("login-mail-ic")) $("login-mail-ic").innerHTML = I("mail");
   if($("nb-ic")) $("nb-ic").innerHTML = I("alert-triangle");
   document.querySelectorAll(".sheet-wrap .x").forEach(function(b){
@@ -152,7 +156,7 @@
         if(r && r.ok && r.data && r.data.user) window._apiUser = r.data.user;
         syncAuthUI();
         return loadServerEntries();
-      });
+      }).then(function(){ return loadSliders(); });
     }).then(function(){ syncAuthUI(); });
   }
 
@@ -160,7 +164,9 @@
   function endSession(){
     window._apiUser = null;
     if(apiAvailable && window.LMS_API){
-      LMS_API.logout().then(function(){ return loadServerEntries(); }).then(function(){ syncAuthUI(); });
+      LMS_API.logout().then(function(){ return loadServerEntries(); })
+        .then(function(){ return loadSliders(); })
+        .then(function(){ syncAuthUI(); });
     }
   }
 
@@ -202,9 +208,45 @@
   if(abKelola) abKelola.addEventListener("click", function(){
     kelolaClass = klass;
     resetKForm();
+    resetSkForm();
     syncKelolaUI();
+    syncSkUI();
+    setKelolaView("lms");
     openModal("modal-kelola");
   });
+
+  /* ---------- tab tengah di header kelola: teks "Kelola LMS" / "Kelola Foto" ----------
+     Dua tampilan di satu halaman (panel bergantian), judul aktif warna tinta + garis kecil. */
+  var kelolaView = "lms";
+  function setKelolaView(v){
+    if(v !== "lms" && v !== "foto") v = "lms";
+    kelolaView = v;
+    var lmsV = $("k-view-lms"), fotoV = $("k-view-foto");
+    if(lmsV) lmsV.hidden = v !== "lms";
+    if(fotoV) fotoV.hidden = v !== "foto";
+    var tabs = document.querySelectorAll("#modal-kelola .page-switch-item");
+    Array.prototype.forEach.call(tabs, function(t){
+      var on = t.dataset && t.dataset.view === v;
+      if(t.classList && t.classList.toggle) t.classList.toggle("is-on", on);
+      if(t.setAttribute) t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    var sc = document.querySelector("#modal-kelola .page-scroll");
+    if(sc) sc.scrollTop = 0;
+  }
+  var pageSwitch = document.querySelector("#modal-kelola .page-switch");
+  if(pageSwitch){
+    pageSwitch.addEventListener("click", function(ev){
+      var b = ev.target.closest && ev.target.closest(".page-switch-item");
+      if(b) setKelolaView(b.dataset.view);
+    });
+    pageSwitch.addEventListener("keydown", function(ev){
+      if(ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+      setKelolaView(kelolaView === "lms" ? "foto" : "lms");
+      var t = $(kelolaView === "lms" ? "tab-kelola-lms" : "tab-kelola-foto");
+      if(t) try{ t.focus(); }catch(e){}
+      ev.preventDefault();
+    });
+  }
   var fYear = $("f-year");
   if(fYear) fYear.textContent = new Date().getFullYear();
   if(abSheet) abSheet.href = DRIVE;
@@ -306,7 +348,16 @@
       var sc = m.querySelector(".page-scroll");
       if(sc) sc.scrollTop = 0;
       var pageTitle = m.querySelector(".page-heading h2");
-      if(pageTitle){ try{ pageTitle.focus({ preventScroll: true }); }catch(e){ try{ pageTitle.focus(); }catch(e2){} } return; }
+      if(pageTitle){
+        try{ pageTitle.focus({ preventScroll: true }); }catch(e){ try{ pageTitle.focus(); }catch(e2){} }
+        return;
+      }
+      /* header tanpa judul (pakai tab tengah): fokus ke tombol kembali */
+      var af = m.querySelector("[data-autofocus]");
+      if(af){
+        try{ af.focus({ preventScroll: true }); }catch(e){ try{ af.focus(); }catch(e2){} }
+        return;
+      }
     }
     var f = finePointer ? m.querySelector("input:not([type=hidden]), button.btn.primary") : null;
     if(f) try{ f.focus(); }catch(e){}
@@ -334,7 +385,12 @@
     m.hidden = true;
     delete m.dataset.closing;
     m.classList.remove("is-closing");
-    document.body.classList.remove("modal-open");
+    /* jangan lepas kunci scroll bila masih ada modal lain terbuka (tingkat×tingkat) */
+    var anyOpen = null;
+    document.querySelectorAll(".sheet-wrap").forEach(function(x){
+      if(!x.hidden) anyOpen = x;
+    });
+    if(!anyOpen) document.body.classList.remove("modal-open");
     var sheetEl = m.querySelector(":scope > .sheet");
     if(sheetEl && sheetEl.classList.contains("login-sheet")) sheetEl.classList.remove("is-out");
     var back = lastFocus;
@@ -347,8 +403,10 @@
   }
   document.addEventListener("keydown", function(ev){
     var open = null;
+    /* pilih modal paling atas (terakhir terbukti dalam urutan DOM) — penting
+       saat modal bertingkat, mis. halaman kelola foto di atas halaman kelola */
     document.querySelectorAll(".sheet-wrap").forEach(function(m){
-      if(!m.hidden && !open) open = m;
+      if(!m.hidden) open = m;
     });
     if(!open) return;
     if(ev.key === "Escape"){ closeModal(open); return; }
@@ -415,6 +473,7 @@
         closeModal($("modal-login"));
         toast("Berhasil masuk. Selamat bekerja.");
         loadServerEntries();
+        loadSliders();
       }else if(r.status === 0){
         fail(backendErr());
       }else if(r.status === 429){
@@ -497,6 +556,47 @@
       ev.preventDefault();
     });
   }
+
+  /* ---------- micro-motion ala anime.js.com ----------
+     Dua tanda tangan gerak dramatis dipindah ke sini: kaskade kata pada judul
+     beranda (delay stagger per kata, berakhir overshoot pegun) dan riak
+     dot-grid murni CSS di belakang hero. Semua transform/opacity saja. */
+  var portalTitle = $("portal-title");
+  if(portalTitle && !reduce){
+    var words = (portalTitle.textContent || "").trim().split(/\s+/).filter(Boolean);
+    if(words.length > 1){
+      portalTitle.setAttribute("aria-label", words.join(" "));
+      var frag = document.createDocumentFragment();
+      words.forEach(function(w, i){
+        var s = document.createElement("span");
+        s.className = "w";
+        s.setAttribute("aria-hidden", "true");
+        s.textContent = w;
+        s.style.setProperty("--w", i);
+        frag.appendChild(s);
+        frag.appendChild(document.createTextNode(" "));
+      });
+      portalTitle.textContent = "";
+      portalTitle.appendChild(frag);
+    }
+  }
+  (function heroDotWave(){
+    var heroEl = document.querySelector(".hero");
+    if(!heroEl || reduce) return;
+    var dots = document.createElement("div");
+    dots.className = "hero-dots";
+    dots.setAttribute("aria-hidden", "true");
+    var count = 150, frag = document.createDocumentFragment();
+    /* delay negatif & tumpang tindih agar gelombang berjalan diagonal lalu
+       ketemu smooth saat loop; ala stagger anime.js tapi tanpa JS per-frame. */
+    for(var i = 0; i < count; i++){
+      var d = document.createElement("span");
+      d.style.setProperty("--d", Math.round((i * 97) % 2400) + "ms");
+      frag.appendChild(d);
+    }
+    dots.appendChild(frag);
+    document.querySelector("main.gut").appendChild(dots);
+  })();
 
   /* ---------- progres ---------- */
   function rgba(hex, a){
@@ -867,6 +967,300 @@
         resetKForm();
       }else{
         fail(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menyimpan ke server.");
+      }
+    });
+  });
+
+  /* ---------- slider foto beranda + kelola foto slider ---------- */
+  var state2 = {
+    sliders: []            /* daftar mentah dari API (urutan server) */
+  };
+  var sliderEl = $("slider"), sliderStage = $("slider-stage"),
+      sliderDots = $("slider-dots"), sliderPrev = $("slider-prev"),
+      sliderNext = $("slider-next"), sliderLive = $("slider-live");
+  var skList = $("sk-list"), skForm = $("sk-form"), skErr = $("sk-err");
+  var skInput = $("sk-input"), skUrl = $("sk-url"), skTitle = $("sk-title"),
+      skPub = $("sk-pub"), skPreview = $("sk-preview"),
+      skPreviewImg = $("sk-preview-img"), skSave = $("sk-save");
+  var skIdx = 0, slTimer = null, skFileURL = null, skEditingId = null, skHover = false;
+  var SLIDE_MS = 7000;
+  var skFileOK = /^image\/(jpe?g|png|webp)$/i;
+  var skFileMax = 8 * 1024 * 1024;
+
+  function slVisible(){
+    return state2.sliders.filter(function(s){ return s.pub !== false; });
+  }
+  function loadSliders(){
+    if(!apiAvailable || !window.LMS_API) return Promise.resolve(false);
+    var req = window._apiUser && LMS_API.getAllSliders ? LMS_API.getAllSliders() : LMS_API.getSliders();
+    return req.then(function(r){
+      if(!r || !r.ok || !r.data || !Array.isArray(r.data.sliders)) return false;
+      state2.sliders = r.data.sliders;
+      syncSliderUI();
+      syncSkUI();
+      return true;
+    });
+  }
+
+  /* — pemutar di beranda — */
+  function setSlide(i){
+    var items = slVisible();
+    if(!sliderStage || !items.length) return;
+    skIdx = (i + items.length) % items.length;
+    Array.prototype.forEach.call(sliderStage.children, function(fig, k){
+      var on = k === skIdx;
+      fig.classList.toggle("is-on", on);
+      fig.setAttribute("aria-hidden", on ? "false" : "true");
+    });
+    if(sliderDots) Array.prototype.forEach.call(sliderDots.children, function(d, k){
+      d.classList.toggle("is-on", k === skIdx);
+      d.setAttribute("aria-pressed", k === skIdx ? "true" : "false");
+    });
+    if(sliderLive && items[skIdx]) sliderLive.textContent =
+      "Foto " + (skIdx + 1) + " dari " + items.length + (items[skIdx].title ? " — " + items[skIdx].title : "");
+  }
+  function slTick(){
+    slTimer = null;
+    if(document.hidden || skHover || document.body.classList.contains("modal-open")) { armSlider(); return; }
+    setSlide(skIdx + 1);
+    armSlider();
+  }
+  function armSlider(){
+    if(slTimer || reduce || slVisible().length < 2) return;
+    slTimer = setTimeout(slTick, SLIDE_MS);
+  }
+  function syncSliderUI(){
+    if(!sliderStage) return;
+    var items = slVisible();
+    /* slider beranda selalu terlihat (menampung teks sambutan); tanpa foto
+       ia berjaga dengan latar gradien dan menyembunyikan kontrol navigasi */
+    if(sliderEl) sliderEl.classList.toggle("no-slides", !items.length);
+    if(!items.length){ if(slTimer){ clearTimeout(slTimer); slTimer = null; } return; }
+    sliderStage.innerHTML = items.map(function(s, i){
+      return '<figure class="slider-slide' + (i === skIdx ? " is-on" : "") + '"' +
+        (i === skIdx ? ' aria-hidden="false"' : ' aria-hidden="true"') + '>' +
+        '<img src="' + esc(s.imageUrl) + '" alt="' + esc(s.title || "Foto kegiatan sekolah") + '"' +
+        (i === 0 ? ' fetchpriority="high"' : ' loading="lazy"') +         ' decoding="async">' +
+        "</figure>";
+    }).join("");
+    if(sliderDots) sliderDots.innerHTML = items.map(function(s, i){
+      return '<button type="button" data-sl="' + i + '" class="' + (i === skIdx ? "is-on" : "") + '"' +
+        ' aria-pressed="' + (i === skIdx ? "true" : "false") + '"' +
+        ' aria-label="Foto ' + (i + 1) + (s.title ? ": " + esc(s.title) : "") + '"></button>';
+    }).join("");
+    if(sliderDots) Array.prototype.forEach.call(sliderDots.children, function(d, k){
+      d.tabIndex = k === skIdx ? 0 : -1;
+    });
+    setSlide(Math.min(skIdx, items.length - 1));
+    armSlider();
+  }
+  if(sliderStage){
+    sliderPrev && sliderPrev.addEventListener("click", function(){ setSlide(skIdx - 1); armSlider(); });
+    sliderNext && sliderNext.addEventListener("click", function(){ setSlide(skIdx + 1); armSlider(); });
+    if(sliderDots) sliderDots.addEventListener("click", function(ev){
+      var b = ev.target.closest("button[data-sl]");
+      if(!b) return;
+      setSlide(parseInt(b.dataset.sl, 10));
+      armSlider();
+    });
+    if(finePointer && sliderEl){
+      sliderEl.addEventListener("pointerenter", function(){ skHover = true; });
+      sliderEl.addEventListener("pointerleave", function(){ skHover = false; });
+    }
+    /* geser sentuh/pointer: kiri-kanan ganti foto, atas-bawah biarkan scroll */
+    var swX = null, swY = null;
+    sliderStage.addEventListener("pointerdown", function(ev){
+      if(ev.pointerType === "mouse" && ev.button !== 0) return;
+      swX = ev.clientX; swY = ev.clientY;
+    });
+    sliderStage.addEventListener("pointerup", function(ev){
+      if(swX === null) return;
+      var dx = ev.clientX - swX, dy = ev.clientY - swY;
+      swX = swY = null;
+      if(Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
+      setSlide(skIdx + (dx < 0 ? 1 : -1));
+      armSlider();
+    });
+    document.addEventListener("keydown", function(ev){
+      var open = document.querySelector(".sheet-wrap:not([hidden])");
+      if(open || ev.metaKey || ev.ctrlKey || ev.altKey) return;
+      if(!sliderEl || sliderEl.hidden) return;
+      if(ev.target && (ev.target.tagName === "INPUT" || ev.target.tagName === "TEXTAREA" || ev.target.tagName === "SELECT")) return;
+      var r = sliderEl && sliderEl.getBoundingClientRect();
+      if(!r || r.bottom < 0 || r.top > (window.innerHeight || 0)) return;
+      if(ev.key === "ArrowLeft"){ setSlide(skIdx - 1); armSlider(); ev.preventDefault(); }
+      else if(ev.key === "ArrowRight"){ setSlide(skIdx + 1); armSlider(); ev.preventDefault(); }
+    });
+    document.addEventListener("visibilitychange", function(){ if(!document.hidden) armSlider(); });
+    armSlider();
+  }
+
+  /* — kelola: daftar & formulir foto — */
+  function resetSkForm(){
+    skEditingId = null;
+    if(skInput) skInput.value = "";
+    if(skUrl) skUrl.value = "";
+    if(skTitle) skTitle.value = "";
+    if(skPub) skPub.checked = true;
+    if(skPreview){ skPreview.hidden = true; skPreviewImg.removeAttribute("src"); }
+    if(skErr) skErr.hidden = true;
+    if(skFileURL){ URL.revokeObjectURL(skFileURL); skFileURL = null; }
+    var t = $("sk-form-title"), sub = $("sk-form-sub");
+    if(t) t.textContent = "Tambah Foto";
+    if(sub) sub.textContent = "Unggah foto kegiatan yang akan berputar di beranda (JPG/PNG/WebP, maks 8\u00A0MB).";
+    if(skForm) skForm.hidden = true;
+  }
+  function setSkSaving(on, editing){
+    if(!skSave) return;
+    skSave.disabled = !!on;
+    skSave.textContent = on ? "Menyimpan…" : (editing ? "Simpan perubahan" : "Simpan Foto");
+  }
+  function syncSkUI(){
+    var items = state2.sliders;
+    if($("sk-count")) $("sk-count").textContent =
+      items.length + " foto · " + slVisible().length + " tampil di beranda";
+    if(!skList) return;
+    skList.innerHTML = items.map(function(s, i){
+      var off = s.pub === false;
+      return '<div class="k-row sk-row" data-id="' + esc(s.id) + '" data-i="' + i + '" style="--i:' + i + '">' +
+        '<span class="sk-thumb"><img src="' + esc(s.imageUrl) + '" alt="" loading="lazy" decoding="async">' +
+        (off ? '<i class="sk-off-ic" title="Tidak tampil di beranda" aria-hidden="true">' + I("eye-off") + "</i>" : "") + "</span>" +
+        '<span class="k-info"><b>' + esc(s.title || "Tanpa judul") + "</b>" +
+        "<small>" + (off ? "arsip — tak tampil" : "tampil di beranda") + " · urutan " + (i + 1) + "</small></span>" +
+        '<span class="k-actions">' +
+        '<button type="button" class="btn ghost k-updown" data-act="up" title="Naikkan urutan" aria-label="Naikkan urutan foto" ' + (i === 0 ? "disabled" : "") + '><span aria-hidden="true">' + I("chevron-up") + "</span></button>" +
+        '<button type="button" class="btn ghost k-updown" data-act="down" title="Turunkan urutan" aria-label="Turunkan urutan foto" ' + (i === items.length - 1 ? "disabled" : "") + '><span aria-hidden="true">' + I("chevron-down") + "</span></button>" +
+        '<button type="button" class="btn ghost" data-act="edit">Ubah</button>' +
+        '<button type="button" class="btn danger" data-act="del">Hapus</button>' +
+        "</span></div>";
+    }).join("") || '<p class="p-empty">Belum ada foto slider. Tambahkan foto pertama untuk memunculkan slider di beranda.</p>';
+  }
+  function reorderSliders(){
+    var arr = state2.sliders;
+    arr.forEach(function(s, k){ s.sortOrder = k; });
+    syncSliderUI();
+    syncSkUI();
+    Promise.all(arr.map(function(s, k){
+      return LMS_API.updateSlider(s.id, { sortOrder: String(k) });
+    })).then(function(rs){
+      var bad = rs && rs.some(function(r){ return !(r && r.ok); });
+      if(bad){ toast("Gagal menyimpan urutan di server.", "err"); loadSliders(); }
+    });
+  }
+  var skAdd = $("sk-add");
+  var skAddHead = $("sk-add-head");
+  var openSkForm = function(){
+    resetSkForm();
+    if(skForm) skForm.hidden = false;
+    var n = $("sk-input");
+    if(n) try{ n.focus(); }catch(e){}
+  };
+  if(skAdd) skAdd.addEventListener("click", openSkForm);
+  if(skAddHead) skAddHead.addEventListener("click", openSkForm);
+  var skCancel = $("sk-cancel");
+  if(skCancel) skCancel.addEventListener("click", resetSkForm);
+  if(skInput) skInput.addEventListener("change", function(){
+    var f = this.files && this.files[0];
+    if(skUrl) skUrl.value = "";
+    if(skPreview) skPreview.hidden = !f;
+    if(!f) return;
+    if(skFileURL){ URL.revokeObjectURL(skFileURL); skFileURL = null; }
+    try{ skFileURL = URL.createObjectURL(f); }catch(e){}
+    if(skPreviewImg && skFileURL) skPreviewImg.src = skFileURL;
+  });
+  if(skList) skList.addEventListener("click", function(ev){
+    var b = ev.target.closest("button[data-act]");
+    if(!b) return;
+    var row = b.closest(".sk-row");
+    var i = row && parseInt(row.dataset.i, 10);
+    var arr = state2.sliders;
+    if(isNaN(i) || !arr[i]) return;
+    var item = arr[i];
+    if(b.dataset.act === "up" || b.dataset.act === "down"){
+      var j = b.dataset.act === "up" ? i - 1 : i + 1;
+      if(j < 0 || j >= arr.length) return;
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+      reorderSliders();
+      return;
+    }
+    if(b.dataset.act === "del"){
+      if(!confirm("Hapus foto " + (item.title ? "\u201C" + item.title + "\u201D" : "ini") + " dari slider beranda?")) return;
+      var finishDel = function(){
+        var idx = state2.sliders.indexOf(item);
+        if(idx >= 0){ state2.sliders.splice(idx, 1); }
+        syncSliderUI();
+        syncSkUI();
+        toast("Foto dihapus dari slider.");
+      };
+      if(!reduce && row){
+        row.classList.add("is-out");
+        setTimeout(finishDel, 180);
+      }else{
+        finishDel();
+      }
+      LMS_API.deleteSlider(item.id).then(function(r){
+        if(!(r && r.ok)){
+          loadSliders();
+          toast(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menghapus di server.", "err");
+        }
+      });
+      return;
+    }
+    if(b.dataset.act === "edit"){
+      resetSkForm();
+      skEditingId = item.id;
+      var t = $("sk-form-title"), sub = $("sk-form-sub");
+      if(t) t.textContent = "Ubah Foto";
+      if(sub) sub.textContent = "Biarkan berkas & tautan kosong bila ingin mempertahankan foto lama.";
+      if(skTitle) skTitle.value = item.title || "";
+      if(skPub) skPub.checked = item.pub !== false;
+      if(/^\/api\/uploads\//.test(item.imageUrl || "")){
+        if(skPreviewImg) skPreviewImg.src = item.imageUrl;
+        if(skPreview) skPreview.hidden = false;
+      }else{
+        if(skUrl) skUrl.value = item.imageUrl || "";
+      }
+      if(skForm) skForm.hidden = false;
+      var n = $("sk-title");
+      if(n) try{ n.focus(); }catch(e){}
+    }
+  });
+  if(skForm) skForm.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    function fail(msg){
+      setSkSaving(false, !!skEditingId);
+      if(!skErr) return;
+      skErr.textContent = msg;
+      skErr.hidden = false;
+    }
+    var f = skInput && skInput.files && skInput.files[0] || null;
+    var urlVal = ((skUrl && skUrl.value) || "").trim();
+    var title = ((skTitle && skTitle.value) || "").trim();
+    var pub = skPub ? skPub.checked : true;
+    if(!apiAvailable || !window.LMS_API) return fail(backendErr());
+    if(f && !skFileOK.test(f.type)) return fail("Jenis berkas harus JPG, PNG, atau WebP.");
+    if(f && f.size > skFileMax) return fail("Ukuran foto terlalu besar — maksimal 8 MB.");
+    if(f && urlVal) return fail("Pilih salah satu antara berkas foto atau tautan foto.");
+    if(!f && urlVal && !/^https?:\/\/\S+$/i.test(urlVal)) return fail("Tautan foto harus diawali http:// atau https://.");
+    if(!f && !urlVal){
+      if(!skEditingId) return fail("Pilih berkas foto dari perangkat atau isi tautan foto.");
+    }
+    var fields = { title: title, pub: String(pub) };
+    if(!f && urlVal) fields.imageUrl = urlVal;
+    setSkSaving(true, !!skEditingId);
+    var wasEditing = !!skEditingId;
+    var apiReq = wasEditing
+      ? LMS_API.updateSlider(skEditingId, fields, f)
+      : LMS_API.createSlider(fields, f);
+    apiReq.then(function(r){
+      setSkSaving(false, wasEditing);
+      if(r && r.ok){
+        resetSkForm();
+        syncSkUI();
+        toast(wasEditing ? "Perubahan foto disimpan." : "Foto ditambahkan ke slider.");
+        loadSliders();
+      }else{
+        fail(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menyimpan foto ke server.");
       }
     });
   });

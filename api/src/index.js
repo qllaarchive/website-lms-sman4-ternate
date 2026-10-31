@@ -20,6 +20,8 @@ if (WEAK_SECRET && process.env.NODE_ENV === "production") {
 import authRoutes from "./routes/auth.js";
 import lmsRoutes from "./routes/lms.js";
 import schoolRoutes from "./routes/school.js";
+import sliderRoutes from "./routes/sliders.js";
+import { UPLOAD_DIR } from "./uploads.js";
 
 const app = express();
 
@@ -49,14 +51,20 @@ app.use(cookieParser());
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
+/* Foto slider — dilayani API sendiri sehingga tetap satu asal lewat proxy dev,
+   nginx (/api/ → api:3000), maupun proxy serverless. */
+app.use("/api/uploads", express.static(UPLOAD_DIR, { maxAge: "7d", fallthrough: false }));
+
 app.use("/api/auth", rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false }), authRoutes);
 app.use("/api/lms", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), lmsRoutes);
 app.use("/api/school", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), schoolRoutes);
+app.use("/api/sliders", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), sliderRoutes);
 
 app.use((req, res) => res.status(404).json({ error: "not_found" }));
 app.use((err, _req, res, _next) => {
-  console.error(err);
-  res.status(500).json({ error: "internal_error" });
+  const code = Number(err && (err.statusCode || err.status)) || 500;
+  if (code >= 500) console.error(err);
+  res.status(code).json({ error: code === 404 ? "not_found" : "internal_error" });
 });
 
 const PORT = Number(process.env.PORT) || 3000;

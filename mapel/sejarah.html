@@ -706,6 +706,7 @@ canvas.lab{width:100%;background:#0d1230;border-radius:14px;border:1px solid var
 .ucard .boss{position:absolute;top:6px;right:26px;font:800 10px var(--body);background:var(--sj-red);color:#fff;padding:2px 7px;border-radius:99px;letter-spacing:.04em}
 .ucard.best{border-color:var(--sj-gold)}
 </style>
+<link rel="stylesheet" href="../assets/mobile.css">
 </head>
 <body>
 <header class="top">
@@ -1664,6 +1665,23 @@ function render(){
 }
 
 /* ================= HOME ================= */
+/* ---- Pengumuman: isi data siswa (absen digital) ---- */
+function pengumumanCard(){
+  if(D.nama && D.kelas) return "";
+  let phr = "Nama & kelas dipakai untuk absen digital — kehadiranmu tercatat saat skormu terkirim ke spreadsheet guru. Tanpa data ini, barismu tampil '-' dan tidak dihitung hadir. <b>Cukup sekali diisi per perangkat.</b>";
+  try{ if(typeof META !== "undefined" && META && META.announce) phr = esc(String(META.announce)); }catch(e){}
+  return `<div class="announce" id="ann-card">
+    <div class="ann-ic" aria-hidden="true">📢</div>
+    <div class="ann-txt">
+      <p class="ann-eyebrow">Pengumuman guru</p>
+      <h2>Isi data siswa agar kehadiranmu dihitung</h2>
+      <p class="small muted">${phr}</p>
+      <div class="row ann-act">
+        <button class="btn sm" data-qa="set">⚙️ Isi data sekarang</button>
+      </div>
+    </div>
+  </div>`;
+}
 VIEWS.home = () => {
   const p = progAll(), pct = Math.round(p.d/p.t*100);
   const name = D.nama || "Murid Kelas X";
@@ -1707,7 +1725,7 @@ VIEWS.home = () => {
       <div><span class="eyebrow">KKTP</span><b>${KKTP}</b></div></div>`],
   ];
   return `<div class="home">
-    <div class="stack">
+    <div class="stack">${pengumumanCard()}
       <div class="card welcome">
         <span class="globe">${META.emoji}</span>
         <div class="txt"><h2>Selamat datang, ${esc(name.split(" ")[0])}!</h2>

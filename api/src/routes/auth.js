@@ -15,10 +15,10 @@ const LoginSchema = z.object({
 const COOKIE = "lms_session";
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
-function setSessionCookie(res, token) {
+function setSessionCookie(req, res, token) {
   res.cookie(COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "production" && req.secure,
     sameSite: "lax",
     maxAge: SEVEN_DAYS,
     path: "/",
@@ -37,7 +37,7 @@ router.post("/login", async (req, res) => {
   if (!ok) return res.status(401).json({ error: "invalid_credentials" });
 
   const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-  setSessionCookie(res, token);
+  setSessionCookie(req, res, token);
   /* Token juga dikirim di body sebagai cadangan untuk portal lintas origin
      (mis. GitHub Pages) yang tidak bisa menyimpan/mengirim cookie pihak ketiga. */
   res.json({ user: { id: user.id, username: user.username }, token });

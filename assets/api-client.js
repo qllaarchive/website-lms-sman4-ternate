@@ -25,11 +25,24 @@
     opts = opts || {};
     opts.credentials = "include";
     opts.headers = Object.assign({ "Content-Type": "application/json" }, authHeaders(), opts.headers || {});
+    return apiRaw(path, opts);
+  }
+
+  /* Kiriman FormData (unggah foto) — tanpa header Content-Type supaya
+     browser men set boundary multipart secara otomatis. */
+  function apiUpload(path, formData, method) {
+    return apiRaw(path, { method: method || "POST", body: formData, timeout: 30000 });
+  }
+
+  function apiRaw(path, opts) {
+    opts = opts || {};
+    opts.credentials = "include";
+    opts.headers = Object.assign({}, opts.headers || {}, authHeaders());
     var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = null;
     if (ctrl) {
       opts.signal = ctrl.signal;
-      timer = setTimeout(function(){ ctrl.abort(); }, TIMEOUT);
+      timer = setTimeout(function(){ ctrl.abort(); }, opts.timeout || TIMEOUT);
     }
     return fetch(API_BASE + path, opts)
       .then(function(r){
@@ -44,6 +57,15 @@
         if (timer) clearTimeout(timer);
         return res;
       });
+  }
+
+  function formSlider(fields, file){
+    var fd = new FormData();
+    Object.keys(fields || {}).forEach(function(k){
+      if (fields[k] !== undefined && fields[k] !== null) fd.append(k, fields[k]);
+    });
+    if (file) fd.append("image", file);
+    return fd;
   }
 
   window.LMS_API = {
@@ -91,6 +113,23 @@
     },
     deleteEntry: function(id){
       return apiFetch("/lms/" + id, { method: "DELETE" });
+    },
+
+    /* Slider foto beranda */
+    getSliders: function(){
+      return apiFetch("/sliders");
+    },
+    getAllSliders: function(){
+      return apiFetch("/sliders/all");
+    },
+    createSlider: function(fields, file){
+      return apiUpload("/sliders", formSlider(fields, file), "POST");
+    },
+    updateSlider: function(id, fields, file){
+      return apiUpload("/sliders/" + encodeURIComponent(id), formSlider(fields, file), "PUT");
+    },
+    deleteSlider: function(id){
+      return apiFetch("/sliders/" + encodeURIComponent(id), { method: "DELETE" });
     }
   };
 })();

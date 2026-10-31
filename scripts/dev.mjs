@@ -59,6 +59,16 @@ function serveStatic(req, res) {
   if (!full.startsWith(ROOT + path.sep) && full !== ROOT) {
     return serveError(res, 403, "Ditolak");
   }
+  const rel = path.relative(ROOT, full);
+  const segs = rel.split(path.sep);
+  const top = (segs[0] || "").toLowerCase();
+  if (
+    segs.some((s) => s.startsWith(".")) ||
+    ["api", "scripts", "apps-script", "docs", "node_modules"].includes(top) ||
+    /\.(md|ya?ml|toml|conf)$/i.test(rel)
+  ) {
+    return serveError(res, 404, "Not found: " + urlPath);
+  }
   fs.stat(full, (err, st) => {
     if (err || !st.isFile()) {
       return serveError(res, 404, "Not found: " + urlPath);
@@ -109,6 +119,15 @@ const server = http.createServer((req, res) => {
     return proxyApi(req, res);
   }
   return serveStatic(req, res);
+});
+
+server.on("error", (e) => {
+  if (e.code === "EADDRINUSE") {
+    console.error(`[dev] Port ${STATIC_PORT} sudah digunakan. Tutup proses lain atau gunakan port berbeda, misal: STATIC_PORT=8081 node scripts/dev.mjs`);
+  } else {
+    console.error("[dev] Server error:", e);
+  }
+  process.exit(1);
 });
 
 server.listen(STATIC_PORT, BIND, () => {

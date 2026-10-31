@@ -1,169 +1,161 @@
 # LMS SMA Negeri 4 Ternate
 
 [![CI](https://github.com/qllaarchive/website-lms-sman4-ternate/actions/workflows/ci.yml/badge.svg)](https://github.com/qllaarchive/website-lms-sman4-ternate/actions/workflows/ci.yml)
-![Statis](https://img.shields.io/badge/deploy-Netlify%20%2F%20Vercel-00C7B7)
-![API](https://img.shields.io/badge/backend-Node%20%2B%20PostgreSQL-336791)
-![Lisensi](https://img.shields.io/badge/license-MIT-green)
+[![Deploy Status](https://img.shields.io/badge/deploy-Vercel%20%2F%20Netlify-00C7B7?style=flat&logo=vercel&logoColor=white)](https://vercel.com)
+[![Backend](https://img.shields.io/badge/backend-Node.js%20%2B%20PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Portal pembelajaran digital **SMA Negeri 4 Ternate** — kumpulan LMS mata pelajaran kelas X, XI, dan XII dalam satu portal: materi, asesmen, gim edukatif, lab maya, e-book, dan forum diskusi. Dibangun statis (HTML/CSS/JS) agar ringan dan cepat, dengan **backend wajib** sebagai pusat data (tautan LMS, akun admin, profil sekolah). Tanpa backend portal hanya membaca data bawaan (mode baca saja).
+Portal pembelajaran digital terpadu untuk **SMA Negeri 4 Ternate**. Menyediakan sistem manajemen pembelajaran (LMS) interaktif untuk jenjang Kelas X, XI, dan XII (Fase E & F Kurikulum Merdeka) yang mencakup materi, asesmen berjenjang, gim edukatif, lab maya, e-book, dan forum diskusi dalam satu platform ringan.
 
-> **Coba langsung:** buka [`index.html`](index.html) di browser — tidak perlu build, tidak perlu server.
-
----
-
-## Daftar Isi
-
-- [Fitur](#fitur)
-- [Teknologi](#teknologi)
-- [Struktur Repositori](#struktur-repositori)
-- [Menjalankan di Lokal](#menjalankan-di-lokal)
-- [Validasi &amp; Pengujian Data](#validasi--pengujian-data)
-- [Deploy](#deploy)
-- [Menambah Mata Pelajaran Baru](#menambah-mata-pelajaran-baru)
-- [Arsitektur Singkat](#arsitektur-singkat)
-- [Mata Kuliah Terkait](#mata-kuliah-terkait)
-- [Lisensi](#lisensi)
+Dibangun dengan arsitektur hibrida: frontend statis (HTML/CSS/JS murni) untuk kecepatan dan performa maksimal, didukung oleh **backend Node.js & PostgreSQL** yang aman untuk manajemen data terpusat (tautan LMS, akun admin, profil sekolah, dan pemantauan progres).
 
 ---
 
-## Fitur
+## 📋 Daftar Isi
 
-### Portal (`index.html`)
-
-| Fitur | Keterangan |
-|---|---|
-| Pemilih kelas | Kelas X (Fase E), XI & XII (Fase F) — konten & progres terpisah per kelas |
-| Tema tampilan | Terang / Gelap / Ikuti perangkat, tersimpan lokal, tanpa kedip saat muat |
-| Pencarian | Filter daftar mapel secara instan |
-| Admin | Login admin lewat backend (email + sandi, tanpa pendaftaran akun), sesi cookie JWT 7 hari |
-| Kelola LMS | Tambah/ubah/hapus tautan LMS per kelas (nama, guru, warna, ikon, publikasi) — tersimpan di database |
-| Pantau Progres | Ringkasan rata-rata + distribusi Selesai/Aktif/Belum dibuka, tabel per mapel, filter kelas, ekspor CSV & tautan Spreadsheet Guru |
-| Profil Sekolah | Identitas, kontak, dan PPDB — tersimpan di database, dikelola admin, dibuka dari footer |
-| Aksesibel | Semantik HTML, aria pada kontrol, dukungan *reduced-motion* |
-
-Tautan mapel dapat membawa parameter `?gs=<scriptId>` untuk membuka **Google Apps Script**
-dari guru ([`apps-script/Code.gs`](apps-script/Code.gs)) langsung dari kartu portal.
-
-### Halaman LMS per mapel
-
-Setiap mata pelajaran memiliki halaman mandiri (6 unit Matematika; 12 unit Sejarah dan PAI):
-
-- **Diagnostik → Formatif → Sumatif** — asesmen berjenjang dengan umpan balik langsung
-- **Tujuan Pembelajaran & elemen CP** — selaras Kurikulum Merdeka (Fase E/F)
-- **Gim edukatif** — kuis interaktif (papan pasang, cocokkan, simulasi)
-- **Lab maya** — eksperimen/simulasi berbasis web
-- **E-book & pustaka rujukan**
-- **Forum diskusi** kelas
-- **Jurnal/Refleksi** dan proyek per unit
-
-Progres belajar disimpan otomatis di `localStorage` per perangkat — data tautan LMS, akun admin, dan profil sekolah tersimpan di database (PostgreSQL) melalui API.
+- [Fitur Utama](#-fitur-utama)
+- [Arsitektur & Teknologi](#-arsitektur--teknologi)
+- [Struktur Repositori](#-struktur-repositori)
+- [Menjalankan di Lokal](#-menjalankan-di-lokal)
+- [Validasi & Pengujian Data](#-validasi--pengujian-data)
+- [Panduan Deploy](#-panduan-deploy)
+- [Menambah Mata Pelajaran Baru](#-menambah-mata-pelajaran-baru)
+- [Integrasi Akademik](#-integrasi-akademik)
+- [Lisensi](#-lisensi)
 
 ---
 
-## Teknologi
+## 🚀 Fitur Utama
 
-| Lapisan | Teknologi |
-|---|---|
-| Frontend portal | HTML, CSS (variabel tema, tanpa framework), JavaScript ES5-siap-browser |
-| Data LMS | Skrip JS berstruktur (`data/*.js`) yang divalidasi oleh alat uji |
-| **Backend (wajib)** | Node.js, Express, Prisma, PostgreSQL |
-| Keamanan API | Helmet, CORS terbatas, rate-limit, JWT/cookie, hash sandi ber-salt |
-| Infrastruktur | Docker Compose, Nginx, GitHub Actions CI/CD, Netlify/Vercel/GitHub Pages, Neon, Render, Railway |
-| Mobile (rencana) | Flutter — lihat [`mobile/README.md`](mobile/README.md) |
+### 1. Portal Utama (`index.html`)
+- **Pemilih Kelas Dinamis:** Pemisahan konten dan progres belajar antara Kelas X (Fase E), XI, & XII (Fase F).
+- **Tema Kustom:** Dukungan mode Terang (*Light*), Gelap (*Dark*), dan Sinkronisasi Sistem tanpa *flash* saat dimuat.
+- **Pencarian Instan:** Filter cepat untuk menemukan mata pelajaran yang diinginkan.
+- **Autentikasi Admin:** Masuk aman menggunakan kredensial backend (JWT dengan cookies aman 7 hari).
+- **Manajemen LMS:** Tambah, ubah, dan atur visibilitas tautan mapel per kelas secara *real-time* ke database.
+- **Dashboard Pemantauan Progres:** Statistik rata-rata penyelesaian belajar siswa, filter kelas, dan ekspor data ke format CSV atau Spreadsheet Guru.
+- **Profil Sekolah & PPDB:** Pengelolaan informasi institusi terpusat yang dapat diakses langsung dari footer portal.
+
+### 2. Modul Pembelajaran per Mata Pelajaran
+Setiap mata pelajaran dilengkapi modul mandiri (mis. Matematika dengan 137 tampilan, Sejarah, Fisika, dan PAI):
+- **Alur Pembelajaran:** Diagnostik → Formatif → Sumatif dengan umpan balik instan.
+- **Selaras Kurikulum Merdeka:** Berfokus pada Tujuan Pembelajaran dan Elemen Capaian Pembelajaran (CP).
+- **Media Interaktif:** Gim edukatif, simulasi lab maya berbasis web, e-book, dan forum diskusi kelas.
+- **Penyimpanan Lokal:** Progres belajar siswa otomatis tersimpan di `localStorage` per perangkat.
 
 ---
 
-## Struktur Repositori
+## 🛠️ Arsitektur & Teknologi
 
+| Komponen | Teknologi yang Digunakan |
+| :--- | :--- |
+| **Frontend Portal** | HTML5, CSS3 (Custom Properties / CSS Variables, tanpa framework berat), Vanilla JavaScript (ES6+) |
+| **Data LMS** | Skrip data terstruktur (`data/*.js`) tervalidasi otomatis |
+| **Backend API** | Node.js, Express.js, Prisma ORM, PostgreSQL |
+| **Keamanan** | Helmet.js, CORS Terbatas, Rate Limiting, JSON Web Token (JWT), Hashing Password (bcrypt) |
+| **DevOps & CI/CD** | Docker & Docker Compose, Nginx, GitHub Actions, Vercel / Netlify (Frontend), Neon / Render (Backend & DB) |
+| **Mobile (Rencana)** | Flutter (*Offline-first approach*) |
+
+```text
+┌─────────────────────────────────┐        ┌─────────────────────────────────┐
+│       Portal & Halaman LMS      │  /api  │     Backend API (Express)       │
+│  Statik, Cepat, Tanpa SSR Berat │ ─────▶ │  Manajemen Admin, Entri & Auth  │
+│  Progres Tersimpan di Klien     │        │  Keamanan & Rate Limiting       │
+└─────────────────────────────────┘        └────────────┬────────────────────┘
+                                                        │
+                                       ┌────────────────▼────────────────┐
+                                       │       Database PostgreSQL       │
+                                       └─────────────────────────────────┘
 ```
+
+---
+
+## 📁 Struktur Repositori
+
+```text
 .
-├── index.html               # Portal utama (daftar mapel, admin, pantau progres)
-├── mapel/                   # Halaman LMS per mata pelajaran (aktif + cadangan)
-│   ├── matematika.html      # LMS Matematika (berkas mandiri)
+├── index.html                   # Portal utama (daftar mapel, panel admin, dashboard progres)
+├── mapel/                       # Halaman LMS mandiri per mata pelajaran
+│   ├── matematika.html          # LMS Matematika (berkas mandiri penuh)
 │   ├── fisika.html, sejarah.html, pendais.html
-│   └── 12 shell mapel berikutnya (bahasa-indonesia, biologi, dst.)
+│   └── 12+ shell mapel lainnya  # Bahasa Indonesia, Biologi, Ekonomi, dll.
 ├── assets/
-│   ├── portal.css/.js       # Gaya & logika portal
-│   ├── lms.css/.js          # Engine halaman LMS (render unit, asesmen, gim, lab)
-│   ├── icons.js             # Ikon SVG inline
-│   └── logo & gambar intro/deploy
+│   ├── portal.css / portal.js   # Gaya dan logika interaktif portal utama
+│   ├── lms.css / lms.js         # Engine halaman LMS (render unit, asesmen, gim, lab)
+│   └── icons.js                 # Kumpulan ikon SVG inline
 ├── data/
-│   ├── registry.js          # Daftar mapel portal (lsKey, warna, emoji, scriptId Apps Script)
-│   ├── matematika.js        # Konten LMS Matematika (137 tampilan)
-│   ├── fisika.js            # Konten LMS Fisika
-│   ├── sejarah.js           # Konten LMS Sejarah (136 tampilan)
-│   └── pendais.js           # Konten LMS PAI (141 tampilan)
+│   ├── registry.js              # Peta daftar mapel portal (metadata, ikon, warna, Apps Script ID)
+│   ├── matematika.js            # Konten edukatif LMS Matematika (137 tampilan)
+│   ├── fisika.js                # Konten edukatif LMS Fisika
+│   ├── sejarah.js               # Konten edukatif LMS Sejarah
+│   └── pendais.js               # Konten edukatif LMS Pendidikan Agama Islam
 ├── scripts/
-│   ├── validate.mjs         # Validasi skema data LMS
-│   ├── smoke.mjs            # Smoke test render (DOM stub) tanpa browser
-│   ├── build-pendais.mjs    # Build mapel/pendais.html menjadi satu berkas mandiri
-│   ├── build-sejarah.mjs    # Build mapel/sejarah.html menjadi satu berkas mandiri
-│   ├── pendais.template.html # Shell, tema, logo, dan banner PAI
-│   └── build-config.mjs     # Generate config.js (API base) saat build deploy
-├── apps-script/             # Kode Google Apps Script (dituju parameter ?gs=)
-├── api/                     # Backend Express + Prisma (login & sinkronisasi)
-├── mobile/                  # Aplikasi Flutter (rencana)
-├── docs/                    # Dokumen perkuliahan (website, sobj, tkti, netsec, mobile)
-├── netlify.toml, vercel.json  # Konfigurasi deploy (pilih salah satu) + base URL API
-├── portal-nginx.conf        # Konfigurasi Nginx (deploy VPS)
-├── docker-compose.yml       # db + api + portal untuk pengembangan lokal
-├── DEPLOY.md                # Panduan langkah-demi-langkah deploy
-└── .github/workflows/ci.yml # CI (syntax check) + deploy otomatis ke VPS
+│   ├── validate.mjs             # Skrip validasi skema data LMS
+│   ├── smoke.mjs                # Uji render otomatis (DOM stub) tanpa browser
+│   ├── build-*.mjs              # Skrip kompilasi berkas mandiri (standalone build)
+│   └── build-config.mjs         # Penghasil konfigurasi API dinamis saat proses build
+├── apps-script/                 # Integrasi Google Apps Script pendukung guru (?gs=)
+├── api/                         # Backend Express, konfigurasi Prisma, dan migrasi database
+├── mobile/                      # Kerangka aplikasi mobile Flutter
+├── docs/                        # Dokumentasi teknis & laporan akademik (Website, SOBJ, TKTI, NetSec)
+├── docker-compose.yml           # Orkorstrasi lokal (PostgreSQL + API + Portal)
+├── DEPLOY.md                    # Panduan deploy terperinci
+└── .github/workflows/ci.yml     # Konfigurasi Continuous Integration & deployment otomatis
 ```
 
 ---
 
-## Menjalankan di Lokal
+## 💻 Menjalankan di Lokal
 
-### A. Portal + API + Database (pengembangan penuh — backend tetap hidup)
+### Prasyarat
+- [Node.js](https://nodejs.org/) (versi LTS direkomendasikan)
+- [Docker & Docker Compose](https://www.docker.com/) (opsional, untuk menjalankan database dan API secara instan)
 
+### A. Mode Pengembangan Penuh (Docker + API + Database)
 ```bash
-docker compose up -d              # nyalakan db, api, dan portal
-cd api && npx prisma migrate dev  # jalankan migrasi database
-npm run seed                      # isi data awal (akun admin + 4 entri LMS)
+# 1. Jalankan kontainer database, API, dan portal
+docker compose up -d
 
-# Portal  → http://localhost:8080
-# API     → http://localhost:3000
+# 2. Masuk ke direktori API dan jalankan migrasi database
+cd api && npx prisma migrate dev
+
+# 3. Masukkan data awal (seed) untuk akun admin dan data uji
+npm run seed
+
+# Akses layanan:
+# - Portal Frontend : http://localhost:8080
+# - Backend API     : http://localhost:3000
 ```
 
-### B. Backend saja (tanpa Docker — untuk pengembangan cepat)
-
+### B. Mode Pengembangan Cepat (Backend Saja Tanpa Docker)
 ```bash
 cd api
 npm ci
 npx prisma migrate dev
 npm run seed
-npm run dev          # node --watch src/index.js
-# Portal disajikan dari server statis apa pun (python/npx serve) yang
-# memproksi /api → http://localhost:3000, atau sementara langsung
-# LMS_API_BASE=http://localhost:3000/api (CORS localhost diizinkan).
+npm run dev          # Menjalankan server dengan pengawas (node --watch)
 ```
-
-> **Aturan:** backend **selalu wajib nyala** saat portal dipakai. Tanpa backend,
-> portal hanya menampilkan data bawaan (baca saja) — login, kelola LMS,
-> dan profil sekolah tidak berfungsi, dan portal menampilkan banner
-> "backend tidak terhubung".
+> **Catatan:** Backend **wajib** aktif agar fitur login, manajemen tautan LMS, dan profil sekolah berfungsi penuh. Tanpa backend, portal akan berjalan dalam mode baca-saja (*read-only*) menggunakan data lokal bawaan.
 
 ---
 
-## Validasi &amp; Pengujian Data
+## 🧪 Validasi & Pengujian Data
 
-Sebelum mengubah konten di `data/`, jalankan:
+Sebelum melakukan *commit* atau mengubah konten pada direktori `data/`, pastikan validasi dan uji render berhasil:
 
 ```bash
-# 1. Validasi skema (wajib lolos, tanpa error)
+# 1. Validasi struktur skema data LMS
 node scripts/validate.mjs data/matematika.js
 
-# 2. Smoke test render — memastikan semua tampilan ter-render tanpa exception
+# 2. Uji render (smoke test) untuk memastikan seluruh tampilan termuat tanpa error
 node scripts/smoke.mjs data/matematika.js
 
-# 3. Cek sintaks portal
+# 3. Pemeriksaan sintaks skrip portal
 node --check assets/portal.js
 ```
 
-Contoh keluaran yang sehat:
-
-```
+Contoh hasil pengujian yang sukses:
+```text
 1 file · 0 error · 0 warning
 views=137 binds=22 quizDone=true shell=true
 SMOKE OK — matematika.js · 137 view dirender
@@ -171,105 +163,45 @@ SMOKE OK — matematika.js · 137 view dirender
 
 ---
 
-## Deploy
+## 🚢 Panduan Deploy
 
-Ringkasnya — **backend wajib** di setiap opsi hosting:
+Arsitektur aplikasi memisahkan layanan frontend statis dan backend API demi skalabilitas maksimal:
 
-```
-Netlify/Vercel/GitHub Pages → portal statis (index.html + halaman LMS)
-Neon                        → database PostgreSQL (gratis selamanya)
-Render                      → backend API (gratis selamanya)
-```
+1. **Database PostgreSQL:** Gunakan layanan gratis selamanya seperti [Neon](https://neon.tech) atau [Supabase](https://supabase.com). Salin *Connection String* `DATABASE_URL`.
+2. **Backend API:** Deploy direktori `api/` ke [Render](https://render.com), Railway, atau VPS pribadi. Atur variabel lingkungan:
+   - `DATABASE_URL`
+   - `JWT_SECRET`
+   - `ADMIN_USER` & `ADMIN_PASS`
+   - `ALLOWED_ORIGINS` (URL domain frontend Anda)
+3. **Frontend Portal:** Deploy direktori akar ke [Vercel](https://vercel.com), [Netlify](https://netlify.com), atau GitHub Pages. Atur variabel `LMS_API_BASE` mengarah ke URL backend API Anda.
 
-Langkah lengkap ada di **[DEPLOY.md](DEPLOY.md)**:
-
-1. **Neon** — buat project → copy connection string `DATABASE_URL` (gratis, tanpa kartu).
-2. **Render** — Web Service (Root Directory `api`) → isi `DATABASE_URL`, `JWT_SECRET`, `ADMIN_USER`, `ADMIN_PASS` → deploy.
-3. **Portal** — import repo:
-   - **Netlify/Vercel** — konfigurasi sudah ada (`netlify.toml`/`vercel.json`); ganti URL Render di file redirect tersebut.
-   - **GitHub Pages** — saat build set environment `LMS_API_BASE=https://url-render/api` (mis. via Actions/workflow) — portal memanggil API langsung lintas origin, jadi `ALLOWED_ORIGINS` di Render wajib memuat `https://<username>.github.io`.
-4. Isi `ALLOWED_ORIGINS` di Render dengan URL portal final.
-5. **Login** — buka situs portal → tombol *Masuk* → akun admin dari variabel Render.
-
-Alternatif satu-dashboard: Railway — API + PostgreSQL berbayar (mulai ~$5/bulan), panduan di DEPLOY.md.
-
-Push ke `main` akan memicu CI, lalu deploy otomatis ke VPS via SSH (lihat `.github/workflows/ci.yml`).
+Panduan langkah demi langkah yang lebih lengkap tersedia di berkas **[DEPLOY.md](DEPLOY.md)**.
 
 ---
 
-## Menambah Mata Pelajaran Baru
+## 📚 Menambah Mata Pelajaran Baru
 
-1. Buat konten `data/<id-mapel>.js` mengikuti kontrak `window.LMS_CONTENT`
-   (meta wajib: `id` = nama berkas, `lsKey`, `scene`, CP/rasional, dsb).
-2. Daftarkan di `data/registry.js` — **`lsKey` wajib sama** dengan `meta.lsKey`
-   pada berkas konten.
-3. Salin satu berkas lama dari `mapel/` → ganti referensi berkas `data/<id-mapel>.js`.
-4. Jalankan gate uji:
-
-   ```bash
-   node scripts/validate.mjs data/<id-mapel>.js
-   node scripts/smoke.mjs data/<id-mapel>.js
-   ```
-
-5. Masuk sebagai admin → **Kelola** → tambahkan entri untuk tiap kelas
-   (nama, guru, tautan, warna, ikon).
-
-> Saat ini yang sudah berisi konten penuh: **Matematika** (137 tampilan),
-> **Fisika** (135 tampilan, [`mapel/fisika.html`](mapel/fisika.html)),
-> **Sejarah** (136 tampilan, [`mapel/sejarah.html`](mapel/sejarah.html)),
-> dan **Pendidikan Agama Islam** (141 tampilan, [`mapel/pendais.html`](mapel/pendais.html)).
-> 12 mapel lain sudah punya halaman shell siap diisi di `mapel/`.
+1. Buat berkas konten baru di `data/<id-mapel>.js` mengikuti kontrak format `window.LMS_CONTENT` (pastikan properti `id` dan `lsKey` sesuai dengan nama berkas).
+2. Daftarkan entri baru di dalam `data/registry.js` dengan `lsKey` yang sama persis.
+3. Duplikat templat halaman dari direktori `mapel/` dan arahkan pemuatan berkas ke `data/<id-mapel>.js`.
+4. Jalankan perintah validasi dan uji render (`validate.mjs` & `smoke.mjs`).
+5. Masuk ke halaman portal sebagai admin, buka menu **Kelola**, dan tambahkan entri mapel baru untuk setiap kelas.
 
 ---
 
-## Arsitektur Singkat
+## 🎓 Integrasi Akademik
 
-```
-┌──────────────────────────┐        ┌──────────────────────────┐
-│  Portal + Halaman LMS    │  /api  │  API (Express + Prisma)  │
-│  statis, tanpa JS server │ ─────▶ │  auth, entri LMS, profil │
-│  progres murid per dev.  │        │  JWT + rate-limit        │
-└──────────────────────────┘        └────────────┬─────────────┘
-                                                 │
-                                      ┌──────────▼─────────────┐
-                                      │      PostgreSQL        │
-                                      └────────────────────────┘
-```
+Proyek ini dikembangkan sebagai bagian dari portofolio dan pemenuhan tugas mata kuliah terkait:
+- **Website:** Pengembangan antarmuka statis, konfigurasi Nginx, pengamanan *header*, dan alur CI/CD.
+- **Mobile Development:** Perencanaan aplikasi *offline-first* dengan Flutter (`mobile/`).
+- **SOBJ:** Sinkronisasi klien-server, strategi *caching*, dan penanganan konflik data.
+- **TKTI:** Tata kelola sistem, manajemen risiko, dan jejak audit terdokumentasi (`docs/tkti/`).
+- **Keamanan Jaringan:** Implementasi JWT, enkripsi *password*, CORS ketat, *rate limiting*, dan uji penetrasi (`docs/netsec/`).
 
-- **Data pusat di database** — tautan LMS per kelas, akun admin, dan profil
-  sekolah disimpan di PostgreSQL dan dirilis lewat API (`/api/lms`, `/api/auth`, `/api/school`).
-- Portal tetap menampilkan tautan mapel tanpa API: kembali ke daftar bawaan
-  `data/registry.js` (baca-saja); kelola & profil membutuhkan backend.
-- Kartu mapel dapat membawa `?gs=<scriptId>` → **Google Apps Script**
-  ([`apps-script/Code.gs`](apps-script/Code.gs)) untuk spreadsheet guru/eksternal.
+Dokumentasi laporan lengkap dapat ditemukan di direktori [`docs/`](docs).
 
 ---
 
-## Mata Kuliah Terkait
+## 📄 Lisensi
 
-| Mata Kuliah | Kontribusi pada proyek |
-|---|---|
-| **Website** | Portal statis, Nginx, *security headers*, CI/CD |
-| **Mobile** | Aplikasi Flutter *offline-first* (rencana di [`mobile/`](mobile)) |
-| **SOBJ** | Sinkronisasi klien–server, caching, penanganan bentrok data |
-| **TKTI** | Dokumen tata kelola, register risiko, jejak audit ([`docs/tkti/`](docs/tkti)) |
-| **Keamanan Jaringan** | JWT, hash sandi, CORS, rate limit, uji penetrasi ([`docs/netsec/`](docs/netsec)) |
-
-Dokumen laporan lengkap ada di [`docs/`](docs).
-
----
-
-## Kontribusi
-
-1. *Fork* & buat cabang fitur (`git checkout -b fitur/nama-anda`).
-2. Pastikan gate uji hijau: `validate.mjs`, `smoke.mjs`, `node --check`.
-3. Buka *Pull Request* dengan deskripsi perubahan yang jelas.
-
-Jangan ubah `data/matematika.js` dan `data/sejarah.js` sembarangan —
-keduanya sudah lolos validasi; jalankan ulang uji setiap mengubah konten.
-
----
-
-## Lisensi
-
-[MIT](LICENSE) © SMA Negeri 4 Ternate
+Proyek ini dilisensikan di bawah [MIT License](LICENSE) © SMA Negeri 4 Ternate.

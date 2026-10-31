@@ -1,0 +1,62 @@
+/* Patch mobile bersama untuk halaman mapel — dimuat paling akhir
+   agar mengalahkan salinan CSS inline per-halaman. Murni layar sempit. */
+@media (max-width:560px){
+  .top{ min-height:0 !important }
+  .top-in{
+    flex-wrap:wrap !important; gap:8px 12px !important; padding-block:12px !important;
+    position:relative !important;
+    margin-left:0 !important; margin-right:0 !important; width:auto !important;
+    padding-right:calc(64px + env(safe-area-inset-right,0px)) !important;
+  }
+  /* Chip pengguna: overlay kanan-atas (seperti di desktop), tidak berperang dgn judul */
+  .user{
+    position:absolute !important; top:8px !important; right:8px !important;
+    margin:0 !important; padding:7px 9px !important; border-radius:12px !important;
+    gap:8px !important; flex:none; z-index:3 !important;
+  }
+  .user .av{ width:32px !important; height:32px !important; font-size:12.5px !important }
+  /* Blok teks brand boleh menyusut; judul boleh dua baris, sub/moto terpatung satu baris */
+  .brand{ gap:10px; min-width:0 }
+  .brand > div{ min-width:0; flex:1 1 auto }
+  .brand-logo{ width:44px !important; height:40px !important }
+  .brand h1{ font-size:clamp(18px,5.8vw,24px) !important; line-height:1.1; letter-spacing:.1px }
+  .brand .sub{ font-size:12px !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0 }
+  .brand .moto{ font-size:14px !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0 }
+  .welcome .globe{ font-size:38px }
+}
+@media (max-width:400px){
+  .gut{ padding-left:max(12px,env(safe-area-inset-left,0px)); padding-right:max(12px,env(safe-area-inset-right,0px)) }
+  .top-in{ padding-right:calc(56px + env(safe-area-inset-right,0px)) !important }
+  .brand h1{ font-size:17px !important }
+  .brand .sub{ font-size:11.5px !important }
+  .brand .moto{ font-size:13px !important }
+  .brand-logo{ width:38px !important; height:35px !important }
+  .top .scene{ height:86px }
+}
+
+/* Dasar sentuh (identik dengan prinsip portal): tanpa flash tap,
+   tanpa pilih-teks saat tahan kontrol, tanpa zoom saat fokus input. */
+html{ -webkit-tap-highlight-color:transparent }
+select,input[type=text],input[type=number],input[type=email],textarea{ font-size:16px }
+button,.opt,.qopt,.tile,.ucard,.labcard,.gcard,.rmcard,.mitem,.g-sent,.tabs button,.nav button,.user{
+  touch-action:manipulation;
+}
+button,.tile,.ucard,.opt,.qopt,.labcard,.gcard,.rmcard,.mitem,.g-sent,.tabs button{
+  user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+}
+
+/* Konten teks boleh pecah di layar sempit (rumus/e-book/kartu) */
+@media (max-width:560px){
+  main{ overflow-wrap:anywhere }
+  .formula{ white-space:normal; overflow-wrap:anywhere }
+  .p{ overflow-wrap:anywhere }
+}
+
+/* Netralkan guest hover bawaan (hover lengket) di perangkat sentuh;
+   umpan balik tekan tetap lewat :active yang sudah ada. */
+@media (hover: none){
+  .btn:hover,.tile:hover,.labcard:hover,.gcard:hover{ transform:none; filter:brightness(1) }
+  .opt:hover:not([disabled]),.qopt:hover:not([disabled]),.mitem:hover,.ucard:hover,.tabs button:hover{ border-color:var(--line) }
+  .ucard:hover,.nav button:hover,.ql button:hover,.res-ic button:hover,.forum-row:hover,.mitem:hover,.g-sent:hover{ background:transparent }
+  .ql button:hover,.res-ic button:hover{ background:none }
+}

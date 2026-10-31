@@ -21,6 +21,8 @@ services:
     env_file: ./api/.env
     ports:
       - "3000:3000"
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -37,3 +39,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:
