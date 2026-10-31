@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@/lib/prisma";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+import { prisma } from "../../lib/prisma";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
 
       <main className="max-w-7xl mx-auto py-12 px-6">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Kelola LMS</div>
+          <h1 className="text-3xl font-bold">Kelola LMS</h1>
           <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             Tambah LMS
           </button>
