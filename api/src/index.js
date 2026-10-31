@@ -70,6 +70,8 @@ app.use((err, _req, res, _next) => {
   res.status(code).json({ error: code === 404 ? "not_found" : "internal_error" });
 });
 
+app.get("/api/ping", (_req, res) => res.json({ pong: true }));
+
 const PORT = Number(process.env.PORT) || 3000;
 if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`LMS API listening on :${PORT}`));
