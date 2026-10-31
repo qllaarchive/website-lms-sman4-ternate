@@ -19,7 +19,8 @@ function pathOf(req) {
 }
 
 export default async function handler(req, res) {
-  const p = pathOf(req);
+  try {
+    const p = pathOf(req);
 
   // /api/lms
   if (p === "/api/lms" || p === "/api/lms/") {
@@ -95,4 +96,7 @@ export default async function handler(req, res) {
   }
 
   return res.status(404).json({ error: "not_found" });
+  } catch (e) {
+    return res.status(500).json({ error: String(e && e.message), stack: e?.stack });
+  }
 }
