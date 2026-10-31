@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import busboy from "busboy";
 
 const prisma = new PrismaClient({
   datasourceUrl: (process.env.DATABASE_URL || "") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10",
@@ -13,6 +14,72 @@ function getCookie(req, name) {
   return match ? decodeURIComponent(match[2]) : null;
 }
 
+function parseMultipart(req) {
+  return new Promise((resolve, reject) => {
+    const bb = busboy({ headers: req.headers });
+    const fields = {};
+    let fileBuffer = null;
+    let fileMime = null;
+    bb.on("field", (name, val) => { fields[name] = val; });
+    bb.on("file", (name, stream, info) => {
+      const chunks = [];
+      stream.on("data", (d) => chunks.push(d));
+      stream.on("end", () => {
+        fileBuffer = Buffer.concat(chunks);
+        fileMime = info.mimeType;
+      });
+    });
+    bb.on("finish", () => resolve({ fields, fileBuffer, fileMime }));
+    bb.on("error", reject);
+    req.pipe(bb);
+  });
+}
+
+async function handleSliderWrite(req, res, id) {
+  try {
+    const ct = req.headers["content-type"] || "";
+    let fields = {};
+    let fileBuffer = null;
+    let fileMime = null;
+    if (ct.includes("multipart/form-data")) {
+      const parsed = await parseMultipart(req);
+      fields = parsed.fields;
+      fileBuffer = parsed.fileBuffer;
+      fileMime = parsed.fileMime;
+    } else {
+      fields = req.body || {};
+    }
+
+    const title = fields.title || null;
+    const pub = fields.pub === undefined ? true : fields.pub === "true" || fields.pub === true;
+    const sortOrder = fields.sortOrder !== undefined ? Number(fields.sortOrder) : undefined;
+
+    let imageUrl = fields.imageUrl || null;
+    if (fileBuffer && fileBuffer.length) {
+      const b64 = fileBuffer.toString("base64");
+      imageUrl = `data:${fileMime || "image/jpeg"};base64,${b64}`;
+    }
+
+    const data = {};
+    if (title !== null) data.title = title;
+    data.pub = pub;
+    if (imageUrl) data.imageUrl = imageUrl;
+    if (sortOrder !== undefined && !isNaN(sortOrder)) data.sortOrder = sortOrder;
+
+    if (id) {
+      const updated = await prisma.slider.update({ where: { id }, data });
+      return res.status(200).json({ slider: updated });
+    } else {
+      if (!imageUrl && !fileBuffer) {
+        // allow create without image? require at least url
+      }
+      const created = await prisma.slider.create({ data: { title, pub, imageUrl: imageUrl || "", sortOrder: sortOrder || 0 } });
+      return res.status(200).json({ slider: created });
+    }
+  } catch (e) {
+    return res.status(500).json({ error: String(e && e.message) });
+  }
+}
 function pathOf(req) {
   // req.url like /api/lms?klass=X
   return (req.url || "").split("?")[0];
@@ -34,13 +101,48 @@ export default async function handler(req, res) {
     }
   }
 
-  // /api/sliders
+  // /sliders (public)
   if (p === "/api/sliders" || p === "/api/sliders/") {
-    try {
-      const sliders = await prisma.slider.findMany({ where: { pub: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
-      return res.status(200).json({ sliders });
-    } catch (e) {
-      return res.status(500).json({ error: String(e && e.message) });
+    if (req.method === "GET") {
+      try {
+        const sliders = await prisma.slider.findMany({ where: { pub: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+        return res.status(200).json({ sliders });
+      } catch (e) {
+        return res.status(500).json({ error: String(e && e.message) });
+      }
+    }
+    // POST create
+    if (req.method === "POST") {
+      return handleSliderWrite(req, res, null);
+    }
+  }
+
+  // /sliders/all
+  if (p === "/api/sliders/all" || p === "/api/sliders/all/") {
+    if (req.method === "GET") {
+      try {
+        const sliders = await prisma.slider.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+        return res.status(200).json({ sliders });
+      } catch (e) {
+        return res.status(500).json({ error: String(e && e.message) });
+      }
+    }
+  }
+
+  // /sliders/:id
+  const m = p.match(/^\/api\/sliders\/(.+)$/);
+  if (m) {
+    const id = decodeURIComponent(m[1]);
+    if (req.method === "DELETE") {
+      try {
+        await prisma.slider.delete({ where: { id } });
+        return res.status(200).json({ ok: true });
+      } catch (e) {
+        return res.status(500).json({ error: String(e && e.message) });
+      }
+    }
+    if (req.method === "PUT") {
+      return handleSliderWrite(req, res, id);
     }
   }
 
