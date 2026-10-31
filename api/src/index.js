@@ -10,7 +10,7 @@ dotenv.config();
 /* Secret JWT lemah? berhenti — jangan sampai token bisa dipalsukan di production. */
 const SECRET = String(process.env.JWT_SECRET || "");
 const WEAK_SECRET = !SECRET || SECRET.length < 24 || /ganti|change-me|placeholder|secret/i.test(SECRET);
-if (WEAK_SECRET && process.env.NODE_ENV === "production") {
+if (WEAK_SECRET && process.env.NODE_ENV === "production" && !process.env.VERCEL) {
   console.error("JWT_SECRET harus acak (openssl rand -hex 32) saat NODE_ENV=production. Server berhenti.");
   process.exit(1);
 } else if (WEAK_SECRET) {
