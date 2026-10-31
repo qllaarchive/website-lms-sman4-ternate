@@ -13,7 +13,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+/* Situs (portal, mapel, data, assets) ada di folder public/ */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const STATIC_PORT = Number(process.env.STATIC_PORT || 8080);
 const API_ORIGIN = process.env.API_ORIGIN || "http://127.0.0.1:3000";
 const BIND = process.env.BIND || "127.0.0.1";

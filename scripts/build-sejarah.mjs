@@ -8,7 +8,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+/* Situs (portal, mapel, data, assets) ada di folder public/ */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const ART = path.join(ROOT, "mapel/sejarah.html");
 let html = fs.readFileSync(ART, "utf8");
 

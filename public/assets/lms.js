@@ -36,7 +36,7 @@ function gsNorm(v){
 }
 function load(){ try{ const r = localStorage.getItem(LS_KEY); if(r) Object.assign(D, JSON.parse(r)); }catch(e){}
   if(D.kelas === "X") D.kelas = "";
-  if(!D.gs) D.gs = gsNorm("");
+  if(!D.gs && SHEET_URL_DEFAULT) D.gs = gsNorm(SHEET_URL_DEFAULT); }
 function save(){ try{ const p = progAll(); D.sum = { pct: Math.round(p.d/p.t*100), d:p.d, t:p.t };
     localStorage.setItem(LS_KEY, JSON.stringify(D)); }catch(e){} }
 function U(n){ if(!D.u[n]) D.u[n] = { materi:false, diag:0, form:0, quiz:0, refl:false, proj:false, meet:[false,false,false] }; return D.u[n]; }

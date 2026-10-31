@@ -3,8 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const TPL = path.join(ROOT, "scripts/pendais.template.html");
+/* Situs (portal, mapel, data, assets) ada di folder public/ */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
+const TPL = path.join(ROOT, "..", "scripts/pendais.template.html");
 const OUT = path.join(ROOT, "mapel/pendais.html");
 const GS_ID = "AKfycbwyb4YHCCYQ2OY-uj_fO5TOsE9OoFU5JTKoq5PG7Rd40bz8-jzMXy5iGvgRMc8ImjRMVw";
 

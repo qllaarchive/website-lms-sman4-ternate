@@ -92,7 +92,12 @@
       });
     },
     me: function(){
-      return apiFetch("/auth/me");
+      /* Setelah halaman dimuat ulang, token CSRF diambil lagi dari /auth/me
+         supaya admin yang masih login tetap bisa menyimpan perubahan. */
+      return apiFetch("/auth/me").then(function(r){
+        if (r.ok && r.data && r.data.user && r.data.csrf) storeCsrf(r.data.csrf);
+        return r;
+      });
     },
 
     /* Daftar LMS (tautan) */

@@ -107,7 +107,7 @@ server {
   listen 80 default_server;
   listen [::]:80 default_server;
   server_name _;
-  root $APP_DIR;
+  root $APP_DIR/public;
   index index.html;
 
   add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" always;

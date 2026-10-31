@@ -39,7 +39,7 @@ router.post("/login", async (req, res) => {
 
   const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
   setSessionCookie(req, res, token);
-  const csrf = issueCsrfToken(user.id);
+  const csrf = issueCsrfToken(user.id, token);
   res.json({ user: { id: user.id, username: user.username }, csrf });
 });
 
@@ -55,7 +55,7 @@ router.get("/me", async (req, res) => {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) return res.json({ user: null });
-    res.json({ user: { id: user.id, username: user.username } });
+    res.json({ user: { id: user.id, username: user.username }, csrf: issueCsrfToken(user.id, token) });
   } catch {
     res.json({ user: null });
   }

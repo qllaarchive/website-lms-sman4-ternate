@@ -74,21 +74,14 @@ Setiap mata pelajaran dilengkapi modul mandiri (mis. Matematika dengan 137 tampi
 
 ```text
 .
-├── index.html                   # Portal utama (daftar mapel, panel admin, dashboard progres)
-├── mapel/                       # Halaman LMS mandiri per mata pelajaran
-│   ├── matematika.html          # LMS Matematika (berkas mandiri penuh)
-│   ├── fisika.html, sejarah.html, pendais.html
-│   └── 12+ shell mapel lainnya  # Bahasa Indonesia, Biologi, Ekonomi, dll.
-├── assets/
-│   ├── portal.css / portal.js   # Gaya dan logika interaktif portal utama
-│   ├── lms.css / lms.js         # Engine halaman LMS (render unit, asesmen, gim, lab)
-│   └── icons.js                 # Kumpulan ikon SVG inline
-├── data/
-│   ├── registry.js              # Peta daftar mapel portal (metadata, ikon, warna, Apps Script ID)
-│   ├── matematika.js            # Konten edukatif LMS Matematika (137 tampilan)
-│   ├── fisika.js                # Konten edukatif LMS Fisika
-│   ├── sejarah.js               # Konten edukatif LMS Sejarah
-│   └── pendais.js               # Konten edukatif LMS Pendidikan Agama Islam
+├── public/                      # SEMUA file situs yang di-deploy (statis)
+│   ├── index.html               # Portal utama (daftar mapel, panel admin, dashboard progres)
+│   ├── mapel/                   # Halaman LMS mandiri per mata pelajaran
+│   │   ├── matematika.html      # LMS Matematika (berkas mandiri penuh)
+│   │   ├── fisika.html, sejarah.html, pendais.html
+│   │   └── 12+ shell mapel lainnya
+│   ├── assets/                  # portal.css/js, lms.css/js (engine), icons.js
+│   └── data/                    # registry.js + konten matematika/fisika/sejarah/pendais
 ├── scripts/
 │   ├── validate.mjs             # Skrip validasi skema data LMS
 │   ├── smoke.mjs                # Uji render otomatis (DOM stub) tanpa browser
@@ -173,7 +166,7 @@ Arsitektur aplikasi memisahkan layanan frontend statis dan backend API demi skal
    - `JWT_SECRET`
    - `ADMIN_USER` & `ADMIN_PASS`
    - `ALLOWED_ORIGINS` (URL domain frontend Anda)
-3. **Frontend Portal:** Deploy direktori akar ke [Vercel](https://vercel.com), [Netlify](https://netlify.com), atau GitHub Pages. Atur variabel `LMS_API_BASE` mengarah ke URL backend API Anda.
+3. **Frontend Portal:** Deploy folder `public/` ke [Vercel](https://vercel.com), [Netlify](https://netlify.com), atau GitHub Pages. Atur variabel `LMS_API_BASE` mengarah ke URL backend API Anda.
 
 Panduan langkah demi langkah yang lebih lengkap tersedia di berkas **[DEPLOY.md](DEPLOY.md)**.
 
@@ -181,9 +174,9 @@ Panduan langkah demi langkah yang lebih lengkap tersedia di berkas **[DEPLOY.md]
 
 ## 📚 Menambah Mata Pelajaran Baru
 
-1. Buat berkas konten baru di `data/<id-mapel>.js` mengikuti kontrak format `window.LMS_CONTENT` (pastikan properti `id` dan `lsKey` sesuai dengan nama berkas).
-2. Daftarkan entri baru di dalam `data/registry.js` dengan `lsKey` yang sama persis.
-3. Duplikat templat halaman dari direktori `mapel/` dan arahkan pemuatan berkas ke `data/<id-mapel>.js`.
+1. Buat berkas konten baru di `public/data/<id-mapel>.js` mengikuti kontrak format `window.LMS_CONTENT` (pastikan properti `id` dan `lsKey` sesuai dengan nama berkas).
+2. Daftarkan entri baru di dalam `public/data/registry.js` dengan `lsKey` yang sama persis.
+3. Duplikat templat halaman dari direktori `public/mapel/` dan arahkan pemuatan berkas ke `../data/<id-mapel>.js`.
 4. Jalankan perintah validasi dan uji render (`validate.mjs` & `smoke.mjs`).
 5. Masuk ke halaman portal sebagai admin, buka menu **Kelola**, dan tambahkan entri mapel baru untuk setiap kelas.
 

@@ -8,7 +8,8 @@ import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+/* Situs (portal, mapel, data, assets) ada di folder public/ */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const dataFile = process.argv[2] || path.join(ROOT, "data", fs.readdirSync(path.join(ROOT, "data"))
   .filter(x => x.endsWith(".js") && x !== "registry.js").sort()[0]);
 const dataSrc = fs.readFileSync(dataFile, "utf8");

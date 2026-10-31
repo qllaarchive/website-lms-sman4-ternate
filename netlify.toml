@@ -1,3 +1,8 @@
+[build]
+  # Situs statis (portal + halaman mapel) ada di folder public/
+  publish = "public"
+  command = ""
+
 [[headers]]
   for = "/*"
   [headers.values]

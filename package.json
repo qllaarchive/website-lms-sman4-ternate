@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db push --accept-data-loss --skip-generate && next build",
+    "build": "prisma generate && prisma db push --skip-generate && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "node prisma/seed.js"
+    "prisma:seed": "node prisma/seed.js",
+    "validate": "node scripts/validate.mjs",
+    "test": "node scripts/validate.mjs && node scripts/smoke.mjs && node scripts/smoke-portal.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1161.0",

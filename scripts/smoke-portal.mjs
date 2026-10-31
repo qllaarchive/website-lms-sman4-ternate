@@ -6,7 +6,8 @@ import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+/* Situs (portal, mapel, data, assets) ada di folder public/ */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const fails = [];
 
 function mkEl(tag){

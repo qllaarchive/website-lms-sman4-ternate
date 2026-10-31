@@ -24,7 +24,9 @@ jobs:
         run: npx prisma generate
       - name: Typecheck (syntax)
         working-directory: api
-        run: node --check src/index.js
+        run: node --check src/index.js && node --check index.js
+      - name: Validasi data & uji render halaman
+        run: npm test
 
   deploy:
     needs: lint-and-test
