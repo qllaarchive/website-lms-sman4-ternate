@@ -23,9 +23,6 @@ export default async function DashboardPage() {
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600">{session.user?.name}</span>
             <button
-              onClick={() => {
-                // signOut handled client-side
-              }}
               className="text-sm text-gray-600 hover:text-gray-900"
             >
               Keluar

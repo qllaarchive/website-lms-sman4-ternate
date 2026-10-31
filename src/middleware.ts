@@ -1,16 +1,24 @@
-import { withAuth } from "next-auth/middleware";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 
-export default withAuth({
-  callbacks: {
-    authorized: ({ token, req }) => {
-      const { pathname } = req.nextUrl;
-      if (pathname.startsWith("/api") || pathname.startsWith("/_next")) return true;
-      if (pathname === "/login" || pathname === "/") return true;
-      return !!token;
-    },
-  },
-});
+export async function middleware(req) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const { pathname } = req.nextUrl;
+
+  if (pathname.startsWith("/api") || pathname.startsWith("/_next")) {
+    return NextResponse.next();
+  }
+
+  if (pathname === "/login" || pathname === "/") {
+    return NextResponse.next();
+  }
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ["/dashboard/:path*", "/api/lms/:path*", "/api/sliders/:path*"],
