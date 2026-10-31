@@ -1,24 +1,23 @@
 /* API Client — jembatan portal.js ke backend API. Semua data LMS (tautan),
-   akun admin, dan profil sekolah tersimpan di database melalui API ini. */
+   akun admin, dan profil sekolah tersimpan di database melalui API ini.
+   Autentikasi lewat cookie JWT httpOnly (SameSite=None, Secure) yang dikirim
+   otomatis browser dengan credentials: include. Token JWT disimpan hanya di
+   cookie httpOnly — tidak di sessionStorage agar tidak bisa dicuri lewat XSS. */
 (function(){
   "use strict";
   var API_BASE = String(window.LMS_API_BASE || "/api").replace(/\/+$/, "");
   var _probe = null;
   var TIMEOUT = 6000;
 
-  /* Sesi lintas origin (mis. portal di GitHub Pages): cookie pihak ketiga bisa
-     diblokir browser — token JWT di sessionStorage jadi saluran cadangan. */
-  var _token = null;
-  try { _token = sessionStorage.getItem("lms_token") || null; } catch(e){}
-  function storeToken(t){
-    _token = t;
-    try {
-      if (t) sessionStorage.setItem("lms_token", t);
-      else sessionStorage.removeItem("lms_token");
-    } catch(e){}
-  }
+  /* CSRF token disimpan hanya di memori (variabel), tidak di sessionStorage.
+     Diperoleh dari response body login dan dikirim kembali sebagai header
+     X-CSRF-Token pada setiap permintaan state-changing. */
+  var _csrf = null;
+  function storeCsrf(c){ _csrf = c || null; }
   function authHeaders(){
-    return _token ? { "Authorization": "Bearer " + _token } : {};
+    var h = {};
+    if (_csrf) h["X-CSRF-Token"] = _csrf;
+    return h;
   }
 
   function apiFetch(path, opts) {
@@ -78,17 +77,17 @@
       return _probe;
     },
 
-    /* Auth (cookie JWT httpOnly + bearer cadangan) */
+    /* Auth (cookie JWT httpOnly + CSRF token di memori) */
     login: function(username, password){
       return apiFetch("/auth/login", { method: "POST", body: JSON.stringify({ username: username, password: password }) })
         .then(function(r){
-          if (r.ok && r.data && r.data.token) storeToken(r.data.token);
+          if (r.ok && r.data && r.data.csrf) storeCsrf(r.data.csrf);
           return r;
         });
     },
     logout: function(){
       return apiFetch("/auth/logout", { method: "POST" }).then(function(r){
-        storeToken(null);
+        storeCsrf(null);
         return r;
       });
     },

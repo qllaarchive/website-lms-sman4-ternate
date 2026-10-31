@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireCsrf, requireAdmin } from "../middleware/auth.js";
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -37,7 +37,7 @@ router.get("/all", requireAuth, async (req, res) => {
 });
 
 /* POST /api/lms — admin only */
-router.post("/", requireAuth, async (req, res) => {
+router.post("/", requireAuth, requireCsrf, requireAdmin, async (req, res) => {
   const parsed = EntrySchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "invalid_input" });
   const data = Object.assign({}, parsed.data, {
@@ -54,7 +54,7 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 /* PUT /api/lms/:id — admin only */
-router.put("/:id", requireAuth, async (req, res) => {
+router.put("/:id", requireAuth, requireCsrf, requireAdmin, async (req, res) => {
   const parsed = EntrySchema.partial().safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "invalid_input" });
   try {
@@ -67,7 +67,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 });
 
 /* DELETE /api/lms/:id — admin only */
-router.delete("/:id", requireAuth, async (req, res) => {
+router.delete("/:id", requireAuth, requireCsrf, requireAdmin, async (req, res) => {
   try {
     await prisma.lmsEntry.delete({ where: { id: req.params.id } });
     res.json({ ok: true });

@@ -7,7 +7,7 @@ import express from "express";
 import multer from "multer";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireCsrf, requireAdmin } from "../middleware/auth.js";
 import { UPLOAD_DIR } from "../uploads.js";
 
 const prisma = new PrismaClient();
@@ -89,7 +89,7 @@ router.get("/all", requireAuth, async (_req, res) => {
 });
 
 /* POST /api/sliders — admin only; unggah "image" atau kirim imageUrl tautan */
-router.post("/", requireAuth, upload.single("image"), async (req, res) => {
+router.post("/", requireAuth, requireCsrf, requireAdmin, upload.single("image"), async (req, res) => {
   if (!req.file && !req.body.imageUrl) return res.status(400).json({ error: "invalid_input" });
   if (req.file) req.body._fileName = req.file.filename;
   const parsed = Schema.safeParse(coerce(req.body, !!req.file));
@@ -107,7 +107,7 @@ router.post("/", requireAuth, upload.single("image"), async (req, res) => {
 });
 
 /* PUT /api/sliders/:id — admin only; unggah baru opsional untuk ganti foto */
-router.put("/:id", requireAuth, upload.single("image"), async (req, res) => {
+router.put("/:id", requireAuth, requireCsrf, requireAdmin, upload.single("image"), async (req, res) => {
   if (req.file) req.body._fileName = req.file.filename;
   const parsed = Schema.safeParse(coerce(req.body, !!req.file));
   if (!parsed.success) {
@@ -130,7 +130,7 @@ router.put("/:id", requireAuth, upload.single("image"), async (req, res) => {
 });
 
 /* DELETE /api/sliders/:id — admin only */
-router.delete("/:id", requireAuth, async (req, res) => {
+router.delete("/:id", requireAuth, requireCsrf, requireAdmin, async (req, res) => {
   try {
     const old = await prisma.slider.delete({ where: { id: req.params.id } });
     removeLocal(old.imageUrl);

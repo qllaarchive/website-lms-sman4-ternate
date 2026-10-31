@@ -1,7 +1,7 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireCsrf, requireAdmin } from "../middleware/auth.js";
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -22,7 +22,7 @@ router.get("/", async (_req, res) => {
 });
 
 /* PUT /api/school — admin only, satu baris profil (upsert) */
-router.put("/", requireAuth, async (req, res) => {
+router.put("/", requireAuth, requireCsrf, requireAdmin, async (req, res) => {
   const parsed = ProfileSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "invalid_input" });
   const profile = await prisma.schoolProfile.upsert({

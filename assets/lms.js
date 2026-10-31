@@ -26,8 +26,9 @@ function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt
 const D = { nama:"", kelas:"", sekolah:"SMAN 4 Ternate", tema:"", gs:"",
   u:{}, ex:{uts:0,uas:0,rem:0}, g:{}, lab:{}, seq:{},
   forum:null, chat:[{ who:"bot", t:BOT_INTRO }] };
-/* Kode Web App Google Sheets permanen (guru) — di-override oleh ?gs= bila ada. */
-const SHEET_URL_DEFAULT = META.sheetId || "AKfycbyp7tmtjjulW3rMhBN3h6nQnTtW2mxdqESfnDwrDtuVjfEgHjCBbvB5NBAinROsj_Lr";
+/* ID Web App Google Apps Script diatur lewat panel admin (?gs=).
+   Tidak ada nilai default yang dikodekan di sini. */
+const SHEET_URL_DEFAULT = META.sheetId || "";
 function gsNorm(v){
   v = String(v || "").trim();
   const m = v.match(/\/macros\/s\/([^\/\s]+)/);
@@ -35,7 +36,7 @@ function gsNorm(v){
 }
 function load(){ try{ const r = localStorage.getItem(LS_KEY); if(r) Object.assign(D, JSON.parse(r)); }catch(e){}
   if(D.kelas === "X") D.kelas = "";
-  if(!D.gs && SHEET_URL_DEFAULT) D.gs = gsNorm(SHEET_URL_DEFAULT); }
+  if(!D.gs) D.gs = gsNorm("");
 function save(){ try{ const p = progAll(); D.sum = { pct: Math.round(p.d/p.t*100), d:p.d, t:p.t };
     localStorage.setItem(LS_KEY, JSON.stringify(D)); }catch(e){} }
 function U(n){ if(!D.u[n]) D.u[n] = { materi:false, diag:0, form:0, quiz:0, refl:false, proj:false, meet:[false,false,false] }; return D.u[n]; }
@@ -1705,9 +1706,9 @@ VIEWS.set = () => {
     <div class="card pad">
       <div class="sec-h" style="margin-bottom:10px"><span class="ic">🔗</span><h2 style="font-size:18px">Integrasi Google Sheets (opsional)</h2></div>
       <p class="small muted">Pengiriman skor otomatis ke Google Sheets guru. Kode aplikasi web dikunci permanen oleh pengaturan sekolah.</p>
-      <label class="f" style="margin-top:10px">Kode Aplikasi Web<input type="text" id="s-gs" value="${esc(D.gs)}" placeholder="AKfycb..." ${SHEET_URL_DEFAULT?'readonly title="Dikunci oleh pengaturan guru (permanen)"':""}></label>
+      <label class="f" style="margin-top:10px">Kode Aplikasi Web<input type="text" id="s-gs" value="${esc(D.gs)}" placeholder="AKfycb..." ></label>
       <div class="sendbox ${D.gs?"":"off"}" style="margin-top:10px">
-        <span>${D.gs?"🟢 Terhubung"+(SHEET_URL_DEFAULT?" (permanen)":"")+": siap mengirim skor":"⚪ Belum diatur — skor tersimpan lokal"}</span>
+        <span>${D.gs?"🟢 Terhubung: siap mengirim skor":"⚪ Belum diatur — skor tersimpan lokal"}</span>
         <button class="btn sm ghost" id="s-gstest">Uji koneksi</button></div></div>
     <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">ℹ️</span><h2 style="font-size:18px">Tentang</h2></div>
       <p class="small muted">${esc(META.about || "")} ${NU} unit · ${NU*JP_U} JP · KKTP ${KKTP}.</p></div></div>`;

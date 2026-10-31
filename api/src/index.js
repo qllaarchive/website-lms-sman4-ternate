@@ -38,7 +38,7 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const allowed = (process.env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
-    if (allowed.includes(origin) || origin.startsWith("http://localhost")) {
+    if (allowed.includes(origin)) {
       return callback(null, true);
     }
     callback(null, false);
@@ -51,9 +51,12 @@ app.use(cookieParser());
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-/* Foto slider — dilayani API sendiri sehingga tetap satu asal lewat proxy dev,
-   nginx (/api/ → api:3000), maupun proxy serverless. */
-app.use("/api/uploads", express.static(UPLOAD_DIR, { maxAge: "7d", fallthrough: false }));
+/* Foto slider — dilayani API sendiri dengan header keamanan. */
+app.use("/api/uploads", (_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Content-Security-Policy", "default-src 'none'");
+  next();
+}, express.static(UPLOAD_DIR, { maxAge: "7d", fallthrough: false }));
 
 app.use("/api/auth", rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false }), authRoutes);
 app.use("/api/lms", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), lmsRoutes);

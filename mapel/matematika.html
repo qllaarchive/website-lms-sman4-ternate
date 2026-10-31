@@ -1205,19 +1205,16 @@ const D = { nama:"", kelas:"X", sekolah:"SMAN 4 Ternate", tema:"", gs:"",
   u:{}, ex:{uts:0,uas:0,rem:0}, g:{}, lab:{}, seq:{},
   forum:null, chat:[{ who:"bot", t:"Halo! 👋 Saya Teman Matematika Kelas X. Tanyakan rumus, tips belajar, atau minta contoh soal." }] };
 
-/* ================= PENGATURAN GURU (PERMANEN) =================
-   Tempel ID Web App Google Apps Script di sini (bagian AKfycb... antara
-   /macros/s/ dan /exec), agar SEMUA siswa otomatis terhubung ke
-   Spreadsheet guru tanpa perlu pengaturan apa pun. */
-const SHEET_URL_DEFAULT = "AKfycbzj0XeuqkERFtu-tFOsU98TELFSwpNWL6wG5hEVAkO8ErRBxkjiOPvFTrPyimiQ2Xxm";
-/* Prioritas: param URL ?gs= (dari portal admin) > nilai ini > localStorage */
+/* ================= PENGATURAN GURU =================
+   ID Web App Google Apps Script diatur lewat panel admin (?gs=).
+   Tidak ada nilai default yang dikodekan di sini. */
 function gsNorm(v){
   v = String(v || "").trim();
   const m = v.match(/\/macros\/s\/([^\/\s]+)/);
   return m ? m[1] : v;
 }
 function load(){ try{ const r = localStorage.getItem(LS_KEY); if(r) Object.assign(D, JSON.parse(r)); }catch(e){}
-  if(!D.gs && SHEET_URL_DEFAULT) D.gs = gsNorm(SHEET_URL_DEFAULT); }
+  if(!D.gs) D.gs = gsNorm("");
 function loadFromUrl(){
   try{
     var params = new URLSearchParams(window.location.search);
@@ -2718,9 +2715,9 @@ VIEWS.set = () => {
     <div class="card pad">
       <div class="sec-h" style="margin-bottom:10px"><span class="ic">🔗</span><h2 style="font-size:18px">Integrasi Google Sheets (opsional)</h2></div>
       <p class="small muted">Tempel kode Apps Script Web App (file <code class="formula">AppsScript-LMS.gs</code>) untuk mengirim nilai latihan &amp; progres murid ke Google Sheets guru. Dibiarkan kosong bila tidak dipakai.</p>
-      <label class="f" style="margin-top:10px">Kode Web App<input type="text" id="s-gs" value="${esc(D.gs)}" placeholder="AKfycb..." ${SHEET_URL_DEFAULT?'readonly title="Dikunci oleh pengaturan guru (permanen)"':""}></label>
+      <label class="f" style="margin-top:10px">Kode Web App<input type="text" id="s-gs" value="${esc(D.gs)}" placeholder="AKfycb..." ></label>
       <div class="sendbox ${D.gs?"":"off"}" style="margin-top:10px">
-        <span>${D.gs?"🟢 Terhubung"+(SHEET_URL_DEFAULT?" (permanen)":"")+": siap mengirim skor":"⚪ Belum diatur — skor tersimpan lokal"}</span>
+        <span>${D.gs?"🟢 Terhubung: siap mengirim skor":"⚪ Belum diatur — skor tersimpan lokal"}</span>
         <button class="btn sm ghost" id="s-gstest">Uji koneksi</button></div></div>
     <div class="card pad"><div class="sec-h" style="margin-bottom:8px"><span class="ic">ℹ️</span><h2 style="font-size:18px">Tentang</h2></div>
       <p class="small muted">LMS Matematika Kelas X · Fase E · dibangun selaras CP 4 elemen:

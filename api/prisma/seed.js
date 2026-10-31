@@ -7,10 +7,8 @@ const prisma = new PrismaClient();
 const LMS_ENTRIES = [
   { id:"matematika", klass:"X", name:"Matematika", short:"Matematika", icon:"calculator", color:"#1f6fe5", file:"mapel/matematika.html", pub:true },
   { id:"fisika",     klass:"X", name:"Fisika",     short:"Fisika",     icon:"atom",       color:"#5f3dc4", file:"mapel/fisika.html",     pub:true },
-  { id:"sejarah", klass:"X", name:"Sejarah", short:"Sejarah", icon:"scroll", color:"#c92a2a", file:"mapel/sejarah.html", pub:true,
-    scriptId:"AKfycbyp7tmtjjulW3rMhBN3h6nQnTtW2mxdqESfnDwrDtuVjfEgHjCBbvB5NBAinROsj_Lr" },
-  { id:"pendais",          klass:"X", name:"Pendidikan Agama Islam", short:"PAI",  icon:"book",       color:"#0f766e", file:"mapel/pendais.html",          pub:true,
-    scriptId:"AKfycbwyb4YHCCYQ2OY-uj_fO5TOsE9OoFU5JTKoq5PG7Rd40bz8-jzMXy5iGvgRMc8ImjRMVw" },
+  { id:"sejarah", klass:"X", name:"Sejarah", short:"Sejarah", icon:"scroll", color:"#c92a2a", file:"mapel/sejarah.html", pub:true },
+  { id:"pendais",          klass:"X", name:"Pendidikan Agama Islam", short:"PAI",  icon:"book",       color:"#0f766e", file:"mapel/pendais.html",          pub:true },
 ];
 
 const SCHOOL_PROFILE = {

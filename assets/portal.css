@@ -38,6 +38,7 @@ body{
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
   font-variant-numeric:tabular-nums;
   transition:background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  overflow-x:hidden;
 }
 .gut{ max-width:1080px; margin-inline:auto; padding-inline:24px }
 a{ color:var(--accent); text-decoration:none }
@@ -246,7 +247,7 @@ a.btn{ text-decoration:none }
 
 /* ——— grid kartu ——— */
 .cards{
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
   gap:14px; margin:24px 0 8px; list-style:none;
 }
 .card{
@@ -999,16 +1000,24 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
 
 @media (max-width:700px){
   .intro-bg img{ object-position:center 48%; filter:saturate(.9) contrast(1.03) brightness(.9) }
-  .intro-inner{ padding-inline:20px }
-  .intro-crest{ gap:15px; margin-top:max(12px, calc(8px + env(safe-area-inset-top))) }
-  .intro-main{ margin-top:-3vh }
-  .intro-title{ font-size:clamp(44px, 13.4vw, 76px) }
-  .intro-school{ margin-top:19px; font-size:10.5px; letter-spacing:.24em }
-  .intro-cta{ margin-top:34px }
+  .intro-inner{ padding-inline:16px }
+  .intro-crest{ gap:12px; margin-top:max(12px, calc(8px + env(safe-area-inset-top))) }
+  .intro-main{ margin-top:-2vh; display:flex; flex-direction:column; align-items:center }
+  .intro-title{ font-size:clamp(30px, 14vw, 64px); line-height:1.05; white-space:normal; text-align:center }
+  .intro-school{ margin-top:18px; font-size:10px; letter-spacing:.22em; text-align:center }
+  .intro-cta{ margin-top:30px; width:min(210px, 85vw); justify-content:center }
+}
+@media (max-width:480px){
+  .intro-crest{ flex-direction:row; align-items:center; gap:10px }
+  .intro-crest::after{ display:none }
+  .intro-title{ font-size:clamp(26px, 16vw, 52px); line-height:1.08; white-space:normal; text-align:center }
+  .intro-school{ margin-top:14px; font-size:9.5px; letter-spacing:.18em; text-align:center }
+  .intro-cta{ margin-top:26px; width:min(190px, 90vw); justify-content:center }
 }
 @media (max-width:360px){
-  .intro-title{ font-size:42px }
-  .intro-school{ font-size:9.5px; letter-spacing:.18em }
+  .intro-title{ font-size:clamp(24px, 17vw, 44px); white-space:normal; text-align:center }
+  .intro-school{ font-size:9px; letter-spacing:.16em; text-align:center }
+  .intro-cta{ height:48px; width:min(170px, 92vw); padding:0 10px 0 20px; font-size:13.5px; justify-content:center }
 }
 
 /* ——— kelola: halaman penuh ——— */
@@ -1330,12 +1339,15 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
 #portal-title{
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
   z-index:2; margin:0; text-align:center; white-space:nowrap;
-  font-size:clamp(28px, 4.4vw, 42px); font-weight:800;
-  letter-spacing:-.022em; line-height:1.08;
+  font-size:clamp(26px, 5.5vw, 44px); font-weight:800;
+  letter-spacing:-.06em; line-height:1.02;
   color:#fff;
-  text-shadow:0 2px 18px rgba(0,0,0,.4);
+  text-shadow:0 1px 10px rgba(0,0,0,.35);
   pointer-events:auto;
   animation:welcomeIn .4s cubic-bezier(.22,1,.36,1) 120ms both;
+}
+@media (max-width:640px){
+  #portal-title{ max-width:92%; text-wrap:balance; white-space:normal; font-size:clamp(18px, 5.5vw, 26px); letter-spacing:-.05em; line-height:1.12 }
 }
 .slider-nav{
   position:absolute; top:50%; z-index:3;
@@ -1374,7 +1386,6 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
   .sec-logo{ width:44px; height:44px; border-radius:12px }
   .brand-txt-lg b{ font-size:clamp(16px, 2.4vw, 20px); letter-spacing:.12em }
   .brand-txt-lg small{ font-size:clamp(10px, 1.3vw, 12px); letter-spacing:.14em }
-  #portal-title{ max-width:92%; text-wrap:balance; white-space:normal; font-size:clamp(16px, 4vw, 24px); line-height:1.12 }
   .slider-dots{ right:10px; bottom:12px }
 }
 @media (prefers-reduced-motion: reduce){

@@ -3,6 +3,7 @@ import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
+import { requireAuth, issueCsrfToken } from "../middleware/auth.js";
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -18,8 +19,8 @@ const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 function setSessionCookie(req, res, token) {
   res.cookie(COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production" && req.secure,
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
     maxAge: SEVEN_DAYS,
     path: "/",
   });
@@ -38,9 +39,8 @@ router.post("/login", async (req, res) => {
 
   const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
   setSessionCookie(req, res, token);
-  /* Token juga dikirim di body sebagai cadangan untuk portal lintas origin
-     (mis. GitHub Pages) yang tidak bisa menyimpan/mengirim cookie pihak ketiga. */
-  res.json({ user: { id: user.id, username: user.username }, token });
+  const csrf = issueCsrfToken(user.id);
+  res.json({ user: { id: user.id, username: user.username }, csrf });
 });
 
 router.post("/logout", (_req, res) => {
