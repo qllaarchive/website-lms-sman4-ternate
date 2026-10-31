@@ -89,7 +89,11 @@ export default async function handler(req, res) {
     const password = process.env.ADMIN_PASS;
     if (!username || !password) return res.status(400).json({ error: "ADMIN_USER/ADMIN_PASS not set" });
     const existing = await prisma.user.findUnique({ where: { username } });
-    if (existing) return res.status(200).json({ ok: true, message: "already exists" });
+    if (existing) {
+      const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
+      await prisma.user.update({ where: { username }, data: { passwordHash } });
+      return res.status(200).json({ ok: true, message: "password updated" });
+    }
     const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
     await prisma.user.create({ data: { username, passwordHash } });
     return res.status(200).json({ ok: true, message: "created" });
