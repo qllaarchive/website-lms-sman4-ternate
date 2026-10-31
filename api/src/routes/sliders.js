@@ -12,7 +12,7 @@ import { requireAuth, requireCsrf, requireAdmin } from "../middleware/auth.js";
 import { UPLOAD_DIR } from "../uploads.js";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ datasourceUrl: (process.env.DATABASE_URL||"") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10" });
 const router = express.Router();
 
 const IMG_EXT = { "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };

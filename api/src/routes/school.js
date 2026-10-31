@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { requireAuth, requireCsrf, requireAdmin } from "../middleware/auth.js";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ datasourceUrl: (process.env.DATABASE_URL||"") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10" });
 const router = express.Router();
 
 const ProfileSchema = z.object({
