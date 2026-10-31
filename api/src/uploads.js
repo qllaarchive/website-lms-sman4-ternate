@@ -3,8 +3,11 @@
    dev proxy, nginx, maupun deploy serverless. */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import fs from "node:fs";
 
-export const UPLOAD_DIR = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../uploads"
-);
+const isVercel = !!process.env.VERCEL;
+export const UPLOAD_DIR = isVercel
+  ? "/tmp/uploads"
+  : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../uploads");
+
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });

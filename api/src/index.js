@@ -71,4 +71,8 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = Number(process.env.PORT) || 3000;
-app.listen(PORT, () => console.log(`LMS API listening on :${PORT}`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`LMS API listening on :${PORT}`));
+}
+
+export default app;
