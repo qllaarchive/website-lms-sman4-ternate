@@ -9,6 +9,9 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
+  username      String    @unique
+  passwordHash  String
+  role          String    @default("ADMIN")
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -16,7 +19,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  updatedAt     DateTime  @default(now()) @updatedAt
 }
 
 model Account {
@@ -66,7 +69,7 @@ model LmsEntry {
   pub       Boolean  @default(true)
   scriptId  String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt     DateTime  @default(now()) @updatedAt
 
   @@index([klass])
 }
@@ -78,7 +81,7 @@ model Slider {
   sortOrder Int      @default(0)
   pub       Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt     DateTime  @default(now()) @updatedAt
 }
 
 model SchoolProfile {
@@ -89,5 +92,5 @@ model SchoolProfile {
   telp      String   @default("")
   email     String   @default("")
   ppdb      String   @default("")
-  updatedAt DateTime @updatedAt
+  updatedAt     DateTime  @default(now()) @updatedAt
 }
