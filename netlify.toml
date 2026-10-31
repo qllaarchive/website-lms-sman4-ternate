@@ -1,7 +1,12 @@
 [build]
   # Situs statis (portal + halaman mapel) ada di folder public/
   publish = "public"
-  command = ""
+  command = "node scripts/build-config.mjs"
+
+[build.environment]
+  # Repo ini punya dependensi `next`, tapi yang dideploy ke Netlify hanya situs
+  # statis di public/. Matikan plugin Next.js otomatis agar build tidak gagal.
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 [[headers]]
   for = "/*"
