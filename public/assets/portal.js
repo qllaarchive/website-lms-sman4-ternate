@@ -979,9 +979,9 @@
       sliderDots = $("slider-dots"), sliderPrev = $("slider-prev"),
       sliderNext = $("slider-next"), sliderLive = $("slider-live");
   var skList = $("sk-list"), skForm = $("sk-form"), skErr = $("sk-err");
-  var skInput = $("sk-input"), skUrl = $("sk-url"), skTitle = $("sk-title"),
+  var skInput = $("sk-input"), skTitle = $("sk-title"),
       skPub = $("sk-pub"), skPreview = $("sk-preview"),
-      skPreviewImg = $("sk-preview-img"), skSave = $("sk-save");
+      skPreviewImg = $("***"), skSave = $("sk-save");
   var skIdx = 0, slTimer = null, skFileURL = null, skEditingId = null, skHover = false;
   var SLIDE_MS = 7000;
   var skFileOK = /^image\/(jpe?g|png|webp)$/i;
@@ -1099,7 +1099,6 @@
   function resetSkForm(){
     skEditingId = null;
     if(skInput) skInput.value = "";
-    if(skUrl) skUrl.value = "";
     if(skTitle) skTitle.value = "";
     if(skPub) skPub.checked = true;
     if(skPreview){ skPreview.hidden = true; skPreviewImg.removeAttribute("src"); }
@@ -1161,7 +1160,6 @@
   if(skCancel) skCancel.addEventListener("click", resetSkForm);
   if(skInput) skInput.addEventListener("change", function(){
     var f = this.files && this.files[0];
-    if(skUrl) skUrl.value = "";
     if(skPreview) skPreview.hidden = !f;
     if(!f) return;
     if(skFileURL){ URL.revokeObjectURL(skFileURL); skFileURL = null; }
@@ -1217,8 +1215,6 @@
       if(/^\/api\/uploads\//.test(item.imageUrl || "")){
         if(skPreviewImg) skPreviewImg.src = item.imageUrl;
         if(skPreview) skPreview.hidden = false;
-      }else{
-        if(skUrl) skUrl.value = item.imageUrl || "";
       }
       if(skForm) skForm.hidden = false;
       var n = $("sk-title");
@@ -1234,19 +1230,15 @@
       skErr.hidden = false;
     }
     var f = skInput && skInput.files && skInput.files[0] || null;
-    var urlVal = ((skUrl && skUrl.value) || "").trim();
     var title = ((skTitle && skTitle.value) || "").trim();
     var pub = skPub ? skPub.checked : true;
     if(!apiAvailable || !window.LMS_API) return fail(backendErr());
     if(f && !skFileOK.test(f.type)) return fail("Jenis berkas harus JPG, PNG, atau WebP.");
     if(f && f.size > skFileMax) return fail("Ukuran foto terlalu besar — maksimal 8 MB.");
-    if(f && urlVal) return fail("Pilih salah satu antara berkas foto atau tautan foto.");
-    if(!f && urlVal && !/^https?:\/\/\S+$/i.test(urlVal)) return fail("Tautan foto harus diawali http:// atau https://.");
-    if(!f && !urlVal){
-      if(!skEditingId) return fail("Pilih berkas foto dari perangkat atau isi tautan foto.");
+    if(!f){
+      if(!skEditingId) return fail("Pilih berkas foto dari perangkat terlebih dahulu.");
     }
     var fields = { title: title, pub: String(pub) };
-    if(!f && urlVal) fields.imageUrl = urlVal;
     setSkSaving(true, !!skEditingId);
     var wasEditing = !!skEditingId;
     var apiReq = wasEditing
@@ -1260,7 +1252,7 @@
         toast(wasEditing ? "Perubahan foto disimpan." : "Foto ditambahkan ke slider.");
         loadSliders();
       }else{
-        fail(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menyimpan foto ke server.");
+        fail(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : (r && r.data && r.data.error ? r.data.error : "Gagal menyimpan foto ke server."));
       }
     });
   });

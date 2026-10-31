@@ -1406,7 +1406,7 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
 }
 #sk-add{ margin-left:auto; height:38px; padding:0 16px }
 .sk-section .k-count{ margin-left:auto }
-.sk-form{ max-width:560px; margin-top:14px; position:static }
+.sk-form{ max-width:100%; margin-top:14px; position:static }
 .sk-pick{ display:flex; flex-direction:column; gap:8px; min-width:0 }
 .sk-pick input{ width:100%; min-width:0 }
 .sk-pick input[type="file"]{
@@ -1425,13 +1425,10 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
   .sk-pick input[type="file"]::file-selector-button:hover,
   .sk-pick input[type="file"]::-webkit-file-upload-button:hover{ background:color-mix(in srgb, var(--ink) 8%, var(--fill)) }
 }
-.sk-preview{
-  max-width:320px; border:1px solid var(--line); border-radius:14px; overflow:hidden;
-  background:var(--fill); animation:rise var(--dur) var(--ease) both;
-}
-.sk-preview img{
-  display:block; width:100%; height:auto; max-height:190px; object-fit:cover;
-}
+.sk-preview{ margin:0 auto 14px; max-width:100%; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--fill); animation:rise var(--dur) var(--ease) both; }
+.sk-preview img{ display:block; width:100%; height:auto; max-height:240px; object-fit:cover; }
+.k-form-card .sheet-actions{ padding-top:6px; }
+.k-form-card .sheet-actions .btn{ height:40px; padding:0 14px; }
 .sk-thumb{
   width:64px; height:44px; flex:none; border-radius:10px; overflow:hidden;
   position:relative; background:var(--fill); display:block;
