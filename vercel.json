@@ -5,7 +5,8 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "rewrites": [
-    { "source": "/", "destination": "/index.html" }
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/api/:path*", "destination": "/api" }
   ],
   "crons": []
 }
