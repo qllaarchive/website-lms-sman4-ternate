@@ -1,3 +1,8 @@
+// SKEMA DATABASE UTAMA — satu-satunya sumber kebenaran.
+// api/prisma/schema.prisma HARUS identik dengan file ini (dicek di CI).
+// Ubah di sini, lalu: cp prisma/schema.prisma api/prisma/schema.prisma
+// dan buat migrasi baru di api/prisma/migrations/ (hanya menambah).
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -82,6 +87,8 @@ model Slider {
   pub       Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
+
+  @@index([sortOrder, createdAt])
 }
 
 model SchoolProfile {
