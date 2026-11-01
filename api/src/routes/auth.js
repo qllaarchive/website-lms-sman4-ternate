@@ -31,7 +31,9 @@ router.post("/login", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: "invalid_input" });
 
   const { username, password } = parsed.data;
-  const user = await prisma.user.findUnique({ where: { username } });
+  const name = username.trim();
+  const user = (await prisma.user.findUnique({ where: { username: name } })) ||
+    (await prisma.user.findFirst({ where: { username: { equals: name, mode: "insensitive" } } }));
   if (!user) return res.status(401).json({ error: "invalid_credentials" });
 
   const ok = await argon2.verify(user.passwordHash, password);

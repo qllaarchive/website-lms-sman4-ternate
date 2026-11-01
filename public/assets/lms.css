@@ -472,7 +472,7 @@ canvas.lab{width:100%;background:#0d1230;border-radius:14px;border:1px solid var
 .g-again{background:#fff;color:#2a1b6e;border-radius:12px}
 .hint-chip{font-size:13px;color:var(--muted)}
 
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Animasi lembut tetap berjalan walau perangkat memakai mode "kurangi animasi" (keputusan sekolah). */
 
 /* ---- Lab cocokkan pasangan (tipe match) ---- */
 .match2{display:grid;grid-template-columns:1fr 1fr;gap:14px}

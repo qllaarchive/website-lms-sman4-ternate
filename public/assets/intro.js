@@ -37,7 +37,7 @@
     /* Portal "bangun" serentak dengan naiknya tirai pembuka. */
     document.body.classList.add("waking");
     intro.classList.add("is-leaving");
-    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var reduce = false; /* animasi lembut tetap jalan (lihat portal.js) */
     setTimeout(function(){
       root.classList.add("intro-seen");
       setSiteInert(false);

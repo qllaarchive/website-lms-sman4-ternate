@@ -815,13 +815,7 @@ main.gut{ position:relative }
   #seg{ height:32px }
   #seg button{ min-width:28px; height:30px }
 }
-@media (prefers-reduced-motion: reduce){
-  *,*::before,*::after{
-    animation:none !important;
-    transition-property:background-color, color, border-color !important;
-    transition-duration:120ms !important;
-  }
-}
+/* Mode "kurangi animasi": animasi tetap jalan (lembut) — lihat blok slider di bawah. */
 
 @media (max-width:560px){
   .brand-text small{ display:none }
@@ -1389,11 +1383,8 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
   .slider-dots{ right:10px; bottom:12px }
 }
 @media (prefers-reduced-motion: reduce){
-  #portal-title{ animation:none; opacity:1; transform:translate(-50%,-50%); will-change:auto }
-  #portal-title .w{ animation:none; opacity:1; transform:none; will-change:auto }
-  .hero-dots{ display:none }
-  .cards.is-first .card{ animation:rise var(--dur) var(--ease) backwards }
-  .slider-slide{ transform:none; transition:none }
+  /* versi lembut: slider berganti dengan pudar (tanpa geser/zoom) */
+  .slider-slide{ transform:none; transition:opacity .9s ease }
   .slider-slide.is-on img{ animation:none }
 }
 

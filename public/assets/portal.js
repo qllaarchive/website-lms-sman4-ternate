@@ -10,7 +10,9 @@
   var metaTheme = $("meta-theme");
   var THEME_KEY = "lms_theme";
   var CLASS_KEY = "lms_class";
-  var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  /* Sekolah memilih animasi lembut tetap berjalan walau perangkat memakai mode
+     "kurangi animasi" (umum aktif di mode hemat baterai Android / Windows). */
+  var reduce = false;
   var mqDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
   var DRIVE = "";
   var CLASSES = ["X", "XI", "XII"];
@@ -482,12 +484,12 @@
       loginErr.textContent = msg;
       loginErr.hidden = false;
     }
-    if(!u || !p) return fail("Isi email dan kata sandi.");
+    if(!u || !p) return fail("Isi email/nama pengguna dan kata sandi.");
 
     if(!apiAvailable || !window.LMS_API){
       return fail(backendErr());
     }
-    LMS_API.login(u.toLowerCase(), p).then(function(r){
+    LMS_API.login(u, p).then(function(r){
       if(r.ok){
         window._apiUser = r.data.user;
         syncAuthUI();

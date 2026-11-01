@@ -199,7 +199,7 @@ async function sliderWrite(req, res, id) {
   }
   if (!imageUrl) return send(res, 400, { error: "image_required" });
   const created = await prisma.slider.create({
-    data: { title: data.title ?? null, pub: data.pub ?? true, imageUrl, sortOrder: data.sortOrder ?? 0 },
+    data: { title: data.title ?? null, pub: data.pub ?? true, imageUrl, sortOrder: data.sortOrder ?? ((await prisma.slider.aggregate({ _max: { sortOrder: true } }))._max.sortOrder ?? -1) + 1 },
   });
   return send(res, 201, { slider: publicSlider(created) });
 }
@@ -239,7 +239,10 @@ async function authRoutes(req, res, p) {
     if (!process.env.JWT_SECRET) return send(res, 500, { error: "server_not_configured" });
     const parsed = LoginSchema.safeParse(jsonBody(req));
     if (!parsed.success) return send(res, 400, { error: "invalid_input" });
-    const user = await prisma.user.findUnique({ where: { username: parsed.data.username } });
+    /* cocokkan persis dulu, lalu tanpa peduli huruf besar/kecil */
+    const name = parsed.data.username.trim();
+    const user = (await prisma.user.findUnique({ where: { username: name } })) ||
+      (await prisma.user.findFirst({ where: { username: { equals: name, mode: "insensitive" } } }));
     const ok = user ? await argon2.verify(user.passwordHash, parsed.data.password).catch(() => false) : false;
     if (!ok) return send(res, 401, { error: "invalid_credentials" });
     const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
