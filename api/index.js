@@ -92,11 +92,12 @@ const EntrySchema = z.object({
   id: z.string().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/).optional(),
   klass: z.enum(["X", "XI", "XII"]),
   name: z.string().min(1).max(120),
-  short: z.string().max(40).optional(),
+  short: z.string().max(120).transform((v) => v.slice(0, 40)).optional(),
   teacher: z.string().max(80).optional().nullable(),
   icon: z.string().max(40),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  file: z.string().min(1).max(500),
+  /* tautan http(s) atau path relatif di situs ini (mis. mapel/matematika.html) */
+  file: z.string().trim().min(1).max(500).refine((v) => /^https?:\/\//i.test(v) || !/^[a-z][a-z0-9+.-]*:/i.test(v), "invalid_link"),
   pub: z.boolean().optional(),
   scriptId: z.string().max(200).optional().nullable(),
 });
@@ -140,7 +141,35 @@ async function lmsRoutes(req, res, p) {
   return false;
 }
 
-/* ---------------- Slider foto ---------------- */
+/* ---------------- Slider foto ----------------
+   Foto unggahan disimpan sebagai data base64 di database. Supaya respons
+   daftar slider tetap kecil (batas Vercel 4,5 MB) dan lolos CSP img-src
+   'self', daftar hanya memuat alamat /api/sliders/:id/image. */
+function publicSlider(s) {
+  if (s && typeof s.imageUrl === "string" && s.imageUrl.startsWith("data:")) {
+    const v = new Date(s.updatedAt || 0).getTime() || 0;
+    return { ...s, imageUrl: `/api/sliders/${encodeURIComponent(s.id)}/image?v=${v}` };
+  }
+  return s;
+}
+
+async function sliderImage(req, res, id) {
+  const s = await prisma.slider.findUnique({ where: { id } });
+  if (!s || (!s.pub && !(await sessionUser(req)))) return send(res, 404, { error: "not_found" });
+  const m = /^data:([^;,]+);base64,(.*)$/s.exec(s.imageUrl || "");
+  if (!m) {
+    if (/^(https:\/\/|\/)/.test(s.imageUrl || "")) { res.statusCode = 302; res.setHeader("Location", s.imageUrl); return res.end(); }
+    return send(res, 404, { error: "not_found" });
+  }
+  const buf = Buffer.from(m[2], "base64");
+  res.statusCode = 200;
+  res.setHeader("Content-Type", IMG_TYPES.has(m[1]) ? m[1] : "application/octet-stream");
+  res.setHeader("Content-Length", String(buf.length));
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Cache-Control", s.pub ? "public, max-age=604800, immutable" : "private, no-store");
+  return res.end(buf);
+}
+
 async function sliderWrite(req, res, id) {
   if (!(await requireAdmin(req, res))) return;
   const ct = req.headers["content-type"] || "";
@@ -165,26 +194,28 @@ async function sliderWrite(req, res, id) {
   if (imageUrl) data.imageUrl = imageUrl;
 
   if (id) {
-    try { return send(res, 200, { slider: await prisma.slider.update({ where: { id }, data }) }); }
+    try { return send(res, 200, { slider: publicSlider(await prisma.slider.update({ where: { id }, data })) }); }
     catch (e) { if (e?.code === "P2025") return send(res, 404, { error: "not_found" }); throw e; }
   }
   if (!imageUrl) return send(res, 400, { error: "image_required" });
   const created = await prisma.slider.create({
     data: { title: data.title ?? null, pub: data.pub ?? true, imageUrl, sortOrder: data.sortOrder ?? 0 },
   });
-  return send(res, 201, { slider: created });
+  return send(res, 201, { slider: publicSlider(created) });
 }
 
 async function sliderRoutes(req, res, p) {
   const order = [{ sortOrder: "asc" }, { createdAt: "asc" }];
   if (p === "/api/sliders") {
-    if (req.method === "GET") return send(res, 200, { sliders: await prisma.slider.findMany({ where: { pub: true }, orderBy: order }) });
+    if (req.method === "GET") return send(res, 200, { sliders: (await prisma.slider.findMany({ where: { pub: true }, orderBy: order })).map(publicSlider) });
     if (req.method === "POST") return sliderWrite(req, res, null);
   }
   if (p === "/api/sliders/all" && req.method === "GET") {
     if (!(await requireAdmin(req, res))) return;
-    return send(res, 200, { sliders: await prisma.slider.findMany({ orderBy: order }) });
+    return send(res, 200, { sliders: (await prisma.slider.findMany({ orderBy: order })).map(publicSlider) });
   }
+  const img = p.match(/^\/api\/sliders\/([^/]+)\/image$/);
+  if (img && req.method === "GET") return sliderImage(req, res, decodeURIComponent(img[1]));
   const m = p.match(/^\/api\/sliders\/([^/]+)$/);
   if (m && m[1] !== "all") {
     const id = decodeURIComponent(m[1]);

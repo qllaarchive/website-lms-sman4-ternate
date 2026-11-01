@@ -11,11 +11,11 @@ const EntrySchema = z.object({
   id: z.string().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/).optional(),
   klass: z.enum(["X", "XI", "XII"]),
   name: z.string().min(1).max(120),
-  short: z.string().max(40).optional(),
+  short: z.string().max(120).transform((v) => v.slice(0, 40)).optional(),
   teacher: z.string().max(80).optional(),
   icon: z.string().max(40),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  file: z.string().min(1).max(500),
+  file: z.string().trim().min(1).max(500).refine((v) => /^https?:\/\//i.test(v) || !/^[a-z][a-z0-9+.-]*:/i.test(v), "invalid_link"),
   pub: z.boolean().optional(),
   scriptId: z.string().max(200).optional(),
 });

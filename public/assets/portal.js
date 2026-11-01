@@ -100,6 +100,27 @@
     });
   }
 
+  /* ---------- pesan error API yang mudah dipahami ---------- */
+  var API_ERR = {
+    unauthorized: "Sesi berakhir. Masuk lagi.",
+    csrf_required: "Sesi keamanan kedaluwarsa. Muat ulang halaman, lalu coba lagi.",
+    admin_required: "Akun ini tidak punya hak admin.",
+    invalid_input: "Isian belum valid. Periksa kembali nama dan tautan.",
+    duplicate_id: "Entri dengan ID yang sama sudah ada.",
+    not_found: "Data tidak ditemukan (mungkin sudah dihapus). Muat ulang halaman.",
+    file_too_large: "Ukuran foto masih terlalu besar. Coba foto lain atau perkecil dulu.",
+    unsupported_image_type: "Jenis berkas harus JPG, PNG, atau WebP.",
+    image_required: "Pilih berkas foto terlebih dahulu.",
+    server_error: "Terjadi kesalahan di server. Coba lagi sebentar lagi."
+  };
+  function apiErrMsg(r, fallback){
+    if(!r || r.status === 0) return "Tidak bisa terhubung ke server. Periksa internet, lalu coba lagi.";
+    if(r.status === 401) return API_ERR.unauthorized;
+    if(r.status === 413) return API_ERR.file_too_large;
+    var code = r.data && r.data.error;
+    return (code && API_ERR[code]) || fallback;
+  }
+
   /* ---------- umpan balik sementara ---------- */
   function toast(msg, kind){
     var wrap = $("toasts");
@@ -871,7 +892,8 @@
       LMS_API.deleteEntry(removed.id).then(function(r){
         if(!(r && r.ok)){
           if(rowEl) rowEl.classList.remove("is-out");
-          toast(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menghapus di server.", "err");
+          loadServerEntries(); /* kembalikan entri yang gagal dihapus ke layar */
+          toast(apiErrMsg(r, "Gagal menghapus di server."), "err");
         }
       });
       return;
@@ -918,7 +940,9 @@
       kErr.hidden = false;
     }
     if(!name) return fail("Nama mata pelajaran wajib diisi.");
-    if(!/^https?:\/\/\S+$/i.test(url)) return fail("Tautan harus diawali http:// atau https://.");
+    var isWeb = /^https?:\/\/\S+$/i.test(url);
+    var isLocal = /^[\w./-]+\.html?(#\S*)?$/i.test(url) && url.indexOf("..") < 0;
+    if(!isWeb && !isLocal) return fail("Tautan harus diawali http:// atau https:// (atau halaman situs ini, mis. mapel/matematika.html).");
     if(!apiAvailable || !window.LMS_API){ return fail("Backend tidak tersedia. Hubungi admin sekolah."); }
     var arr = kelolaEntries();
     var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "mapel";
@@ -966,7 +990,7 @@
         toast(pub === false ? "LMS tersimpan sebagai arsip (tak tampil di daftar siswa)." : msg);
         resetKForm();
       }else{
-        fail(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menyimpan ke server.");
+        fail(apiErrMsg(r, "Gagal menyimpan ke server."));
       }
     });
   });
@@ -981,11 +1005,42 @@
   var skList = $("sk-list"), skForm = $("sk-form"), skErr = $("sk-err");
   var skInput = $("sk-input"), skTitle = $("sk-title"),
       skPub = $("sk-pub"), skPreview = $("sk-preview"),
-      skPreviewImg = $("***"), skSave = $("sk-save");
+      skPreviewImg = $("sk-preview-img"), skSave = $("sk-save");
   var skIdx = 0, slTimer = null, skFileURL = null, skEditingId = null, skHover = false;
   var SLIDE_MS = 7000;
   var skFileOK = /^image\/(jpe?g|png|webp)$/i;
   var skFileMax = 8 * 1024 * 1024;
+
+  /* Foto dari HP sering 4–10 MB. Perkecil di browser (sisi terpanjang 1920 px,
+     JPEG mutu 0,85) agar unggahan cepat dan lolos batas server 3 MB. */
+  var SK_SHRINK_OVER = 1.5 * 1024 * 1024;
+  function shrinkImage(file){
+    return new Promise(function(resolve){
+      if(!file || file.size <= SK_SHRINK_OVER || !window.URL || !document.createElement("canvas").toBlob) return resolve(file);
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){
+        try{
+          var max = 1920, w = img.naturalWidth, h = img.naturalHeight;
+          var k = Math.min(1, max / Math.max(w, h));
+          var c = document.createElement("canvas");
+          c.width = Math.round(w * k); c.height = Math.round(h * k);
+          var g = c.getContext("2d");
+          g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+          g.drawImage(img, 0, 0, c.width, c.height);
+          c.toBlob(function(b){
+            URL.revokeObjectURL(url);
+            if(!b || b.size >= file.size) return resolve(file);
+            var name = String(file.name || "foto").replace(/\.[^.]+$/, "") + ".jpg";
+            try{ resolve(new File([b], name, { type: "image/jpeg" })); }
+            catch(e){ b.name = name; resolve(b); }
+          }, "image/jpeg", 0.85);
+        }catch(e){ URL.revokeObjectURL(url); resolve(file); }
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
 
   function slVisible(){
     return state2.sliders.filter(function(s){ return s.pub !== false; });
@@ -1143,7 +1198,7 @@
       return LMS_API.updateSlider(s.id, { sortOrder: String(k) });
     })).then(function(rs){
       var bad = rs && rs.some(function(r){ return !(r && r.ok); });
-      if(bad){ toast("Gagal menyimpan urutan di server.", "err"); loadSliders(); }
+      if(bad){ toast(apiErrMsg(rs.filter(function(r){ return !(r && r.ok); })[0], "Gagal menyimpan urutan di server."), "err"); loadSliders(); }
     });
   }
   var skAdd = $("sk-add");
@@ -1199,7 +1254,7 @@
       LMS_API.deleteSlider(item.id).then(function(r){
         if(!(r && r.ok)){
           loadSliders();
-          toast(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : "Gagal menghapus di server.", "err");
+          toast(apiErrMsg(r, "Gagal menghapus di server."), "err");
         }
       });
       return;
@@ -1209,10 +1264,10 @@
       skEditingId = item.id;
       var t = $("sk-form-title"), sub = $("sk-form-sub");
       if(t) t.textContent = "Ubah Foto";
-      if(sub) sub.textContent = "Biarkan berkas & tautan kosong bila ingin mempertahankan foto lama.";
+      if(sub) sub.textContent = "Biarkan berkas kosong bila ingin mempertahankan foto lama.";
       if(skTitle) skTitle.value = item.title || "";
       if(skPub) skPub.checked = item.pub !== false;
-      if(/^\/api\/uploads\//.test(item.imageUrl || "")){
+      if(/^(\/api\/|https:\/\/)/.test(item.imageUrl || "")){
         if(skPreviewImg) skPreviewImg.src = item.imageUrl;
         if(skPreview) skPreview.hidden = false;
       }
@@ -1241,9 +1296,10 @@
     var fields = { title: title, pub: String(pub) };
     setSkSaving(true, !!skEditingId);
     var wasEditing = !!skEditingId;
-    var apiReq = wasEditing
-      ? LMS_API.updateSlider(skEditingId, fields, f)
-      : LMS_API.createSlider(fields, f);
+    var editId = skEditingId;
+    var apiReq = shrinkImage(f).then(function(img){
+      return wasEditing ? LMS_API.updateSlider(editId, fields, img) : LMS_API.createSlider(fields, img);
+    });
     apiReq.then(function(r){
       setSkSaving(false, wasEditing);
       if(r && r.ok){
@@ -1252,7 +1308,7 @@
         toast(wasEditing ? "Perubahan foto disimpan." : "Foto ditambahkan ke slider.");
         loadSliders();
       }else{
-        fail(r && r.status === 401 ? "Sesi berakhir. Masuk lagi." : (r && r.data && r.data.error ? r.data.error : "Gagal menyimpan foto ke server."));
+        fail(apiErrMsg(r, "Gagal menyimpan foto ke server."));
       }
     });
   });
