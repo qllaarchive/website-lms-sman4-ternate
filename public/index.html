@@ -225,6 +225,8 @@
           <button type="button" class="page-switch-item is-on" role="tab" aria-selected="true" aria-controls="k-view-lms" data-view="lms" id="tab-kelola-lms">Kelola LMS</button>
           <span class="page-switch-div" aria-hidden="true"></span>
           <button type="button" class="page-switch-item" role="tab" aria-selected="false" aria-controls="k-view-foto" data-view="foto" id="tab-kelola-foto">Kelola Foto</button>
+          <span class="page-switch-div" aria-hidden="true"></span>
+          <button type="button" class="page-switch-item" role="tab" aria-selected="false" aria-controls="k-view-spreadsheet" data-view="spreadsheet" id="tab-kelola-spreadsheet">Spreadsheet</button>
         </div>
       </div>
     </header>
@@ -332,6 +334,17 @@
           </form>
           <div class="k-list sk-list" id="sk-list"></div>
         </section>
+        </div>
+
+        <div class="k-view" id="k-view-spreadsheet" role="tabpanel" aria-labelledby="tab-kelola-spreadsheet" hidden>
+        <div class="manage-tools">
+          <span class="manage-label">Spreadsheet Guru</span>
+          <p class="k-count" style="margin:0 0 12px;font-size:13px;color:var(--muted)">Klik tombol di bawah untuk membuka folder Spreadsheet di Google Drive.</p>
+        </div>
+        <div class="card pad" style="text-align:center;margin-top:12px">
+          <a class="btn primary" id="btn-open-spreadsheet" href="https://drive.google.com/drive/folders/1Bs190ZCurEjyAfIUVcZ3u91eh6r3J_FA?hl=ID" target="_blank" rel="noopener noreferrer"><span id="spreadsheet-ic" aria-hidden="true"></span> Buka Spreadsheet Guru</a>
+          <p class="small muted" style="margin-top:10px">Folder: <code style="font-size:12px;background:var(--soft);padding:2px 6px;border-radius:4px">1Bs190ZCurEjyAfIUVcZ3u91eh6r3J_FA</code></p>
+        </div>
         </div>
       </div>
     </div>

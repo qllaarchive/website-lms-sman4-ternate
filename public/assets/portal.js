@@ -242,11 +242,12 @@
      Dua tampilan di satu halaman (panel bergantian), judul aktif warna tinta + garis kecil. */
   var kelolaView = "lms";
   function setKelolaView(v){
-    if(v !== "lms" && v !== "foto") v = "lms";
+    if(v !== "lms" && v !== "foto" && v !== "spreadsheet") v = "lms";
     kelolaView = v;
-    var lmsV = $("k-view-lms"), fotoV = $("k-view-foto");
+    var lmsV = $("k-view-lms"), fotoV = $("k-view-foto"), ssV = $("k-view-spreadsheet");
     if(lmsV) lmsV.hidden = v !== "lms";
     if(fotoV) fotoV.hidden = v !== "foto";
+    if(ssV) ssV.hidden = v !== "spreadsheet";
     var tabs = document.querySelectorAll("#modal-kelola .page-switch-item");
     Array.prototype.forEach.call(tabs, function(t){
       var on = t.dataset && t.dataset.view === v;
@@ -264,8 +265,11 @@
     });
     pageSwitch.addEventListener("keydown", function(ev){
       if(ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
-      setKelolaView(kelolaView === "lms" ? "foto" : "lms");
-      var t = $(kelolaView === "lms" ? "tab-kelola-lms" : "tab-kelola-foto");
+      var views = ["lms","foto","spreadsheet"];
+      var i = views.indexOf(kelolaView);
+      i = ev.key === "ArrowRight" ? (i+1)%views.length : (i-1+views.length)%views.length;
+      setKelolaView(views[i]);
+      var t = $("tab-kelola-"+views[i]);
       if(t) try{ t.focus(); }catch(e){}
       ev.preventDefault();
     });
