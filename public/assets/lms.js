@@ -163,6 +163,12 @@ VIEWS.home = () => {
   ];
   return `<div class="home">
     <div class="stack">${pengumumanCard()}
+${!D.nama || !D.kelas ? `<div class="profile-setup">
+  <h2>👤 Lengkapi data diri (dipakai absen & kirim skor)</h2>
+  <label class="f" style="margin-bottom:8px">Nama lengkap<input type="text" id="h-nama" value="${esc(D.nama)}" placeholder="mis. Nadia Rahma"></label>
+  <label class="f" style="margin-bottom:8px">Kelas<input type="text" id="h-kelas" value="${esc(D.kelas)}" placeholder="mis. X-1"></label>
+  <button class="btn" id="h-save">Simpan data diri</button>
+</div>` : ""}
       <div class="card welcome">
         <span class="globe">${META.emoji}</span>
         <div class="txt"><h2>Selamat datang, ${esc(name.split(" ")[0])}!</h2>
@@ -205,6 +211,11 @@ BIND.home = () => {
     else if(v === "q-uts") go("quiz","sum",1);
     else go(v);
   });
+  document.querySelector("#h-save")?.addEventListener("click", () => {
+    D.nama = $("h-nama").value.trim();
+    D.kelas = $("h-kelas").value.trim();
+    if(!D.nama || !D.kelas) return toast("Isi nama dan kelas dulu 🙂");
+    save(); updateUser(); toast("Data disimpan ✅"); render(); });
   document.querySelectorAll(".eacc-h").forEach(b => b.onclick = () => {
     const item = b.closest(".eacc");
     const open = item.classList.toggle("open");
@@ -213,6 +224,16 @@ BIND.home = () => {
   });
 };
 function nextUnitN(){ for(let n=1;n<=NU;n++) if(unitFlags(n) < UNIT_TOT) return n; return NU; }
+/* Unit sequential unlock: unit 1 always open; unit n open only if unit n-1 is 100% complete */
+function isUnitUnlocked(n){
+  n = +n || 1;
+  if(n <= 1) return true;
+  return progUnit(n-1) >= 100;
+}
+function firstUnlockedUnit(){
+  for(let n=1;n<=NU;n++) if(isUnitUnlocked(n)) return n;
+  return 1;
+}
 function avgAll(){ const a = []; for(let n=1;n<=NU;n++) a.push(...allScores(n));
   if(!a.length) return "—"; return Math.round(a.reduce((s,x)=>s+x,0)/a.length); }
 function ringSVG(pct){
@@ -250,26 +271,56 @@ function calItems(){
 let courseSem = 0;
 VIEWS.courses = () => {
   const list = UNITS.filter(u => !courseSem || u.sem === courseSem);
+  const bySem = {};
+  list.forEach(u => { (bySem[u.sem] = bySem[u.sem] || []).push(u); });
+    const semBlock = (sem) => {
+    const us = bySem[sem] || [];
+    if(!us.length) return "";
+    const label = sem===1?"Semester 1":sem===2?"Semester 2":"Semua Unit";
+    return `<div class="sem-wrap"><div class="sem-head">${label} · ${us.length} unit</div>
+      <div class="course-grid">${us.map(u => {
+        const e = ELEMENTS[u.el-1];
+        const tp = u.tp||[];
+        const meets = (u.meet||[]).length;
+        const chips = tp.map(t=>`<span class="cc-pill e${u.el}">${esc(t.c)}</span>`).join("");
+        const unlocked = isUnitUnlocked(u.n);
+        const prevPct = u.n>1 ? progUnit(u.n-1) : 0;
+        const lockMsg = u.n>1 ? `Tuntasi Unit ${u.n-1} (${prevPct}%) dulu` : "";
+        return `<div class="ccard e${u.el}${unlocked?"":" locked"}" data-open="${u.n}${unlocked?"":""}">
+          <span class="cnum">${u.n}</span>
+          ${!unlocked ? `<div class="lock-overlay"><span class="lock-ic">🔒</span><div class="lock-txt">${lockMsg}</div></div>` : ""}
+          <div class="cbody${unlocked?"":" lock-dim"}">
+            <div class="crow"><span class="cemoji">${u.emoji || "📘"}</span>
+              <div><span class="ceyebrow">UNIT ${u.n} · ${meets} Pertemuan · ${meets*JP_U} JP${!unlocked?" — TERKUNCI":""}</span>
+              <h3 class="ctitle">${esc(u.title)}${!unlocked?"":""}</h3></div></div>
+            <p class="cdesc">${esc(unlocked?u.desc:lockMsg)}</p>
+            <div class="cmeta">
+              <span class="cchip"><span class="cm-icon">🤝</span>${meets} Meetings</span>
+              <span class="cchip"><span class="cm-icon">★</span>${e.name}</span>
+              ${chips}
+              <span class="cchip cm-sem">${sem===1?"Ganjil":"Genap"}</span>
+            </div>
+            <div class="crow"><span></span><span class="cbtn${unlocked?"":" lock-btn"}">${unlocked?"Buka unit →":"Tuntasi unit sebelumnya"}</span></div>
+          </div>
+        </div>`;
+      }).join("")}</div></div>`;
+    };
   return `<div class="stack">
     <div class="sec-h"><span class="ic">📚</span><h2>Mata Pelajaran — ${NU} Unit ${META.short} X</h2>
       <span class="right row">${[0,1,2].map(s => `<button class="btn sm ${courseSem===s?"":"ghost"}" data-sem="${s}">${s?s+" Semester":"Semua"}</button>`).join("")}</span></div>
-    <div class="grid2">${list.map(u => `<div class="card pad" style="border-left:5px solid var(--e${u.el})">
-      <div class="row" style="justify-content:space-between">
-        <div class="row"><span style="font-size:34px">${u.emoji}</span>
-          <div><span class="eyebrow">UNIT ${u.n} · SEMESTER ${u.sem} · ${JP_U} JP</span>
-          <h3 style="font-size:19px">${esc(u.title)}</h3></div></div>
-        <span class="pill e${u.el}">E${u.el} ${ELEMENTS[u.el-1].emoji}</span></div>
-      <p class="muted small" style="margin-top:8px">${esc(u.desc)}</p>
-      <div class="estrip" style="margin-top:8px">${u.tp.map(t=>`<span class="pill">🎯 ${t.c}</span>`).join("")}</div>
-      <div class="mini" style="margin-top:10px"><i style="width:${progUnit(u.n)}%"></i></div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn sm" data-open="${u.n}">Buka unit →</button>
-        <span class="small muted">${progUnit(u.n)}% selesai${avgUnit(u.n)?` · rata-rata ${avgUnit(u.n)}`:""}</span></div>
-    </div>`).join("")}</div></div>`;
+    <div class="cc-info">
+      <span class="cc-info-i">🗓️</span>
+      <span><b>${NU} unit</b> · ${Math.ceil(NU/2)} pertemuan per unit · ${JP_U} JP per pertemuan (${NU*JP_U} JP/tahun). Setiap semester memuat ketika elemen.</span>
+    </div>
+    ${[1,2].map(sem=>semBlock(sem)).join("")}
+  </div>`;
 };
 BIND.courses = () => {
   document.querySelectorAll("[data-sem]").forEach(b => b.onclick = () => { courseSem = +b.dataset.sem; render(); });
-  document.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { go("unit", +b.dataset.open, "tujuan"); play("klik"); });
+  document.querySelectorAll("[data-open]").forEach(b => {
+    if(b.classList.contains("locked")) return;
+    b.onclick = () => { go("unit", +b.dataset.open, "tujuan"); play("klik"); };
+  });
   document.querySelectorAll("[data-unit]").forEach(b => b.onclick = () => { go("unit", +b.dataset.unit, "tujuan"); play("klik"); });
 };
 
@@ -315,6 +366,24 @@ const UTABS = [["tujuan","🎯","Tujuan"],["awal","🩺","Asesmen Awal"],["mater
 function hl(s){ return esc(s).replace(/\[\[(.+?)\]\]/g, '<span class="hl">$1</span>'); }
 VIEWS.unit = (n, tab) => {
   n = +n || 1; tab = tab || "tujuan";
+  if(!isUnitUnlocked(n)){
+    const prev = n-1;
+    const prevPct = prev>=1 ? progUnit(prev) : 0;
+    const fu = firstUnlockedUnit();
+    return `<div class="stack">
+      <div class="card pad" style="text-align:center;padding-top:40px">
+        <span style="font-size:64px;line-height:1">🔒</span>
+        <h2 style="margin:16px 0 8px">Unit ${n} Masih Terkunci</h2>
+        <p class="muted" style="max-width:420px;margin:0 auto 16px">
+          Selesaikan <b>Unit ${prev}</b> terlebih dahulu (progres saat ini ${prevPct}%) sebelum melanjutkan ke Unit ${n}.<br>
+          Unit yang tersedia sekarang: <b>Unit ${fu}</b>.
+        </p>
+        <div class="row" style="justify-content:center;margin-top:12px">
+          <button class="btn" onclick="go('unit', ${fu}, 'tujuan')">Buka Unit ${fu}</button>
+          <button class="btn ghost" onclick="go('courses')">Kembali ke daftar unit</button>
+        </div>
+      </div></div>`;
+  }
   const u = UNITS[n-1], st = U(n), e = ELEMENTS[u.el-1];
   const body = {
     tujuan: () => `<div class="stack">
@@ -339,8 +408,8 @@ VIEWS.unit = (n, tab) => {
         <p class="muted" style="margin-top:6px">${esc(u.desc)}</p></div>
       <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">🗺️</span><h2 style="font-size:19px">Peta konsep</h2></div>
         <div class="chips">${u.focus.map(f=>`<span class="chip e${u.el}"><b>${esc(f[0])}</b> — ${esc(f[1])}</span>`).join("")}</div></div>
-      <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">✏️</span><h2 style="font-size:19px">Contoh model penyelesaian</h2></div>
-        <div class="model e${u.el}">${hl(u.model)}</div></div>
+        <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">✏️</span><h2 style="font-size:19px">Contoh model penyelesaian</h2></div>
+        <div class="model e${u.el} para">${hl(u.model)}</div></div>
       <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">📖</span><h2 style="font-size:19px">Buku digital terkait</h2></div>
         <div class="grid3">${EBOOKS.map(bk=>`<button class="btn ghost" data-ebook="${bk.id}">${bk.emoji} ${esc(bk.title)}</button>`).join("")}</div></div>
       <div class="row"><button class="btn" data-mat-done="${n}">${st.materi?"✅ Materi ditandai selesai":"Tandai materi selesai"}</button></div></div>`,
@@ -461,10 +530,11 @@ function startQuiz(box, items, opt){
     }
     const q = items[i];
     box.innerHTML = `<div class="qhead"><span class="eyebrow">${esc(opt.title||"Soal")} · ${i+1}/${items.length}</span></div>
+      ${q.stim ? `<div class="stim-box">${esc(q.stim)}</div>` : ""}
       <div class="qtext">${i+1}. ${esc(q.q)}</div>
       ${q.num ? `<div class="row" style="margin-top:12px"><input class="qin" id="q-num" inputmode="decimal" placeholder="Jawaban angka…">
           <button class="btn" id="q-chk">Periksa</button></div><div id="q-fb" class="qfb"></div>`
-        : `<div class="qopts">${q.o.map((t,k)=>`<button class="qopt" data-k="${k}">${String.fromCharCode(65+k)}. ${esc(t)}</button>`).join("")}</div>
+        : `<div class="qopts">${q.o.map((t,k)=>`<button class="qopt radio" data-k="${k}"><span class="rk">${String.fromCharCode(65+k)}</span>${esc(t)}</button>`).join("")}</div>
            <div id="q-fb" class="qfb"></div>`}
       <div class="row" style="margin-top:14px"><button class="btn ghost" id="q-next" disabled>${i===items.length-1?"Lihat hasil":"Soal berikutnya →"}</button></div>`;
     const next = box.querySelector("#q-next");
@@ -485,9 +555,12 @@ function startQuiz(box, items, opt){
         if(answered) return; answered = true;
         const k = +b.dataset.k, ok = k === q.a;
         if(ok) correct++;
+        b.classList.add("sel");
+        const rk = b.querySelector(".rk");
         box.querySelectorAll(".qopt").forEach((x,xi) => {
-          if(xi === q.a) x.classList.add("ok");
-          else if(xi === k) x.classList.add("no");
+          const xrk = x.querySelector(".rk");
+          if(xi === q.a){ x.classList.add("ok"); if(xrk) xrk.classList.add("ok"); }
+          else if(xi === k){ x.classList.add("no"); if(xrk) xrk.classList.add("no"); }
           else x.classList.add("dim");
           x.disabled = true;
         });
@@ -1264,7 +1337,7 @@ BIND.lab = (id) => {
         <div class="qtext">${i+1}. ${esc(q.q)}</div>
         ${q.num ? `<div class="row" style="margin-top:10px"><input class="qin" id="lq-num" inputmode="decimal" placeholder="Jawaban angka…">
             <button class="btn" id="lq-chk">Periksa</button></div>`
-          : `<div class="qopts">${q.o.map((t,k) => `<button class="qopt" data-k="${k}">${String.fromCharCode(65+k)}. ${esc(t)}</button>`).join("")}</div>`}
+          : `<div class="qopts">${q.o.map((t,k) => `<button class="qopt radio" data-k="${k}"><span class="rk">${String.fromCharCode(65+k)}</span>${esc(t)}</button>`).join("")}</div>`}
         <div id="lq-fb" class="qfb"></div>
         <div class="row" style="margin-top:10px"><button class="btn ghost" id="lq-next" disabled>${i === items.length-1 ? "Lihat hasil" : "Soal berikutnya →"}</button></div>`;
       const next = box.querySelector("#lq-next");
@@ -1285,8 +1358,13 @@ BIND.lab = (id) => {
           if(answered) return; answered = true;
           const k = +b.dataset.k, ok = k === q.a;
           if(ok) correct++;
+          b.classList.add("sel");
+          const rk = b.querySelector(".rk");
           box.querySelectorAll(".qopt").forEach((x,xi) => {
-            if(xi === q.a) x.classList.add("ok"); else if(xi === k) x.classList.add("no"); else x.classList.add("dim");
+            const xrk = x.querySelector(".rk");
+            if(xi === q.a){ x.classList.add("ok"); if(xrk) xrk.classList.add("ok"); }
+            else if(xi === k){ x.classList.add("no"); if(xrk) xrk.classList.add("no"); }
+            else x.classList.add("dim");
             x.disabled = true;
           });
           play(ok?"benar":"salah");

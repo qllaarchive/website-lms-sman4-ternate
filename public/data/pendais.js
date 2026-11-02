@@ -15,6 +15,7 @@ meta:{
   botQuick:["fastabiqul khairat","syu'ab al-iman","sumber hukum Islam","al-kulliyat al-khamsah","cara belajar"],
   about:"LMS Pendidikan Agama Islam Kelas X · Fase E · selaras CP PAI: Al-Qur’an Hadis, Akidah, Akhlak, Fikih, dan Sejarah Peradaban Islam, dengan konteks Nusantara dan Maluku.",
   logoText:"PAI",
+  sheetId:"AKfycbz6jRZOVJT5jruAeVkNNsb75n56uhT1-f9Nwxaoh4DtEuHc9c4f7hfigwIep52MM5bw9w",
   homeLayout:"accordion",
   scene:["Tilawah","Iman","Akhlak","Peradaban"]
 },

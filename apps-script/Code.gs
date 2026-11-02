@@ -5,6 +5,24 @@
  * Menerima kiriman skor/progres dari halaman LMS (assets/lms.js) lalu
  * menulisnya ke spreadsheet Excel/Google Sheets.
  *
+ * ===== INTEGRASI LIBRARY GOOGLE APPS SCRIPT =====
+ * Library ID : 1uYEcb34o95CACmyusZlM4hpTED61JAheMoRZ7s_gPoK345dH9wPQjJbt
+ * Versi      : 2
+ *
+ * CARA MENAMBAHKAN LIBRARY (harus lewat editor web, tidak bisa lewat file ini):
+ *  1. Buka https://script.google.com → buka project Apps Script Anda.
+ *  2. Di sidebar kiri, klik ikon "⊕" di sebelah tulisan "Libraries".
+ *  3. Tempel Script ID di atas ke kotak "Add a script as a library".
+ *  4. Klik Look → pilih Versi 2 → klik Add.
+ *  5. Simpan project (ikon disket / Ctrl+S).
+ *
+ * Setelah ditambahkan, ganti "NamaLibrary" di bawah ini dengan nama
+ * library yang muncul di editor (biasanya nama default dari project library),
+ * lalu isi fungsi-fungsi yang sesuai dengan yang diekspor library.
+ * ============================================================================
+ * Menerima kiriman skor/progres dari halaman LMS (assets/lms.js) lalu
+ * menulisnya ke spreadsheet Excel/Google Sheets.
+ *
  * CARA PAKAI:
  * 1. Buka spreadsheet Anda → menu Ekstensi → Apps Script.
  * 2. Ganti seluruh isi Code.gs dengan file ini → Simpan (Ctrl/Cmd+S).
@@ -55,6 +73,31 @@ var TABEL = {
     head: ["Waktu", "Tipe", "Pesan"]
   }
 };
+
+/* ========================= WRAPPER LIBRARY =========================
+ * Ganti "NamaLibrary" dengan nama library yang muncul di editor Apps Script
+ * setelah Anda menambahkan library (Script ID:
+ * 1uYEcb34o95CACmyusZlM4hpTED61JAheMoRZ7s_gPoK345dH9wPQjJbt, versi 2).
+ *
+ * Contoh struktur (sesuaikan dengan fungsi yang diekspor library):
+ *
+ * var Lib = {
+ *   sinkronNilai: function(row) { return NamaLibrary.simpanNilai(row); },
+ *   backupProgres: function() { return NamaLibrary.exportProgres(); },
+ *   notifikasi: function(pesan) { return NamaLibrary.kirimNotif(pesan); }
+ * };
+ *
+ * Jika library tidak memiliki fungsi apa-apa yang perlu dipanggil,
+ * biarkan variabel Lib ini kosong atau hapus bagian ini.
+ * ========================= WRAPPER LIBRARY ========================= */
+var Lib = {};
+/* Contoh (hapus komentar dan isi nama fungsi asli library):
+var Lib = {
+  simpanNilai: function(nama, kelas, mapel, unit, jenis, skor, kktp, waktu) {
+    return NamaLibrary.simpanNilai(nama, kelas, mapel, unit, jenis, skor, kktp, waktu);
+  }
+};
+*/
 
 /* ========================= UTILITAS ========================= */
 function ss_() {
@@ -159,6 +202,12 @@ function doPost(e) {
       ];
       withLock_(function () { sheet_("nilai").appendRow(row); });
       log_("skor", row[1] + " • " + row[3] + " unit " + row[4] + " • " + row[6]);
+      /* ---- Panggilan library (diaktifkan bila Anda mengisi fungsi di Lib) ----
+         Contoh: Lib.simpanNilai(...) — hapus komentar & isi nama fungsi asli library. */
+      /* if (typeof Lib.simpanNilai === "function") {
+          try { Lib.simpanNilai(row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[0]); }
+          catch (e) { log_("lib", "Lib.simpanNilai gagal: " + String(e)); }
+        } */
       return out_({ ok: true, msg: "Skor tersimpan", status: row[8] });
     }
 

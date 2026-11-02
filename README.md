@@ -7,7 +7,7 @@
 
 Portal pembelajaran digital terpadu untuk **SMA Negeri 4 Ternate**. Menyediakan sistem manajemen pembelajaran (LMS) interaktif untuk jenjang Kelas X, XI, dan XII (Fase E & F Kurikulum Merdeka) yang mencakup materi, asesmen berjenjang, gim edukatif, lab maya, e-book, dan forum diskusi dalam satu platform ringan.
 
-Dibangun dengan arsitektur hibrida: frontend statis (HTML/CSS/JS murni) untuk kecepatan dan performa maksimal, didukung oleh **backend Node.js & PostgreSQL** yang aman untuk manajemen data terpusat (tautan LMS, akun admin, profil sekolah, dan pemantauan progres).
+Dibangun dengan arsitektur hibrida: frontend statis (HTML/CSS/JS murni) untuk kecepatan dan performa maksimal, didukung oleh **backend Node.js & PostgreSQL** yang aman untuk manajemen data terpusat (tautan LMS, akun admin, profil sekolah, dan pemantauan progres). Setiap modul mata pelajaran menggunakan gaya visual **English LMS** (kartu unit, progres, langkah-langkah, quiz, dan stimulus) dengan sistem **pembuka berurutan** (unit sebelumnya harus tuntas baru bisa buka berikutnya) serta integrasi **Google Apps Script / Spreadsheet** untuk pencatatan skor otomatis.
 
 ---
 
@@ -38,7 +38,9 @@ Dibangun dengan arsitektur hibrida: frontend statis (HTML/CSS/JS murni) untuk ke
 
 ### 2. Modul Pembelajaran per Mata Pelajaran
 Setiap mata pelajaran dilengkapi modul mandiri (mis. Matematika dengan 137 tampilan, Sejarah, Fisika, dan PAI):
+- **Gaya Visual English LMS:** Kartu unit, progres lingkaran, langkah-langkah, quiz dengan stimulus & pilihan radio, dan desain responsif mobile.
 - **Alur Pembelajaran:** Diagnostik → Formatif → Sumatif dengan umpan balik instan.
+- **Sistem Pembuka Berurutan:** Unit sebelumnya harus tuntas (100%) baru unit berikutnya bisa dibuka.
 - **Selaras Kurikulum Merdeka:** Berfokus pada Tujuan Pembelajaran dan Elemen Capaian Pembelajaran (CP).
 - **Media Interaktif:** Gim edukatif, simulasi lab maya berbasis web, e-book, dan forum diskusi kelas.
 - **Penyimpanan Lokal:** Progres belajar siswa otomatis tersimpan di `localStorage` per perangkat.
@@ -77,7 +79,8 @@ Setiap mata pelajaran dilengkapi modul mandiri (mis. Matematika dengan 137 tampi
 ├── public/                      # SEMUA file situs yang di-deploy (statis)
 │   ├── index.html               # Portal utama (daftar mapel, panel admin, dashboard progres)
 │   ├── mapel/                   # Halaman LMS mandiri per mata pelajaran
-│   │   ├── matematika.html      # LMS Matematika (berkas mandiri penuh)
+│   │   ├── bahasa-inggris.html  # LMS Bahasa Inggris (self-contained, gaya English LMS penuh)
+│   │   ├── matematika.html      # LMS Matematika (shell + data/matematika.js)
 │   │   ├── fisika.html, sejarah.html, pendais.html
 │   │   └── 12+ shell mapel lainnya
 │   ├── assets/                  # portal.css/js, lms.css/js (engine), icons.js
@@ -85,9 +88,11 @@ Setiap mata pelajaran dilengkapi modul mandiri (mis. Matematika dengan 137 tampi
 ├── scripts/
 │   ├── validate.mjs             # Skrip validasi skema data LMS
 │   ├── smoke.mjs                # Uji render otomatis (DOM stub) tanpa browser
+│   ├── smoke-portal.mjs         # Uji render halaman portal
 │   ├── build-*.mjs              # Skrip kompilasi berkas mandiri (standalone build)
 │   └── build-config.mjs         # Penghasil konfigurasi API dinamis saat proses build
 ├── apps-script/                 # Integrasi Google Apps Script pendukung guru (?gs=)
+│   └── Code.gs                  # Backend Sheets + integrasi library Apps Script
 ├── api/                         # Backend Express, konfigurasi Prisma, dan migrasi database
 ├── mobile/                      # Kerangka aplikasi mobile Flutter
 ├── docs/                        # Dokumentasi teknis & laporan akademik (Website, SOBJ, TKTI, NetSec)
@@ -149,9 +154,9 @@ node --check assets/portal.js
 
 Contoh hasil pengujian yang sukses:
 ```text
-1 file · 0 error · 0 warning
-views=137 binds=22 quizDone=true shell=true
-SMOKE OK — matematika.js · 137 view dirender
+4 file · 0 error · 0 warning
+views=141 binds=25 quizDone=true shell=true
+SMOKE OK — pendais.js · 141 view dirender
 ```
 
 ---
@@ -179,6 +184,24 @@ Panduan langkah demi langkah yang lebih lengkap tersedia di berkas **[DEPLOY.md]
 3. Duplikat templat halaman dari direktori `public/mapel/` dan arahkan pemuatan berkas ke `../data/<id-mapel>.js`.
 4. Jalankan perintah validasi dan uji render (`validate.mjs` & `smoke.mjs`).
 5. Masuk ke halaman portal sebagai admin, buka menu **Kelola**, dan tambahkan entri mapel baru untuk setiap kelas.
+
+---
+
+## ☁️ Integrasi Google Apps Script & Spreadsheet
+
+Skor asesmen dapat dikirim otomatis ke Google Sheets melalui Google Apps Script (Web App):
+
+1. Buka spreadsheet tujuan → **Ekstensi → Apps Script**.
+2. Salin isi berkas [`apps-script/Code.gs`](apps-script/Code.gs) ke editor → Simpan.
+3. **Tambah library** (Sidebar → Libraries → ⊕): masukkan Script ID  
+   `1uYEcb34o95CACmyusZlM4hpTED61JAheMoRZ7s_gPoK345dH9wPQjJbt`, pilih versi **2**, lalu simpan.
+4. Isi nama fungsi di variabel `Lib` sesuai dengan yang diekspor library.
+5. Jalankan `siapkanSheet` sekali, lalu **Deploy → New deployment → Web app** (Execute as: Me, Who has access: Anyone).
+6. Salin kode deployment (bagian setelah `/macros/s/` dan sebelum `/exec`), lalu tempel di:
+   - Portal → Kelola mapel → kolom "Kode Apps Script", **atau**
+   - Dalam mapel → ⚙️ Settings → "Kode Web App" → Uji koneksi.
+
+Skor akan dicatat ke sheet `Nilai` (Waktu, Nama, Kelas, Mapel, Unit, Jenis, Skor, KKTP, Status) dan progres ke sheet `Progres`.
 
 ---
 

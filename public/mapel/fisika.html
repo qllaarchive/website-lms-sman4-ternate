@@ -15,10 +15,10 @@
 /* ============ Fisika — palet violet (override lms.css) ============ */
 :root{
   --navy:#31237e; --navy2:#4634a3; --navy-ink:#eae6ff; --blue:#6d4df2;
-  --e1:#0d9488; --e1bg:#dcf4f2; --e1line:#68cdb9;      /* Pengukuran & Satuan */
-  --e2:#1f6fe5; --e2bg:#e6efff; --e2line:#b7cff7;      /* Gerak & Kinematika */
-  --e3:#8b5cf6; --e3bg:#f1eaff; --e3line:#d3bcfa;      /* Dinamika & Energi */
-  --e4:#15803d; --e4bg:#e3f6ea; --e4line:#ade0c0;      /* Energi & Perubahan Iklim */
+  --e1:#0d9488; --e1bg:#dcf4f2; --e1line:#68cdb9;
+  --e2:#1f6fe5; --e2bg:#e6efff; --e2line:#b7cff7;
+  --e3:#8b5cf6; --e3bg:#f1eaff; --e3line:#d3bcfa;
+  --e4:#15803d; --e4bg:#e3f6ea; --e4line:#ade0c0;
   --lab:#6d4df2; --labbg:#efeaff; --labline:#cfc2fb;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -56,7 +56,7 @@
         <rect x="4" y="6" width="66" height="54" rx="10" fill="none" stroke="#ffc531" stroke-width="3"/>
         <path d="M14 48 Q28 14 44 40 T64 22" fill="none" stroke="#ffc531" stroke-width="4" stroke-linecap="round"/>
         <circle cx="44" cy="40" r="4" fill="#fff"/>
-        <text x="14" y="30" font-size="15" fill="#dfe8ff" font-family="serif" font-style="italic" id="brandLogoText">∑x</text>
+        <text x="14" y="30" font-size="15" fill="#dfe8ff" font-family="serif" font-style="italic">∑x</text>
       </svg>
       <div>
         <h1 id="brandTitle">LMS <b>Kelas X</b></h1>
@@ -81,7 +81,6 @@
       </defs>
       <rect width="1100" height="176" fill="url(#grid)" opacity=".7"/>
       <path d="M420 150 C560 -30 760 -30 940 130" fill="none" stroke="#ffc531" stroke-width="5" stroke-linecap="round" opacity=".95"/>
-      <g id="sceneBox"></g>
       <rect width="1100" height="176" fill="url(#fade)"/>
     </svg>
   </div>
@@ -98,7 +97,6 @@
 
 <div id="modalRoot"></div>
 
-<script src="../data/fisika.js"></script>
-<script src="../assets/lms.js"></script>
+<script src="../assets/lms-boot.js" data-mapel="fisika" data-name="Fisika"></script>
 </body>
 </html>
