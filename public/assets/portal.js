@@ -14,7 +14,7 @@
      "kurangi animasi" (umum aktif di mode hemat baterai Android / Windows). */
   var reduce = false;
   var mqDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-  var DRIVE = "https://drive.google.com/drive/folders/1Bs190ZCurEjyAfIUVcZ3u91eh6r3J_FA?hl=ID";
+  var DRIVE = "";
   var CLASSES = ["X", "XI", "XII"];
 
   if($("s-ic")) $("s-ic").innerHTML = I("search");
