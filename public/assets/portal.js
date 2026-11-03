@@ -1066,11 +1066,13 @@
   var skIdx = 0, slTimer = null, skFileURL = null, skEditingId = null, skHover = false, skSaving = false;
   var SLIDE_MS = 7000;
   var skFileOK = /^image\/(jpe?g|png|webp)$/i;
-  var skFileMax = 8 * 1024 * 1024;
+  var SK_SHRINK_OVER = 512 * 1024;             // auto-convert kalau foto > 0.5 MB
+  var skFileMax = 8 * 1024 * 1024;             // batas kirim ke server: 8 MB
+  var SK_WEBP_Q = 0.85;                        // mutu WebP: 0.85 (seimbang ukuran & kualitas)
 
-  /* Foto dari HP sering 4–10 MB. Perkecil di browser (sisi terpanjang 1920 px,
-     WebP mutu 0,82) agar unggahan cepat dan lolos batas server 3 MB. */
-  var SK_SHRINK_OVER = 1.5 * 1024 * 1024;
+  /* Foto HP biasanya 3–10 MB. Auto-convert lewat browser: sisi terpanjang
+     dipotong maks 1920 px, dimasukkan ke WebP (mutu 0,85). Kalau hasil WebP
+     tidak lebih kecil dari asli, gunakan file asli agar tidak memperlambat. */
   function shrinkImage(file){
     return new Promise(function(resolve){
       if(!file || file.size <= SK_SHRINK_OVER || !window.URL || !document.createElement("canvas").toBlob) return resolve(file);
@@ -1091,7 +1093,7 @@
             var name = String(file.name || "foto").replace(/\.[^.]+$/, "") + ".webp";
             try{ resolve(new File([b], name, { type: "image/webp" })); }
             catch(e){ b.name = name; resolve(b); }
-          }, "image/webp", 0.82);
+          }, "image/webp", SK_WEBP_Q);
         }catch(e){ URL.revokeObjectURL(url); resolve(file); }
       };
       img.onerror = function(){ URL.revokeObjectURL(url); resolve(file); };
