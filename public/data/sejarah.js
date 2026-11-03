@@ -4,6 +4,7 @@ meta:{
   color:"#c92a2a",
   kelas:"X", fase:"Fase E", sekolah:"SMAN 4 Ternate",
   lsKey:"lms_sejarah_x_v1",
+  sheetId:"AKfycbwyb4YHCCYQ2OY-uj_fO5TOsE9OoFU5JTKoq5PG7Rd40bz8-jzMXy5iGvgRMc8ImjRMVw",
   moto:["Telusuri","Telaah","Refleksikan"],
   sideMoto:["Bukan sekadar","menghafal tahun,","tapi memahami makna."],
   quote:"“Sejarah bukan daftar tahun — ia kisah manusia, ruang, dan waktu.”",

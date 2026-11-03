@@ -1,8 +1,9 @@
 /* API Client — jembatan portal.js ke backend API. Semua data LMS (tautan),
    akun admin, dan profil sekolah tersimpan di database melalui API ini.
-   Autentikasi lewat cookie JWT httpOnly (SameSite=None, Secure) yang dikirim
-   otomatis browser dengan credentials: include. Token JWT disimpan hanya di
-   cookie httpOnly — tidak di sessionStorage agar tidak bisa dicuri lewat XSS. */
+   Autentikasi lewat cookie JWT httpOnly (SameSite=Lax default; Secure otomatis
+   saat HTTPS) yang dikirim otomatis browser dengan credentials: include. Token
+   JWT disimpan hanya di cookie httpOnly — tidak di sessionStorage agar tidak
+   bisa dicuri lewat XSS. */
 (function(){
   "use strict";
   var API_BASE = String(window.LMS_API_BASE || "/api").replace(/\/+$/, "");

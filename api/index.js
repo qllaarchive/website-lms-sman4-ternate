@@ -12,7 +12,7 @@ import { z } from "zod";
 import busboy from "busboy";
 import { csrfFor, csrfValid } from "./src/csrf.js";
 import { COOKIE, signSession, verifySession, sessionCookieHeader, clearSessionCookieHeader } from "./src/session.js";
-import { EntrySchema, parseKlass } from "./src/validation.js";
+import { EntrySchema, parseKlassQuery } from "./src/validation.js";
 
 const prisma = globalThis.__lmsPrisma || new PrismaClient({
   datasourceUrl: (process.env.DATABASE_URL || "") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10",
@@ -33,7 +33,8 @@ function fail(res, e) {
 function getCookie(req, name) {
   const cookie = req.headers?.cookie || "";
   const match = cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]*)"));
-  return match ? decodeURIComponent(match[2]) : null;
+  if (!match) return null;
+  try { return decodeURIComponent(match[2]); } catch { return null; }
 }
 
 function pathOf(req) { return (req.url || "").split("?")[0].replace(/\/+$/, ""); }
@@ -89,7 +90,7 @@ function parseMultipart(req) {
 
 /* ---------------- LMS ---------------- */
 async function lmsRoutes(req, res, p) {
-  const parsedKlass = parseKlass(req.query?.klass);
+  const parsedKlass = parseKlassQuery(req.query);
   if (!parsedKlass.ok) return send(res, 400, { error: "invalid_input" });
   const klass = parsedKlass.value;
 
@@ -276,6 +277,9 @@ async function seedRoute(req, res) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("X-Frame-Options", "DENY");
   try {
     const p = pathOf(req);
     if (p === "/api/health") return send(res, 200, { ok: true });

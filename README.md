@@ -31,7 +31,7 @@ Dibangun dengan arsitektur hibrida: frontend statis (HTML/CSS/JS murni) untuk ke
 - **Pemilih Kelas Dinamis:** Pemisahan konten dan progres belajar antara Kelas X (Fase E), XI, & XII (Fase F).
 - **Tema Kustom:** Dukungan mode Terang (*Light*), Gelap (*Dark*), dan Sinkronisasi Sistem tanpa *flash* saat dimuat.
 - **Pencarian Instan:** Filter cepat untuk menemukan mata pelajaran yang diinginkan.
-- **Autentikasi Admin:** Masuk aman menggunakan kredensial backend (JWT dengan cookies aman 7 hari).
+- **Autentikasi Admin:** Masuk aman menggunakan kredensial backend (JWT dengan cookie HttpOnly; sesi 30 hari dan diperpanjang saat dipakai).
 - **Manajemen LMS:** Tambah, ubah, dan atur visibilitas tautan mapel per kelas secara *real-time* ke database.
 - **Dashboard Pemantauan Progres:** Statistik rata-rata penyelesaian belajar siswa, filter kelas, dan ekspor data ke format CSV atau Spreadsheet Guru.
 - **Profil Sekolah & PPDB:** Pengelolaan informasi institusi terpusat yang dapat diakses langsung dari footer portal.

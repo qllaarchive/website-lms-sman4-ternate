@@ -9,16 +9,15 @@
 ## 1. Kebijakan Keamanan Informasi
 
 ### 1.1 Kebijakan Kata Sandi
-- Minimal 8 karakter
-- Wajib kombinasi huruf + angka + simbol
+- Minimal 12 karakter untuk akun admin (dipaksa `scripts/setup-ubuntu.sh`)
 - Hash dengan Argon2id (memory-hard)
-- Rotasi: setiap 90 hari untuk akun admin
+- Rotasi: setiap 90 hari atau segera setelah ada indikasi kebocoran
 
 ### 1.2 Kebijakan Akses
-- Hanya 1 akun admin aktif (first-user registration)
-- Session berlaku 7 hari (JWT expiry)
-- Cookie HttpOnly + Secure + SameSite=Strict
-- Rate limit: 5 percobaan login/menit
+- Akun admin dibuat dari `ADMIN_USER`/`ADMIN_PASS` saat seed
+- Session berlaku 30 hari, diperpanjang saat admin aktif (`/auth/me`)
+- Cookie HttpOnly + Secure saat HTTPS + SameSite=Lax; CSRF token wajib untuk request perubahan
+- Rate limit: 10 percobaan login gagal / 15 menit; API 100 req/menit
 
 ### 1.3 Kebijakan Backup
 - Database: backup harian via pg_dump
@@ -35,7 +34,7 @@
 | Data siswa bocor | Sedang | Tinggi | HTTPS, JWT, rate limit |
 | Website dimodifikasi | Rendah | Sedang | Git version control, deploy via CI/CD |
 | Server down | Sedang | Tinggi | Docker Compose restart, uptime monitoring |
-| Password admin bocor | Rendah | Tinggi | Argon2id, rate limit, audit log |
+| Password admin bocor | Rendah | Tinggi | Argon2id, rate limit; audit log belum tersedia |
 | Serangan XSS/SQLi | Rendah | Tinggi | esc(), parameterized query, CSP |
 | Kehilangan data | Rendah | Tinggi | Backup harian + cadangan manual |
 

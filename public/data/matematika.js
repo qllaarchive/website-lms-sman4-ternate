@@ -1,9 +1,10 @@
 window.LMS_CONTENT = {
 meta:{
-  id:"matematika", name:"Matematika", short:"Matematika", emoji:"\ud83d\udcd0",
+  id:"matematika", name:"Matematika", short:"Matematika", emoji:"📐",
   color:"#1f6fe5",
   kelas:"X", fase:"Fase E", sekolah:"SMAN 4 Ternate",
   lsKey:"mtklms_x_sman4ternate_v1",
+  sheetId:"AKfycbwyb4YHCCYQ2OY-uj_fO5TOsE9OoFU5JTKoq5PG7Rd40bz8-jzMXy5iGvgRMc8ImjRMVw",
   moto:["Bernalar","Berkonsep","Bermakna"],
   sideMoto:["Hitung,","Pahami,","Selidiki."],
   quote:"\u201cMatematika adalah alat berpikir.\u201d",

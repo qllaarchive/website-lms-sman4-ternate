@@ -28,7 +28,15 @@ export const EntrySchema = z.object({
   scriptId: z.string().trim().max(200).nullish(),
 });
 
-/* Query ?klass= harus string kelas yang dikenal, bukan object/array. */
+/* Query ?klass= harus string kelas yang dikenal, bukan object/array.
+   Tolak juga bentuk bracket seperti ?klass[$ne]=X agar parser yang berbeda
+   (Express vs Vercel) tidak memperlakukannya sebagai filter bebas. */
+export function parseKlassQuery(query) {
+  if (!query || typeof query !== "object") return { ok: false };
+  if (Object.keys(query).some((key) => key !== "klass" && /^klass\[/i.test(key))) return { ok: false };
+  return parseKlass(query.klass);
+}
+
 export function parseKlass(value) {
   if (value === undefined) return { ok: true, value: undefined };
   const parsed = KlassSchema.safeParse(value);

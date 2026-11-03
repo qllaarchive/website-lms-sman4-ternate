@@ -240,8 +240,8 @@ kebijakan, manajemen risiko, audit, dan keterlibatan stakeholder.
 
 **Pekerjaan Tahap B — Implementasi (sudah ada, verifikasi):**
 5. [ ] Argon2id hashing — `api/src/routes/auth.js:66`
-6. [ ] JWT HttpOnly + Secure + SameSite=Strict — `auth.js:29-36`
-7. [ ] Rate limit login 5/menit, API 100/menit — `api/src/index.js:47-49`
+6. [ ] JWT HttpOnly + Secure (HTTPS) + SameSite=Lax + CSRF — `auth.js` / `session.js`
+7. [ ] Rate limit login 10/15 menit, API 100/menit — `api/src/routes/auth.js` + `api/src/index.js`
 8. [ ] CSP, HSTS, X-Frame-Options — `index.js:22-37` + `portal-nginx.conf`
 9. [ ] Validasi Zod semua endpoint
 10. [ ] Audit log + CORS allowlist

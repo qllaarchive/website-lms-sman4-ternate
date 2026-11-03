@@ -168,7 +168,7 @@ ${!D.nama || !D.kelas ? `<div class="profile-setup">
   <h2>👤 Lengkapi data diri (dipakai absen & kirim skor)</h2>
   <label class="f" style="margin-bottom:8px">Nama lengkap<input type="text" id="h-nama" value="${esc(D.nama)}" placeholder="mis. Nadia Rahma"></label>
   <div class="r2"><label class="f" style="margin-bottom:8px">Kelas<input type="text" id="h-kelas" value="${esc(D.kelas)}" placeholder="mis. X-1"></label>
-  <label class="f" style="margin-bottom:8px">No. absen (opsional)<input type="text" id="h-absen" value="${esc(D.absen||"")}" placeholder="mis. 07"></label></div>
+  <label class="f" style="margin-bottom:8px">No. absen<input type="text" id="h-absen" value="${esc(D.absen||"")}" placeholder="mis. 07"></label></div>
   <button class="btn" id="h-save">Simpan data diri</button>
 </div>` : ""}
       <div class="card welcome">
@@ -213,11 +213,12 @@ BIND.home = () => {
     else if(v === "q-uts") go("quiz","sum",1);
     else go(v);
   });
-  document.querySelector("#h-save")?.addEventListener("click", () => {
-    D.nama = $("h-nama").value.trim();
-    D.kelas = $("h-kelas").value.trim();
-    D.absen = ($("h-absen") ? $("h-absen").value.trim() : D.absen) || "";
+  document.querySelector("#h-save").addEventListener("click", () => {
+    D.nama = $("#h-nama").value.trim();
+    D.kelas = $("#h-kelas").value.trim();
+    D.absen = ($("#h-absen") ? $("#h-absen").value.trim() : D.absen) || "";
     if(!D.nama || !D.kelas) return toast("Isi nama dan kelas dulu 🙂");
+    if(!D.absen) return toast("No. absen wajib diisi ✔️");
     save(); updateUser(); toast("Data disimpan ✅"); render(); });
   document.querySelectorAll(".eacc-h").forEach(b => b.onclick = () => {
     const item = b.closest(".eacc");
@@ -1866,7 +1867,7 @@ VIEWS.set = () => {
       <div class="grid3">
         <label class="f">Nama lengkap<input type="text" id="s-nama" value="${esc(D.nama)}" placeholder="mis. Nadia Rahma"></label>
         <label class="f">Kelas<input type="text" id="s-kelas" value="${esc(D.kelas)}" placeholder="mis. X-1"></label>
-        <label class="f">No. absen (opsional)<input type="text" id="s-absen" value="${esc(D.absen||"")}" placeholder="mis. 07"></label>
+  <label class="f">No. absen<input type="text" id="s-absen" value="${esc(D.absen||"")}" placeholder="mis. 07"></label>
         <label class="f" style="grid-column:1/-1">Sekolah<input type="text" id="s-sekolah" value="${esc(D.sekolah)}"></label>
       </div>
       <button class="btn" id="s-save" style="margin-top:12px">Simpan profil</button></div>
@@ -1893,11 +1894,12 @@ VIEWS.set = () => {
 };
 let resetArmed = false;
 BIND.set = () => {
-  $("s-save").onclick = () => {
-    D.nama = $("s-nama").value.trim();
-    D.kelas = $("s-kelas").value.trim();
-    D.absen = ($("s-absen") ? $("s-absen").value.trim() : D.absen) || "";
-    D.sekolah = $("s-sekolah").value.trim() || D.sekolah;
+  $("#s-save").onclick = () => {
+    D.nama = $("#s-nama").value.trim();
+    D.kelas = $("#s-kelas").value.trim();
+    D.absen = ($("#s-absen") ? $("#s-absen").value.trim() : D.absen) || "";
+    D.sekolah = $("#s-sekolah").value.trim() || D.sekolah;
+    if(!D.absen) return toast("No. absen wajib diisi ✔️");
     save(); updateUser(); toast("Profil tersimpan ✅"); render(); };
   document.querySelectorAll("[data-tema]").forEach(b => b.onclick = () => {
     D.tema = b.dataset.tema; save(); theme(); render(); });

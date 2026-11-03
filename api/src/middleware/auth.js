@@ -4,9 +4,9 @@ import { verifySession } from "../session.js";
 
 const prisma = new PrismaClient({ datasourceUrl: (process.env.DATABASE_URL||"") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10" });
 
-/* Token CSRF diturunkan dari token sesi (lihat ../csrf.js) sehingga tetap
-   berlaku setelah server restart. Fungsi lama dipertahankan agar import
-   yang ada tidak rusak. */
+/* Token CSRF diturunkan dari identitas user (lihat ../csrf.js) sehingga
+   tidak berubah saat token sesi dirotasi. Fungsi lama dipertahankan agar
+   import yang ada tidak rusak. */
 function issueCsrfToken(userId, _sessionToken) {
   return csrfFor("user:" + userId);
 }

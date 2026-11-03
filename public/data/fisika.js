@@ -17,7 +17,7 @@ window.LMS_CONTENT = {
   "fase": "Fase E",
   "sekolah": "SMAN 4 Ternate",
   "lsKey": "lms_fisika_x_v1",
-  "sheetId": "",
+  "sheetId": "AKfycbwyb4YHCCYQ2OY-uj_fO5TOsE9OoFU5JTKoq5PG7Rd40bz8-jzMXy5iGvgRMc8ImjRMVw",
   "moto": [
    "Bernalar",
    "Berkonsep",

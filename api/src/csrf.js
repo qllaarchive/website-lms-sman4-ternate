@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 
-/* Token CSRF tanpa penyimpanan (stateless): diturunkan dari token sesi
-   dengan HMAC + JWT_SECRET. Tetap berlaku setelah server restart dan di
-   lingkungan serverless (Vercel), tidak seperti Map di memori. */
+/* Token CSRF tanpa penyimpanan (stateless): diturunkan dari identitas user
+   dengan HMAC + JWT_SECRET. Stabil saat token sesi dirotasi, tetap berlaku
+   setelah server restart dan di serverless (Vercel), tidak seperti Map. */
 export function csrfFor(sessionToken) {
   if (!sessionToken) return null;
   return crypto

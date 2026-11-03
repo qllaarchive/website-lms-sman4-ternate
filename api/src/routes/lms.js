@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { requireAuth, requireCsrf, requireAdmin } from "../middleware/auth.js";
-import { EntrySchema, parseKlass } from "../validation.js";
+import { EntrySchema, parseKlassQuery } from "../validation.js";
 
 const prisma = new PrismaClient({ datasourceUrl: (process.env.DATABASE_URL||"") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10" });
 const router = express.Router();
@@ -11,7 +11,7 @@ const router = express.Router();
 
 /* GET /api/lms — publik, siapa saja boleh lihat daftar LMS */
 router.get("/", async (req, res) => {
-  const parsed = parseKlass(req.query.klass);
+  const parsed = parseKlassQuery(req.query);
   if (!parsed.ok) return res.status(400).json({ error: "invalid_input" });
   const where = parsed.value ? { klass: parsed.value, pub: true } : { pub: true };
   const entries = await prisma.lmsEntry.findMany({ where, orderBy: { createdAt: "asc" } });
@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 
 /* GET /api/lms/all — admin only, termasuk yang tidak publik */
 router.get("/all", requireAuth, async (req, res) => {
-  const parsed = parseKlass(req.query.klass);
+  const parsed = parseKlassQuery(req.query);
   if (!parsed.ok) return res.status(400).json({ error: "invalid_input" });
   const where = parsed.value ? { klass: parsed.value } : {};
   const entries = await prisma.lmsEntry.findMany({ where, orderBy: { createdAt: "asc" } });

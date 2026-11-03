@@ -70,7 +70,7 @@ app.use((err, _req, res, _next) => {
   const code = Number(err && (err.statusCode || err.status)) || 500;
   if (code >= 500) console.error(err);
   const message = code === 404 ? "not_found" : code === 400 ? "invalid_input" :
-    code === 413 ? "payload_too_large" : "internal_error";
+    code === 403 ? "forbidden" : code === 413 ? "payload_too_large" : "internal_error";
   res.status(code).json({ error: message });
 });
 
