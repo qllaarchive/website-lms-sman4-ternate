@@ -82,7 +82,7 @@ a{color:var(--blue)}
 .brand .moto{font:700 clamp(15px,1.7vw,23px) var(--display);color:#fff;font-style:italic;margin-top:2px}
 .brand .moto i{color:var(--sun);font-style:normal;padding:0 8px}
 .scene{position:absolute;top:0;right:0;bottom:0;width:min(74%,1100px);z-index:1;overflow:hidden;pointer-events:none}
-.scene svg{width:100%;height:100%;display:block;max-width:none}
+.scene svg,.scene img{width:100%;height:100%;display:block;object-fit:cover}
 .scene::before{content:"";position:absolute;inset:0 auto 0 0;width:170px;background:linear-gradient(90deg,var(--navy),rgba(14,42,110,0));z-index:1}
 .brand h1,.brand .sub,.brand .moto{text-shadow:0 2px 8px rgba(5,15,45,.55)}
 .user{position:absolute;top:12px;right:max(16px,env(safe-area-inset-right,0px));margin-left:auto;display:flex;align-items:center;gap:12px;background:#fff;color:#18213d;border-radius:14px;padding:10px 14px;box-shadow:0 8px 20px rgba(0,0,0,.18);z-index:3;border:0;cursor:pointer;text-align:left;max-width:270px}
