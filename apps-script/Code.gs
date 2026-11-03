@@ -62,11 +62,11 @@ var MAPOL_DEFAULT = "";
 var TABEL = {
   nilai: {
     name: "Nilai",
-    head: ["Waktu", "Nama", "Kelas", "Mapel", "Unit", "Jenis", "Skor", "KKTP", "Status"]
+    head: ["Waktu", "Nama", "Kelas", "Absen", "Mapel", "Unit", "Jenis", "Skor", "KKTP", "Status"]
   },
   progres: {
     name: "Progres",
-    head: ["Waktu", "Nama", "Kelas", "Mapel", "Selesai", "Total", "Persen"]
+    head: ["Waktu", "Nama", "Kelas", "Absen", "Mapel", "Selesai", "Total", "Persen"]
   },
   log: {
     name: "Log",
@@ -116,11 +116,21 @@ function sheet_(key) {
     sh.appendRow(cfg.head);
     sh.setFrozenRows(1);
     styleHeader_(sh, cfg.head.length);
-  } else if (sh.getLastRow() === 0) {
-    sh.appendRow(cfg.head);
-    styleHeader_(sh, cfg.head.length);
+  } else {
+    ensureHead_(sh, cfg.head);
   }
   return sh;
+}
+
+/** Perbarui baris judul bila daftar kolom berubah (mis. kolom "Absen" baru),
+ *  agar sheet lama otomatis mengikuti format Code.gs terbaru. */
+function ensureHead_(sh, head) {
+  var cols = Math.max(sh.getLastColumn(), head.length);
+  var have = cols > 0 ? (sh.getRange(1, 1, 1, cols).getValues()[0] || []) : [];
+  if (have.join("!") !== head.join("!")) {
+    sh.getRange(1, 1, 1, head.length).setValues([head]);
+    styleHeader_(sh, head.length);
+  }
 }
 
 function styleHeader_(sh, cols) {
@@ -193,6 +203,7 @@ function doPost(e) {
         str_(data.waktu) || now_(),
         str_(data.siswa || data.nama) || "-",
         str_(data.kelas) || "-",
+        str_(data.absen) || "-",
         mapel,
         data.unit === undefined || data.unit === "" ? 0 : data.unit,
         str_(data.jenis) || "-",
@@ -201,18 +212,18 @@ function doPost(e) {
         skor >= kktp ? "Lulus" : "Belum"
       ];
       withLock_(function () { sheet_("nilai").appendRow(row); });
-      log_("skor", row[1] + " • " + row[3] + " unit " + row[4] + " • " + row[6]);
+      log_("skor", row[1] + " • " + row[2] + " • " + row[4] + " unit " + row[5] + " • " + row[7]);
       /* ---- Panggilan library (diaktifkan bila Anda mengisi fungsi di Lib) ----
          Contoh: Lib.simpanNilai(...) — hapus komentar & isi nama fungsi asli library. */
       /* if (typeof Lib.simpanNilai === "function") {
           try { Lib.simpanNilai(row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[0]); }
           catch (e) { log_("lib", "Lib.simpanNilai gagal: " + String(e)); }
         } */
-      return out_({ ok: true, msg: "Skor tersimpan", status: row[8] });
+      return out_({ ok: true, msg: "Skor tersimpan", status: row[9] });
     }
 
-    /* ---- Progres semester (opsional) ----
-     * lms.js   : { t:"progres", siswa, kelas, mapel, d, t, pct }
+    /* ---- Progres semester (opsional, upsert per Nama + Mapel) ----
+     * lms.js    : { t:"progres", siswa, kelas, absen, mapel, total:{pct,d,t} }
      * matematika: { t:"progres", nama, kelas, sekolah, total:{pct,d,t}, ... }
      */
     if (t === "progres") {
@@ -249,7 +260,7 @@ function doGet(e) {
 function upsertProgres_(data) {
   var nama = str_(data.siswa) || "-", mapel = str_(data.mapel) || "-";
   var row = [
-    now_(), nama, str_(data.kelas) || "-", mapel,
+    now_(), nama, str_(data.kelas) || "-", str_(data.absen) || "-", mapel,
     Number(data.d) || 0, Number(data.t) || 0, Number(data.pct) || 0
   ];
   return withLock_(function () {
@@ -295,9 +306,9 @@ function onOpen() {
 function isiContoh() {
   withLock_(function () {
     sheet_("nilai").appendRow([
-      now_(), "Nadia Rahma", "X-3", "Sejarah", 1, "Diagnostik Unit 1", 85, 70, "Lulus"
+      now_(), "Nadia Rahma", "X-3", "07", "Sejarah", 1, "Diagnostik Unit 1", 85, 70, "Lulus"
     ]);
-    sheet_("progres").appendRow([now_(), "Nadia Rahma", "X-3", "Sejarah", 1, 7, 14]);
+    sheet_("progres").appendRow([now_(), "Nadia Rahma", "X-3", "07", "Sejarah", 1, 7, 14]);
   });
   log_("setup", "Data contoh ditambahkan");
 }

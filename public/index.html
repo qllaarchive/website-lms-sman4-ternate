@@ -14,13 +14,16 @@
 <body>
 <section class="intro" id="intro" role="region" aria-labelledby="intro-title">
   <picture class="intro-bg" aria-hidden="true">
-    <source media="(max-width: 700px)" srcset="assets/intro-sekolah-tall.webp">
-    <img src="assets/intro-sekolah-wide.webp" alt="" width="2200" height="1467" fetchpriority="high">
+    <source media="(max-width: 700px)" type="image/avif" srcset="assets/intro-sekolah-tall-800.avif 800w, assets/intro-sekolah-tall.avif 1200w" sizes="100vw">
+    <source media="(max-width: 700px)" type="image/webp" srcset="assets/intro-sekolah-tall.webp">
+    <source type="image/avif" srcset="assets/intro-sekolah-wide-1400.avif 1400w, assets/intro-sekolah-wide.avif 2200w" sizes="100vw">
+    <source type="image/webp" srcset="assets/intro-sekolah-wide.webp">
+    <img src="assets/intro-sekolah-wide.webp" alt="" width="2200" height="1467" loading="lazy" decoding="async" fetchpriority="high">
   </picture>
   <div class="intro-shade" aria-hidden="true"></div>
   <div class="intro-inner">
     <div class="intro-crest">
-      <img class="crest-sma4" src="assets/logo-sma4.png" alt="Logo SMA Negeri 4 Ternate" width="64" height="64" decoding="async">
+      <img class="crest-sma4" src="assets/logo-sma4.webp" alt="Logo SMA Negeri 4 Ternate" width="64" height="64" decoding="async">
       <img class="crest-malut" src="assets/logo-malut.svg" alt="Lambang Provinsi Maluku Utara" width="59" height="68" decoding="async">
     </div>
     <div class="intro-main">
@@ -51,7 +54,7 @@
     <div class="brand-area">
       <button type="button" class="brand-home" id="brand-home" title="Balik ke beranda" aria-label="Balik ke beranda"><span id="brand-home-ic" class="brand-home-ic" aria-hidden="true"></span></button>
       <a class="brand" href="index.html" aria-label="Beranda LMS SMA Negeri 4 Ternate">
-        <img class="brand-logo" src="assets/logo-sma4.png" alt="" width="38" height="38">
+        <img class="brand-logo" src="assets/logo-sma4.webp" alt="" width="38" height="38">
         <span class="brand-text">
           <b>SMA Negeri 4 Ternate</b>
           <small>Learning Management System</small>
@@ -93,7 +96,7 @@
     <div class="slider-shade" aria-hidden="true"></div>
     <div class="gut slider-top">
         <div class="slide-brand">
-          <img class="sec-logo" src="assets/logo-sma4.png" alt="Logo SMA Negeri 4 Ternate" width="54" height="54" decoding="async">
+          <img class="sec-logo" src="assets/logo-sma4.webp" alt="Logo SMA Negeri 4 Ternate" width="54" height="54" decoding="async">
           <span class="brand-txt-lg">
             <b>SMA NEGERI 4</b>
             <small>KOTA TERNATE</small>
@@ -142,7 +145,7 @@
   <div class="gut f-top">
     <div class="f-about">
       <div class="f-brand">
-        <img class="f-logo" src="assets/logo-sma4.png" alt="Logo SMA Negeri 4 Ternate" width="40" height="40">
+        <img class="f-logo" src="assets/logo-sma4.webp" alt="Logo SMA Negeri 4 Ternate" width="40" height="40">
         <span class="f-brand-txt">
           <b>SMA Negeri 4 Ternate</b>
           <small>Learning Management System</small>
@@ -207,8 +210,9 @@
       </div>
       <div class="login-pic" aria-hidden="true">
         <picture>
+          <source type="image/avif" srcset="assets/login-gedung.avif">
           <source type="image/webp" srcset="assets/login-gedung.webp">
-          <img src="assets/login-gedung.jpg" alt="" loading="lazy" decoding="async" width="1400" height="1052">
+          <img src="assets/login-gedung.jpg" alt="" loading="lazy" decoding="async" width="1200" height="902">
         </picture>
       </div>
     </div>

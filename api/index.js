@@ -8,17 +8,17 @@
 import crypto from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import argon2 from "argon2";
-import jwt from "jsonwebtoken";
 import { z } from "zod";
 import busboy from "busboy";
 import { csrfFor, csrfValid } from "./src/csrf.js";
+import { COOKIE, signSession, verifySession, sessionCookieHeader, clearSessionCookieHeader } from "./src/session.js";
+import { EntrySchema, parseKlass } from "./src/validation.js";
 
 const prisma = globalThis.__lmsPrisma || new PrismaClient({
   datasourceUrl: (process.env.DATABASE_URL || "") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10",
 });
 globalThis.__lmsPrisma = prisma;
 
-const COOKIE = "lms_session";
 const MAX_IMAGE = 3 * 1024 * 1024; /* batas Vercel 4,5 MB per permintaan */
 const IMG_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
@@ -49,7 +49,7 @@ async function sessionUser(req) {
   const token = getCookie(req, COOKIE);
   if (!token || !process.env.JWT_SECRET) return null;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = verifySession(token);
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     return user ? { user, token } : null;
   } catch { return null; }
@@ -60,7 +60,7 @@ async function requireAdmin(req, res) {
   const s = await sessionUser(req);
   if (!s) { send(res, 401, { error: "unauthorized" }); return null; }
   if ((s.user.role || "ADMIN") !== "ADMIN") { send(res, 403, { error: "admin_required" }); return null; }
-  if (req.method !== "GET" && !csrfValid(s.token, req.headers["x-csrf-token"])) {
+  if (req.method !== "GET" && !csrfValid("user:" + s.user.id, req.headers["x-csrf-token"])) {
     send(res, 403, { error: "csrf_required" }); return null;
   }
   return s.user;
@@ -88,22 +88,10 @@ function parseMultipart(req) {
 }
 
 /* ---------------- LMS ---------------- */
-const EntrySchema = z.object({
-  id: z.string().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/).optional(),
-  klass: z.enum(["X", "XI", "XII"]),
-  name: z.string().min(1).max(120),
-  short: z.string().max(120).transform((v) => v.slice(0, 40)).optional(),
-  teacher: z.string().max(80).optional().nullable(),
-  icon: z.string().max(40),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  /* tautan http(s) atau path relatif di situs ini (mis. mapel/matematika.html) */
-  file: z.string().trim().min(1).max(500).refine((v) => /^https?:\/\//i.test(v) || !/^[a-z][a-z0-9+.-]*:/i.test(v), "invalid_link"),
-  pub: z.boolean().optional(),
-  scriptId: z.string().max(200).optional().nullable(),
-});
-
 async function lmsRoutes(req, res, p) {
-  const klass = typeof req.query?.klass === "string" ? req.query.klass : undefined;
+  const parsedKlass = parseKlass(req.query?.klass);
+  if (!parsedKlass.ok) return send(res, 400, { error: "invalid_input" });
+  const klass = parsedKlass.value;
 
   if (p === "/api/lms" && req.method === "GET") {
     const where = klass ? { klass, pub: true } : { pub: true };
@@ -231,7 +219,9 @@ async function sliderRoutes(req, res, p) {
 
 /* ---------------- Auth ---------------- */
 const LoginSchema = z.object({ username: z.string().min(1).max(64), password: z.string().min(1).max(128) });
-const COOKIE_OPTS = "HttpOnly; Secure; SameSite=None; Path=/";
+/* Verifikasi tetap dijalankan untuk username yang tidak ada agar waktu respons
+   tidak membocorkan akun mana yang terdaftar. */
+const DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$torDi32IkVn29EA/mlUxTA$595oL4GQbwVyHaRmGbVBZYecIN1ZkQKKKu8MCPywPuQ";
 
 async function authRoutes(req, res, p) {
   if (p === "/api/auth/login") {
@@ -243,23 +233,26 @@ async function authRoutes(req, res, p) {
     const name = parsed.data.username.trim();
     const user = (await prisma.user.findUnique({ where: { username: name } })) ||
       (await prisma.user.findFirst({ where: { username: { equals: name, mode: "insensitive" } } }));
-    const ok = user ? await argon2.verify(user.passwordHash, parsed.data.password).catch(() => false) : false;
+    const ok = await argon2.verify(user ? user.passwordHash : DUMMY_HASH, parsed.data.password).catch(() => false);
     if (!ok) return send(res, 401, { error: "invalid_credentials" });
-    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    res.setHeader("Set-Cookie", `${COOKIE}=${token}; ${COOKIE_OPTS}; Max-Age=604800`);
-    return send(res, 200, { user: { id: user.id, username: user.username }, csrf: csrfFor(token) });
+    const token = signSession(user.id);
+    res.setHeader("Set-Cookie", sessionCookieHeader(req, token));
+    return send(res, 200, { user: { id: user.id, username: user.username }, csrf: csrfFor("user:" + user.id) });
   }
   if (p === "/api/auth/logout") {
     if (req.method !== "POST") return send(res, 405, { error: "method_not_allowed" });
-    res.setHeader("Set-Cookie", `${COOKIE}=; ${COOKIE_OPTS}; Max-Age=0`);
+    res.setHeader("Set-Cookie", clearSessionCookieHeader(req));
     return send(res, 200, { ok: true });
   }
   if (p === "/api/auth/me") {
     if (req.method !== "GET") return send(res, 405, { error: "method_not_allowed" });
     const s = await sessionUser(req);
     if (!s) return send(res, 200, { user: null });
-    /* csrf ikut dikirim agar admin tetap bisa mengelola setelah halaman dimuat ulang */
-    return send(res, 200, { user: { id: s.user.id, username: s.user.username }, csrf: csrfFor(s.token) });
+    /* Rotasi token + perpanjang cookie: sesi aktif tidak habis saat admin
+       membuka portal lagi, tetapi sesi yang ditinggalkan tetap kedaluwarsa. */
+    const fresh = signSession(s.user.id);
+    res.setHeader("Set-Cookie", sessionCookieHeader(req, fresh));
+    return send(res, 200, { user: { id: s.user.id, username: s.user.username }, csrf: csrfFor("user:" + s.user.id) });
   }
   return false;
 }
@@ -287,6 +280,7 @@ export default async function handler(req, res) {
     const p = pathOf(req);
     if (p === "/api/health") return send(res, 200, { ok: true });
     if (p === "/api/seed") return await seedRoute(req, res);
+    if (p.startsWith("/api/auth/")) res.setHeader("Cache-Control", "no-store");
     if (p.startsWith("/api/auth/")) { if ((await authRoutes(req, res, p)) !== false) return; }
     else if (p === "/api/lms" || p.startsWith("/api/lms/")) { if ((await lmsRoutes(req, res, p)) !== false) return; }
     else if (p === "/api/sliders" || p.startsWith("/api/sliders/")) { if ((await sliderRoutes(req, res, p)) !== false) return; }

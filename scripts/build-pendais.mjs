@@ -1,37 +1,42 @@
 #!/usr/bin/env node
+/* Pemeliharaan halaman PAI pada arsitektur shell terbaru:
+   - Halaman mapel berupa shell (tema PAI) yang memuat ../data/<slug>.js dan ../assets/lms.js
+     lewat lms-boot.js — tidak lagi satu file mandiri.
+   - Integrasi Google Apps Script diatur lewat META.sheetId di data mapel
+     (lms.js memakainya sebagai SHEET_URL_DEFAULT), dan tetap dapat ditimpa ?gs=.
+   Script ini:
+   1) memaksa sheetId PAI pada public/data/pendais.js ke ID Web App yang benar;
+   2) memeriksa shell public/mapel/pendais.html (lms-boot.js + data + tema PAI tetap ada). */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-/* Situs (portal, mapel, data, assets) ada di folder public/ */
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
-const TPL = path.join(ROOT, "..", "scripts/pendais.template.html");
-const OUT = path.join(ROOT, "mapel/pendais.html");
+const DATA = path.join(ROOT, "data/pendais.js");
+const SHELL = path.join(ROOT, "mapel/pendais.html");
 const GS_ID = "AKfycbwyb4YHCCYQ2OY-uj_fO5TOsE9OoFU5JTKoq5PG7Rd40bz8-jzMXy5iGvgRMc8ImjRMVw";
 
-let html = fs.readFileSync(TPL, "utf8");
-const css = fs.readFileSync(path.join(ROOT, "assets/lms.css"), "utf8").trim();
-const data = fs.readFileSync(path.join(ROOT, "data/pendais.js"), "utf8").trim();
-let eng = fs.readFileSync(path.join(ROOT, "assets/lms.js"), "utf8").trim();
+let data = fs.readFileSync(DATA, "utf8");
+const sheetIdRe = /sheetId:"(AKfycb[^"]*)"/;
+if (!sheetIdRe.test(data)) throw new Error("field sheetId tidak ditemukan di data/pendais.js");
+if (data.match(sheetIdRe)[1] !== GS_ID) {
+  data = data.replace(sheetIdRe, `sheetId:"${GS_ID}"`);
+  fs.writeFileSync(DATA, data);
+  console.log("sheetId diperbarui →", GS_ID);
+} else {
+  console.log("sheetId sudah benar ✓");
+}
 
-const gsRe = /const SHEET_URL_DEFAULT = "[^"]*";/;
-if (!gsRe.test(eng)) throw new Error("konstanta SHEET_URL_DEFAULT tidak ditemukan");
-eng = eng.replace(gsRe, `const SHEET_URL_DEFAULT = "${GS_ID}";`);
-
-const styleRe = /<style>[\s\S]*?<\/style>/;
-if (!styleRe.test(html)) throw new Error("blok <style> dasar tidak ditemukan");
-html = html.replace(styleRe, `<style>\n${css}\n</style>`);
-
-const dataRe = /<script>\s*window\.LMS_CONTENT = \{[\s\S]*?\n\};?\s*<\/script>/;
-if (!dataRe.test(html)) throw new Error("blok data LMS_CONTENT tidak ditemukan");
-html = html.replace(dataRe, `<script>\n${data}\n</script>`);
-
-const engRe = /<script>\s*"use strict";[\s\S]*?<\/script>\s*<\/body>/;
-if (!engRe.test(html)) throw new Error("blok engine tidak ditemukan");
-html = html.replace(engRe, `<script>\n${eng}\n</script>\n</body>`);
-
-if (/<link rel="stylesheet" href="assets\/lms\.css">/.test(html)) throw new Error("masih ada tautan CSS eksternal");
-if (/<script src="assets\/lms\.js"><\/script>/.test(html)) throw new Error("masih ada tautan engine eksternal");
-
-fs.writeFileSync(OUT, html);
-console.log(`OK → mapel/pendais.html (${(html.length / 1024).toFixed(0)} KB)`);
+const html = fs.readFileSync(SHELL, "utf8");
+const checks = [
+  ["lms-boot.js", /script src="\.\.\/assets\/lms-boot\.js" data-mapel="pendais"/],
+  ["lms.css", /<link rel="stylesheet" href="\.\.\/assets\/lms\.css">/],
+  ["tema PAI", /--pai-emerald:#0f766e/],
+  ["judul", /<title>PAI LMS Kelas X[\s\S]*?<\/title>/],
+  ["mobile.css", /<link rel="stylesheet" href="\.\.\/assets\/mobile\.css">/]
+];
+for (const [name, re] of checks) {
+  if (!re.test(html)) throw new Error(`shell pendais.html kehilangan: ${name}`);
+}
+if (/<script>\s*window\.LMS_CONTENT/.test(html)) throw new Error("shell masih membawa data inline lama");
+console.log(`OK → mapel/pendais.html (${(html.length / 1024).toFixed(0)} KB, shell + data dengan sheetId valid)`);

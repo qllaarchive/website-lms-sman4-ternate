@@ -1072,9 +1072,29 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
 }
 .page-switch-div{ width:1px; height:22px; flex:none; background:var(--line) }
 @media (max-width:640px){
-  .page-switch-item{ font-size:17px }
-  .page-switch-div{ height:18px }
-  .page-switch-item.is-on::after{ bottom:-5px }
+  /* Tab tidak lagi mengapung di tengah: ia mengisi sisa ruang di samping
+     tombol kembali, jadi tombol kembali tidak pernah tertutup di layar sempit. */
+  .page-switch{
+    position:static; left:auto; top:auto; transform:none;
+    flex:1 1 auto; min-width:0; justify-content:center;
+    gap:6px;
+  }
+  .page-switch-item{ font-size:12px; font-weight:600; padding:6px 2px }
+  .page-switch-div{ height:12px }
+  .page-switch-item.is-on::after{ bottom:-3px; width:16px; height:2px }
+}
+@media (max-width:420px){
+  .page-bar-in{ gap:6px }
+  .page-back{ width:34px; height:34px; flex:0 0 34px }
+  .page-switch{ gap:4px }
+  .page-switch-item{ font-size:11px; letter-spacing:-.02em; padding:4px 1px }
+  .page-switch-div{ height:10px }
+}
+@media (max-width:350px){
+  .page-bar-in{ gap:4px }
+  .page-back{ width:32px; height:32px; flex:0 0 32px }
+  .page-switch{ gap:3px }
+  .page-switch-item{ font-size:10px }
 }
 .page-sub{ margin-top:3px; font-size:12.5px; line-height:1.35; color:var(--ink3) }
 .page-scroll{
@@ -1160,9 +1180,9 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
   .k-form-card{ position:static; flex:none; width:100%; max-width:680px; margin-bottom:24px }
 }
 @media (max-width:640px){
-  .page-bar-in{ min-height:68px; gap:12px }
-  .page-back{ width:44px; height:44px }
-  .page-back svg{ width:19px; height:19px }
+  .page-bar-in{ min-height:56px; gap:8px }
+  .page-back{ width:36px; height:36px; flex:0 0 36px }
+  .page-back svg{ width:16px; height:16px }
   .page-sub{ font-size:12px }
   .page-body{ padding-block:20px 40px }
   .manage-tools{ padding-bottom:16px; margin-bottom:18px; gap:10px }

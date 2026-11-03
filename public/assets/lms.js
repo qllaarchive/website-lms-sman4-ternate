@@ -23,7 +23,7 @@ const HALF = Math.ceil(NU/2);
 /* ================= STATE ================= */
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-const D = { nama:"", kelas:"", sekolah:"SMAN 4 Ternate", tema:"", gs:"",
+const D = { nama:"", kelas:"", absen:"", sekolah:"SMAN 4 Ternate", tema:"", gs:"",
   u:{}, ex:{uts:0,uas:0,rem:0}, g:{}, lab:{}, seq:{},
   forum:null, chat:[{ who:"bot", t:BOT_INTRO }] };
 /* ID Web App Google Apps Script diatur lewat panel admin (?gs=).
@@ -38,7 +38,7 @@ function load(){ try{ const r = localStorage.getItem(LS_KEY); if(r) Object.assig
   if(D.kelas === "X") D.kelas = "";
   if(!D.gs && SHEET_URL_DEFAULT) D.gs = gsNorm(SHEET_URL_DEFAULT); }
 function save(){ try{ const p = progAll(); D.sum = { pct: Math.round(p.d/p.t*100), d:p.d, t:p.t };
-    localStorage.setItem(LS_KEY, JSON.stringify(D)); }catch(e){} }
+    localStorage.setItem(LS_KEY, JSON.stringify(D)); gsProgres(); }catch(e){} }
 function U(n){ if(!D.u[n]) D.u[n] = { materi:false, diag:0, form:0, quiz:0, refl:false, proj:false, meet:[false,false,false] }; return D.u[n]; }
 function theme(){
   if(D.tema){ document.documentElement.dataset.theme = D.tema; return; }
@@ -93,6 +93,7 @@ function play(kind){ if(!soundOn) return; try{
     o.start(); o.stop(ctx.currentTime+.16);
   }catch(e){} }
 function render(){
+  ttsStop();
   renderNav();
   const m = $("main");
   const fn = VIEWS[VIEW.name] || VIEWS.home;
@@ -166,7 +167,8 @@ VIEWS.home = () => {
 ${!D.nama || !D.kelas ? `<div class="profile-setup">
   <h2>👤 Lengkapi data diri (dipakai absen & kirim skor)</h2>
   <label class="f" style="margin-bottom:8px">Nama lengkap<input type="text" id="h-nama" value="${esc(D.nama)}" placeholder="mis. Nadia Rahma"></label>
-  <label class="f" style="margin-bottom:8px">Kelas<input type="text" id="h-kelas" value="${esc(D.kelas)}" placeholder="mis. X-1"></label>
+  <div class="r2"><label class="f" style="margin-bottom:8px">Kelas<input type="text" id="h-kelas" value="${esc(D.kelas)}" placeholder="mis. X-1"></label>
+  <label class="f" style="margin-bottom:8px">No. absen (opsional)<input type="text" id="h-absen" value="${esc(D.absen||"")}" placeholder="mis. 07"></label></div>
   <button class="btn" id="h-save">Simpan data diri</button>
 </div>` : ""}
       <div class="card welcome">
@@ -214,6 +216,7 @@ BIND.home = () => {
   document.querySelector("#h-save")?.addEventListener("click", () => {
     D.nama = $("h-nama").value.trim();
     D.kelas = $("h-kelas").value.trim();
+    D.absen = ($("h-absen") ? $("h-absen").value.trim() : D.absen) || "";
     if(!D.nama || !D.kelas) return toast("Isi nama dan kelas dulu 🙂");
     save(); updateUser(); toast("Data disimpan ✅"); render(); });
   document.querySelectorAll(".eacc-h").forEach(b => b.onclick = () => {
@@ -405,7 +408,9 @@ VIEWS.unit = (n, tab) => {
     materi: () => `<div class="stack">
       <div class="card pad"><span class="eyebrow">MATERI · ${esc(e.name)}</span>
         <h2 style="margin-top:4px">${esc(u.title)}</h2>
-        <p class="muted" style="margin-top:6px">${esc(u.desc)}</p></div>
+        <p class="muted" style="margin-top:6px">${esc(u.desc)}</p>
+        <div class="row" style="margin-top:12px"><button class="btn ghost sm" id="tts-btn" data-tts-text="${esc([u.title,u.desc,u.model].join(". "))}">🔊 Bacakan materi</button>
+          <span class="small muted" style="align-self:center">Dibacakan suara perangkat (id-ID)</span></div></div>
       <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">🗺️</span><h2 style="font-size:19px">Peta konsep</h2></div>
         <div class="chips">${u.focus.map(f=>`<span class="chip e${u.el}"><b>${esc(f[0])}</b> — ${esc(f[1])}</span>`).join("")}</div></div>
         <div class="card pad"><div class="sec-h" style="margin-bottom:10px"><span class="ic">✏️</span><h2 style="font-size:19px">Contoh model penyelesaian</h2></div>
@@ -481,15 +486,24 @@ BIND.unit = (n, tab) => {
   document.querySelector("[data-goto-forum]")?.addEventListener("click", () => go("forum"));
   document.querySelector("[data-mat-done]")?.addEventListener("click", e => {
     st.materi = !st.materi; save(); toast(st.materi ? "Materi selesai ✅" : "Status dibatalkan"); render(); });
+  document.querySelector("#tts-btn")?.addEventListener("click", () => {
+    if(tts.on) return ttsStop();
+    ttsStart(($("tts-btn") || {}).dataset ? $("tts-btn").dataset.ttsText : "");
+  });
   document.querySelectorAll("[data-meet]").forEach(b => b.onclick = () => {
     const [un,i] = b.dataset.meet.split(":").map(Number); const s = U(un);
-    s.meet[i] = !s.meet[i]; save(); toast(s.meet[i] ? "Pertemuan ditandai ✅" : "Dibatalkan"); render(); });
+    s.meet[i] = !s.meet[i]; save();
+    if(s.meet[i]) gsPost("presensi", { aktivitas:`Presensi Pertemuan ${i+1}`, unit:`Unit ${un} · ${UNITS[un-1].title}`, skor:"Hadir" }, "Presensi terkirim ke spreadsheet ✓");
+    toast(s.meet[i] ? "Pertemuan ditandai ✅" : "Dibatalkan"); render(); });
   document.querySelector("[data-proj]")?.addEventListener("click", () => {
     st.proj = !st.proj; save(); toast(st.proj ? "Proyek selesai 🛠️" : "Status dibatalkan"); render(); });
   document.querySelector("#refl-save")?.addEventListener("click", () => {
     const tas = document.querySelectorAll("[data-ri]");
     if([...tas].some(t => !t.value.trim())) return toast("Jawab semua pertanyaan dulu 🙂");
-    st.refl = true; save(); toast("Refleksi tersimpan 🪞"); render(); });
+    st.refl = true; save();
+    const ket = [...tas].map((t,i) => `${i+1}) ${t.value.trim()}`).join("  |  ").slice(0,1500);
+    gsPost("refleksi", { aktivitas:"Refleksi Unit " + n, unit:"Unit " + n + " · " + UNITS[n-1].title, ket }, "Refleksi terkirim ke spreadsheet ✓");
+    toast("Refleksi tersimpan 🪞"); render(); });
   if(tab === "awal") mountQuiz("qbox", DIAG(n), { title:"Asesmen Diagnostik", unit: n, done: !!st.diag,
     onScore: s => { st.diag = s; save(); },
     onDone: s => { toast(`Skor diagnostik: ${s}`); render(); } });
@@ -1744,16 +1758,101 @@ BIND.bot = () => {
 
 /* ================= GOOGLE SHEETS (opsional) ================= */
 function gsUrl(){ return `https://script.google.com/macros/s/${D.gs}/exec`; }
+function gsProfil(){ return { siswa:D.nama, kelas:D.kelas, absen:D.absen || "", mapel:META.name }; }
+function gsSiap(){ return !!(D.gs && D.nama && D.kelas && typeof fetch === "function"); }
+let gsToastAt = 0;
+function gsToastMsg(msg){
+  if(!msg) return;
+  const now = Date.now();
+  if(now - gsToastAt < 2500) return;
+  gsToastAt = now; toast(msg);
+}
+function gsSend(payload, okMsg, errMsg){
+  try{
+    if(typeof fetch !== "function") return;
+    fetch(gsUrl(), { method:"POST", body: JSON.stringify(payload) })
+      .then(r => r.json())
+      .then(d => gsToastMsg(d && d.ok ? okMsg : errMsg))
+      .catch(() => gsToastMsg(errMsg));
+  }catch(e){ gsToastMsg(errMsg); }
+}
 function gsNilai(opt, s){
   try{
-    if(!D.gs) return;
-    if(typeof fetch !== "function") return;
-    fetch(gsUrl(), { method:"POST",
-      body: JSON.stringify({ t:"skor", siswa:D.nama, kelas:D.kelas, mapel:META.name,
-        unit:(opt && opt.unit) || 0, jenis:(opt && opt.title) || "", skor:s, kktp:KKTP,
-        waktu:new Date().toISOString() })
-    }).catch(() => {});
+    if(!gsSiap()) return;
+    gsSend(Object.assign({ t:"skor",
+      unit:(opt && opt.unit) || 0, jenis:(opt && opt.title) || "", skor:s, kktp:KKTP,
+      waktu:new Date().toISOString() }, gsProfil()),
+      "📤 Skor terkirim ke spreadsheet guru ✓",
+      "⚠️ Skor tersimpan di perangkat — belum terkirim (cek internet)");
   }catch(e){}
+}
+/* Progres semester dikirim otomatis (debounce 3 s) tiap ada perubahan progres. */
+let gsProgTmr = 0;
+function gsProgres(){
+  try{
+    if(!gsSiap()) return;
+    if(gsProgTmr) return;
+    gsProgTmr = 1;
+    setTimeout(() => {
+      gsProgTmr = 0;
+      const p = progAll();
+      gsSend(Object.assign({ t:"progres", total:{ pct:Math.round(p.d/p.t*100), d:p.d, t:p.t } }, gsProfil()), "", "");
+    }, 3000);
+  }catch(e){}
+}
+/* Kirim baris aktivitas (presensi/refleksi/forum/login/proyek) — paritas English LMS. */
+function gsPost(t, extra, okMsg){
+  try{
+    if(!gsSiap()) return;
+    gsSend(Object.assign({ t, waktu:new Date().toISOString() }, gsProfil(), extra || {}), okMsg || "", "");
+  }catch(e){}
+}
+/* Absensi login harian — sekali per hari per perangkat (sheet Absensi Login). */
+function gsLoginCheck(){
+  try{
+    if(!gsSiap()) return;
+    const k = LS_KEY + ".login", day = new Date().toISOString().slice(0,10);
+    let st = {};
+    try{ st = JSON.parse(localStorage.getItem(k) || "{}"); }catch(e){}
+    if(st.day === day) return;
+    localStorage.setItem(k, JSON.stringify({ day }));
+    gsPost("login", { perangkat:String((typeof navigator !== "undefined" && navigator.userAgent) || "").slice(0,140) });
+  }catch(e){}
+}
+
+/* ================= BACA SUARA (TTS) ================= */
+let tts = { on:false, i:0, chunks:[] };
+function ttsStop(){
+  const had = tts.on;
+  try{ if(typeof speechSynthesis !== "undefined") speechSynthesis.cancel(); }catch(e){}
+  tts.on = false; tts.i = 0; tts.chunks = [];
+  const b = $("tts-btn");
+  if(b && had) b.innerHTML = "🔊 Bacakan materi";
+}
+function ttsStart(text){
+  if(typeof speechSynthesis === "undefined") return toast("Peramban ini tidak mendukung pembacaan suara");
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const raw = String(text || "").replace(/\[\[(.+?)\]\]/g, "$1").replace(/\s+/g, " ").trim();
+  if(!raw) return;
+  const chunks = []; let cur = "";
+  raw.split(" ").forEach(w => {
+    if((cur + " " + w).length > 170){ chunks.push(cur); cur = w; }
+    else cur = cur ? cur + " " + w : w;
+  });
+  if(cur) chunks.push(cur);
+  tts = { on:true, i:0, chunks };
+  const b = $("tts-btn"); if(b) b.innerHTML = "⏹ Stop pembacaan";
+  const step = () => {
+    if(!tts.on) return;
+    if(tts.i >= chunks.length) return ttsStop();
+    try{
+      const u = new SpeechSynthesisUtterance(chunks[tts.i++]);
+      u.lang = "id-ID"; u.rate = .93; u.pitch = 1;
+      u.onend = step; u.onerror = () => ttsStop();
+      speechSynthesis.speak(u);
+    }catch(e){ ttsStop(); toast("Suara tidak tersedia di perangkat ini"); }
+  };
+  step();
 }
 
 /* ================= SETTINGS ================= */
@@ -1767,7 +1866,8 @@ VIEWS.set = () => {
       <div class="grid3">
         <label class="f">Nama lengkap<input type="text" id="s-nama" value="${esc(D.nama)}" placeholder="mis. Nadia Rahma"></label>
         <label class="f">Kelas<input type="text" id="s-kelas" value="${esc(D.kelas)}" placeholder="mis. X-1"></label>
-        <label class="f">Sekolah<input type="text" id="s-sekolah" value="${esc(D.sekolah)}"></label>
+        <label class="f">No. absen (opsional)<input type="text" id="s-absen" value="${esc(D.absen||"")}" placeholder="mis. 07"></label>
+        <label class="f" style="grid-column:1/-1">Sekolah<input type="text" id="s-sekolah" value="${esc(D.sekolah)}"></label>
       </div>
       <button class="btn" id="s-save" style="margin-top:12px">Simpan profil</button></div>
     <div class="grid2">
@@ -1783,7 +1883,7 @@ VIEWS.set = () => {
     </div>
     <div class="card pad">
       <div class="sec-h" style="margin-bottom:10px"><span class="ic">🔗</span><h2 style="font-size:18px">Integrasi Google Sheets (opsional)</h2></div>
-      <p class="small muted">Pengiriman skor otomatis ke Google Sheets guru. Kode aplikasi web dikunci permanen oleh pengaturan sekolah.</p>
+      <p class="small muted">Skor &amp; progres dikirim otomatis saat nama &amp; kelas terisi. Kode bawaan diatur sekolah di data mapel (dapat ditimpa parameter <code class="formula">?gs=</code> dari portal).</p>
       <label class="f" style="margin-top:10px">Kode Aplikasi Web<input type="text" id="s-gs" value="${esc(D.gs)}" placeholder="AKfycb..." ></label>
       <div class="sendbox ${D.gs?"":"off"}" style="margin-top:10px">
         <span>${D.gs?"🟢 Terhubung: siap mengirim skor":"⚪ Belum diatur — skor tersimpan lokal"}</span>
@@ -1796,6 +1896,7 @@ BIND.set = () => {
   $("s-save").onclick = () => {
     D.nama = $("s-nama").value.trim();
     D.kelas = $("s-kelas").value.trim();
+    D.absen = ($("s-absen") ? $("s-absen").value.trim() : D.absen) || "";
     D.sekolah = $("s-sekolah").value.trim() || D.sekolah;
     save(); updateUser(); toast("Profil tersimpan ✅"); render(); };
   document.querySelectorAll("[data-tema]").forEach(b => b.onclick = () => {

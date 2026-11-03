@@ -10,6 +10,7 @@
   var metaTheme = $("meta-theme");
   var THEME_KEY = "lms_theme";
   var CLASS_KEY = "lms_class";
+  var ADMIN_HINT = "lms_admin_logged_in";
   /* Sekolah memilih animasi lembut tetap berjalan walau perangkat memakai mode
      "kurangi animasi" (umum aktif di mode hemat baterai Android / Windows). */
   var reduce = false;
@@ -170,22 +171,46 @@
   /* ---------- auth (API + cookie JWT; tanpa akun tersimpan di perangkat) ---------- */
   var apiAvailable = false;
   if(window.LMS_API){
-    LMS_API.available().then(function(ok){
-      apiAvailable = !!ok;
+    var adminHint = localStorage.getItem(ADMIN_HINT) === "1";
+    /* Optimasi boot: jika diyakini admin, langsung tarik data all (lms/all, sliders/all).
+       Jika 401, ambil ulang versi publik. */
+    var dataReqs = [LMS_API.me(), adminHint ? LMS_API.getAllEntries() : LMS_API.getEntries(), adminHint ? LMS_API.getAllSliders() : LMS_API.getSliders()];
+    Promise.all(dataReqs).then(function(res){
+      var me = res[0], entries = res[1], sliders = res[2];
+      /* Jika hint salah (token expired), coba ambil publik */
+      if(adminHint && (!me.ok || !me.data || !me.data.user || entries.status === 401 || sliders.status === 401)){
+         localStorage.removeItem(ADMIN_HINT);
+         return Promise.all([LMS_API.getEntries(), LMS_API.getSliders()]).then(function(res2){
+             return [me, res2[0], res2[1]];
+         });
+      }
+      return res;
+    }).then(function(res){
+      var me = res[0], entries = res[1], sliders = res[2];
+      if(me && me.ok && me.data && me.data.user) {
+        window._apiUser = me.data.user;
+        localStorage.setItem(ADMIN_HINT, "1");
+      }
+      apiAvailable = !!((entries && entries.ok) || (sliders && sliders.ok) || (me && me.ok));
       var nb = $("noback");
       if(nb && !apiAvailable) nb.hidden = false;
-      if(!apiAvailable) return;
-      return LMS_API.me().then(function(r){
-        if(r && r.ok && r.data && r.data.user) window._apiUser = r.data.user;
-        syncAuthUI();
-        return loadServerEntries();
-      }).then(function(){ return loadSliders(); });
-    }).then(function(){ syncAuthUI(); });
+      if(!apiAvailable){ syncAuthUI(); return; }
+      if(entries && entries.ok && entries.data && Array.isArray(entries.data.entries)){
+        applyServerEntries(entries.data.entries);
+      }
+      if(sliders && sliders.ok && sliders.data && Array.isArray(sliders.data.sliders)){
+        state2.sliders = sliders.data.sliders;
+        syncSliderUI();
+        syncSkUI();
+      }
+      syncAuthUI();
+    }).then(function(){ syncAuthUI(); }, function(){ syncAuthUI(); });
   }
 
   function isAdmin(){ return apiAvailable && !!window._apiUser; }
   function endSession(){
     window._apiUser = null;
+    localStorage.removeItem(ADMIN_HINT);
     if(apiAvailable && window.LMS_API){
       LMS_API.logout().then(function(){ return loadServerEntries(); })
         .then(function(){ return loadSliders(); })
@@ -496,6 +521,7 @@
     LMS_API.login(u, p).then(function(r){
       if(r.ok){
         window._apiUser = r.data.user;
+        localStorage.setItem(ADMIN_HINT, "1");
         syncAuthUI();
         closeModal($("modal-login"));
         toast("Berhasil masuk. Selamat bekerja.");
@@ -504,7 +530,7 @@
       }else if(r.status === 0){
         fail(backendErr());
       }else if(r.status === 429){
-        fail("Terlalu banyak percobaan. Tunggu satu menit lalu coba lagi.");
+        fail("Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.");
       }else{
         fail("Email atau kata sandi salah.");
       }
@@ -671,9 +697,9 @@
     '</a>';
   }
   function esc(s){
-    var div = document.createElement('div');
-    div.textContent = s;
-    return div.innerHTML;
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
   }
 
   var first = true;
@@ -781,7 +807,8 @@
     "#c2255c", "#d6336c", "#1098ad", "#862e9c", "#f76707", "#495057",
     "#9c6644", "#c92a2a", "#364fc7", "#66a80f"
   ];
-  var editingId = null;
+  var editingId = null, kSaving = false, kDraftId = null;
+  var kSave = $("k-save");
   var kIconSel = $("k-icon");
   if(kIconSel){
     kIconSel.innerHTML = ICON_CHOICES.map(function(n){
@@ -794,12 +821,23 @@
   }
   function setKFormMode(mode){
     var editing = mode === "edit";
-    var title = $("k-form-title"), sub = $("k-form-sub"), save = $("k-save");
+    var title = $("k-form-title"), sub = $("k-form-sub");
     if(title) title.textContent = (editing ? "Ubah LMS" : "Tambah LMS") + " · Kelas " + kelolaClass;
     if(sub) sub.textContent = editing
       ? "Perbarui data LMS untuk kelas " + kelolaClass + "."
       : "Lengkapi data LMS untuk kelas " + kelolaClass + ".";
-    if(save) save.textContent = editing ? "Simpan perubahan" : "Simpan LMS";
+    if(kSave && !kSaving) kSave.textContent = editing ? "Simpan perubahan" : "Simpan LMS";
+  }
+  function setKSaving(on){
+    kSaving = !!on;
+    if(kSave){
+      kSave.disabled = kSaving;
+      kSave.setAttribute("aria-busy", kSaving ? "true" : "false");
+      if(kSaving) kSave.textContent = "Menyimpan…";
+    }
+    var cancel = $("k-cancel");
+    if(cancel) cancel.disabled = kSaving;
+    if(!kSaving) setKFormMode(editingId ? "edit" : "add");
   }
   function syncKelolaUI(){
     var idx = CLASSES.indexOf(kelolaClass);
@@ -829,6 +867,7 @@
   }
   function resetKForm(){
     editingId = null;
+    kDraftId = null;
     if(kForm){
       kForm.reset();
       var c = $("k-color");
@@ -932,6 +971,8 @@
   });
   if(kForm) kForm.addEventListener("submit", function(ev){
     ev.preventDefault();
+    if(kSaving) return;
+    setKSaving(true);
     var name = ($("k-name") && $("k-name").value || "").trim();
     var short = ($("k-short") && $("k-short").value || "").trim();
     var url = ($("k-url") && $("k-url").value || "").trim();
@@ -941,6 +982,7 @@
     var color = $("k-color") ? $("k-color").value : COLOR_CHOICES[0];
     var pub = $("k-pub") ? $("k-pub").checked : true;
     function fail(msg){
+      setKSaving(false);
       if(!kErr) return;
       kErr.textContent = msg;
       kErr.hidden = false;
@@ -952,7 +994,8 @@
     if(!apiAvailable || !window.LMS_API){ return fail("Backend tidak tersedia. Hubungi admin sekolah."); }
     var arr = kelolaEntries();
     var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "mapel";
-    var id = editingId || slug + "-" + Date.now().toString(36);
+    if(!kDraftId) kDraftId = slug.slice(0, 60) + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+    var id = editingId || kDraftId;
     var same = arr.filter(function(e){ return e.id === id; })[0];
     var rec = {
       id: id,
@@ -985,6 +1028,7 @@
       apiReq = LMS_API.createEntry(apiPayload);
     }
     apiReq.then(function(r){
+      setKSaving(false);
       if(r && r.ok && r.data && r.data.entry){
         rec.id = r.data.entry.id || rec.id;
         rec.server = true;
@@ -995,9 +1039,16 @@
         render();
         toast(pub === false ? "LMS tersimpan sebagai arsip (tak tampil di daftar siswa)." : msg);
         resetKForm();
+      }else if(!same && r && r.status === 409){
+        loadServerEntries();
+        toast("LMS ini sudah tersimpan.");
+        resetKForm();
       }else{
         fail(apiErrMsg(r, "Gagal menyimpan ke server."));
       }
+    }, function(){
+      setKSaving(false);
+      fail("Gagal menyimpan ke server.");
     });
   });
 
@@ -1012,13 +1063,13 @@
   var skInput = $("sk-input"), skTitle = $("sk-title"),
       skPub = $("sk-pub"), skPreview = $("sk-preview"),
       skPreviewImg = $("sk-preview-img"), skSave = $("sk-save");
-  var skIdx = 0, slTimer = null, skFileURL = null, skEditingId = null, skHover = false;
+  var skIdx = 0, slTimer = null, skFileURL = null, skEditingId = null, skHover = false, skSaving = false;
   var SLIDE_MS = 7000;
   var skFileOK = /^image\/(jpe?g|png|webp)$/i;
   var skFileMax = 8 * 1024 * 1024;
 
   /* Foto dari HP sering 4–10 MB. Perkecil di browser (sisi terpanjang 1920 px,
-     JPEG mutu 0,85) agar unggahan cepat dan lolos batas server 3 MB. */
+     WebP mutu 0,82) agar unggahan cepat dan lolos batas server 3 MB. */
   var SK_SHRINK_OVER = 1.5 * 1024 * 1024;
   function shrinkImage(file){
     return new Promise(function(resolve){
@@ -1036,11 +1087,11 @@
           g.drawImage(img, 0, 0, c.width, c.height);
           c.toBlob(function(b){
             URL.revokeObjectURL(url);
-            if(!b || b.size >= file.size) return resolve(file);
-            var name = String(file.name || "foto").replace(/\.[^.]+$/, "") + ".jpg";
-            try{ resolve(new File([b], name, { type: "image/jpeg" })); }
+            if(!b || b.size >= file.size || b.type !== "image/webp") return resolve(file);
+            var name = String(file.name || "foto").replace(/\.[^.]+$/, "") + ".webp";
+            try{ resolve(new File([b], name, { type: "image/webp" })); }
             catch(e){ b.name = name; resolve(b); }
-          }, "image/jpeg", 0.85);
+          }, "image/webp", 0.82);
         }catch(e){ URL.revokeObjectURL(url); resolve(file); }
       };
       img.onerror = function(){ URL.revokeObjectURL(url); resolve(file); };
@@ -1171,9 +1222,14 @@
     if(skForm) skForm.hidden = true;
   }
   function setSkSaving(on, editing){
-    if(!skSave) return;
-    skSave.disabled = !!on;
-    skSave.textContent = on ? "Menyimpan…" : (editing ? "Simpan perubahan" : "Simpan Foto");
+    skSaving = !!on;
+    if(skSave){
+      skSave.disabled = skSaving;
+      skSave.setAttribute("aria-busy", skSaving ? "true" : "false");
+      skSave.textContent = skSaving ? "Menyimpan…" : (editing ? "Simpan perubahan" : "Simpan Foto");
+    }
+    var cancel = $("sk-cancel");
+    if(cancel) cancel.disabled = skSaving;
   }
   function syncSkUI(){
     var items = state2.sliders;
@@ -1284,8 +1340,11 @@
   });
   if(skForm) skForm.addEventListener("submit", function(ev){
     ev.preventDefault();
+    if(skSaving) return;
+    setSkSaving(true, !!skEditingId);
+    var wasEditing = !!skEditingId;
     function fail(msg){
-      setSkSaving(false, !!skEditingId);
+      setSkSaving(false, wasEditing);
       if(!skErr) return;
       skErr.textContent = msg;
       skErr.hidden = false;
@@ -1297,11 +1356,9 @@
     if(f && !skFileOK.test(f.type)) return fail("Jenis berkas harus JPG, PNG, atau WebP.");
     if(f && f.size > skFileMax) return fail("Ukuran foto terlalu besar — maksimal 8 MB.");
     if(!f){
-      if(!skEditingId) return fail("Pilih berkas foto dari perangkat terlebih dahulu.");
+      if(!wasEditing) return fail("Pilih berkas foto dari perangkat terlebih dahulu.");
     }
     var fields = { title: title, pub: String(pub) };
-    setSkSaving(true, !!skEditingId);
-    var wasEditing = !!skEditingId;
     var editId = skEditingId;
     var apiReq = shrinkImage(f).then(function(img){
       return wasEditing ? LMS_API.updateSlider(editId, fields, img) : LMS_API.createSlider(fields, img);

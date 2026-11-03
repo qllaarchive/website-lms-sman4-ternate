@@ -58,23 +58,26 @@ app.use("/api/uploads", (_req, res, next) => {
   next();
 }, express.static(UPLOAD_DIR, { maxAge: "7d", fallthrough: false }));
 
-app.use("/api/auth", rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false }), authRoutes);
+app.use("/api/auth", rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }), authRoutes);
 app.use("/api/lms", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), lmsRoutes);
 app.use("/api/school", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), schoolRoutes);
 app.use("/api/sliders", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), sliderRoutes);
 
-app.use((req, res) => res.status(404).json({ error: "not_found" }));
+app.get("/api/ping", (_req, res) => res.json({ pong: true }));
+
+app.use((_req, res) => res.status(404).json({ error: "not_found" }));
 app.use((err, _req, res, _next) => {
   const code = Number(err && (err.statusCode || err.status)) || 500;
   if (code >= 500) console.error(err);
-  res.status(code).json({ error: code === 404 ? "not_found" : "internal_error" });
+  const message = code === 404 ? "not_found" : code === 400 ? "invalid_input" :
+    code === 413 ? "payload_too_large" : "internal_error";
+  res.status(code).json({ error: message });
 });
 
-app.get("/api/ping", (_req, res) => res.json({ pong: true }));
-
 const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.BIND || (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => console.log(`LMS API listening on :${PORT}`));
+  app.listen(PORT, HOST, () => console.log(`LMS API listening on ${HOST}:${PORT}`));
 }
 
 export default app;

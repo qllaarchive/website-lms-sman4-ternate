@@ -1,37 +1,28 @@
 import { randomUUID } from "node:crypto";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-import { z } from "zod";
 import { requireAuth, requireCsrf, requireAdmin } from "../middleware/auth.js";
+import { EntrySchema, parseKlass } from "../validation.js";
 
 const prisma = new PrismaClient({ datasourceUrl: (process.env.DATABASE_URL||"") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10" });
 const router = express.Router();
 
-const EntrySchema = z.object({
-  id: z.string().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/).optional(),
-  klass: z.enum(["X", "XI", "XII"]),
-  name: z.string().min(1).max(120),
-  short: z.string().max(120).transform((v) => v.slice(0, 40)).optional(),
-  teacher: z.string().max(80).optional(),
-  icon: z.string().max(40),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  file: z.string().trim().min(1).max(500).refine((v) => /^https?:\/\//i.test(v) || !/^[a-z][a-z0-9+.-]*:/i.test(v), "invalid_link"),
-  pub: z.boolean().optional(),
-  scriptId: z.string().max(200).optional(),
-});
+
 
 /* GET /api/lms — publik, siapa saja boleh lihat daftar LMS */
 router.get("/", async (req, res) => {
-  const klass = req.query.klass;
-  const where = klass ? { klass, pub: true } : { pub: true };
+  const parsed = parseKlass(req.query.klass);
+  if (!parsed.ok) return res.status(400).json({ error: "invalid_input" });
+  const where = parsed.value ? { klass: parsed.value, pub: true } : { pub: true };
   const entries = await prisma.lmsEntry.findMany({ where, orderBy: { createdAt: "asc" } });
   res.json({ entries });
 });
 
 /* GET /api/lms/all — admin only, termasuk yang tidak publik */
 router.get("/all", requireAuth, async (req, res) => {
-  const klass = req.query.klass;
-  const where = klass ? { klass } : {};
+  const parsed = parseKlass(req.query.klass);
+  if (!parsed.ok) return res.status(400).json({ error: "invalid_input" });
+  const where = parsed.value ? { klass: parsed.value } : {};
   const entries = await prisma.lmsEntry.findMany({ where, orderBy: { createdAt: "asc" } });
   res.json({ entries });
 });
@@ -55,7 +46,7 @@ router.post("/", requireAuth, requireCsrf, requireAdmin, async (req, res) => {
 
 /* PUT /api/lms/:id — admin only */
 router.put("/:id", requireAuth, requireCsrf, requireAdmin, async (req, res) => {
-  const parsed = EntrySchema.partial().safeParse(req.body);
+  const parsed = EntrySchema.partial().omit({ id: true }).safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "invalid_input" });
   try {
     const entry = await prisma.lmsEntry.update({ where: { id: req.params.id }, data: parsed.data });

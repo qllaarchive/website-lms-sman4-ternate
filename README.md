@@ -200,8 +200,16 @@ Skor asesmen dapat dikirim otomatis ke Google Sheets melalui Google Apps Script 
 6. Salin kode deployment (bagian setelah `/macros/s/` dan sebelum `/exec`), lalu tempel di:
    - Portal → Kelola mapel → kolom "Kode Apps Script", **atau**
    - Dalam mapel → ⚙️ Settings → "Kode Web App" → Uji koneksi.
+7. PAI: kode deployment juga tertanam di [`public/data/pendais.js`](public/data/pendais.js)
+   (`META.sheetId` — dipakai `lms.js` sebagai `SHEET_URL_DEFAULT`); sinkronkan bila guru
+   membuat deployment baru dengan `scripts/build-pendais.mjs`.
 
-Skor akan dicatat ke sheet `Nilai` (Waktu, Nama, Kelas, Mapel, Unit, Jenis, Skor, KKTP, Status) dan progres ke sheet `Progres`.
+Yang otomatis terkirim setiap murid selesai kuis (**Nilai**: Waktu, Nama, Kelas,
+**Absen**, Mapel, Unit, Jenis, Skor, KKTP, Status Lulus/Belum) dan setiap perubahan
+progres (debounce 3 detik, **Progres**: Waktu, Nama, Kelas, **Absen**, Mapel, Selesai,
+Total, Persen). Profil **No. absen** diisi murid di beranda (setup profil) atau
+⚙️ Settings — tanpa nama/kelas, baris mencatat "-". Halaman juga mendukung tombol
+**🔊 Bacakan materi** (TTS `id-ID`) pada tab Materi.
 
 ---
 
