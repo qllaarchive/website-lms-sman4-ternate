@@ -2,25 +2,63 @@
  * ============================================================================
  * LMS SMAN 4 TERNATE — BACKEND GOOGLE SHEETS (Apps Script Web App)
  * ============================================================================
- * Menerima kiriman skor/progres dari halaman LMS (lms.js) lalu
+ * Menerima kiriman skor/progres dari halaman LMS (assets/lms.js) lalu
+ * menulisnya ke spreadsheet Excel/Google Sheets.
+ *
+ * ===== INTEGRASI LIBRARY GOOGLE APPS SCRIPT =====
+ * Library ID : 1uYEcb34o95CACmyusZlM4hpTED61JAheMoRZ7s_gPoK345dH9wPQjJbt
+ * Versi      : 2
+ *
+ * CARA MENAMBAHKAN LIBRARY (harus lewat editor web, tidak bisa lewat file ini):
+ *  1. Buka https://script.google.com → buka project Apps Script Anda.
+ *  2. Di sidebar kiri, klik ikon "⊕" di sebelah tulisan "Libraries".
+ *  3. Tempel Script ID di atas ke kotak "Add a script as a library".
+ *  4. Klik Look → pilih Versi 2 → klik Add.
+ *  5. Simpan project (ikon disket / Ctrl+S).
+ *
+ * Setelah ditambahkan, ganti "NamaLibrary" di bawah ini dengan nama
+ * library yang muncul di editor (biasanya nama default dari project library),
+ * lalu isi fungsi-fungsi yang sesuai dengan yang diekspor library.
+ * ============================================================================
+ * Menerima kiriman skor/progres dari halaman LMS (assets/lms.js) lalu
  * menulisnya ke spreadsheet Excel/Google Sheets.
  *
  * CARA PAKAI:
- * 1. Buka spreadsheet -> Ekstensi -> Apps Script.
- * 2. Ganti seluruh isi Code.gs dengan file ini -> Simpan.
- * 3. Jalankan fungsi siapkanSheet sekali (beri izin akses saat diminta).
- * 4. Deploy -> New deployment -> Web app:
- *      - Execute as: Me
- *      - Who has access: Anyone
- *    lalu klik Deploy dan salin URL.
- * 5. Tempel kode dari URL (bagian setelah /macros/s/ sampai /exec) ke LMS.
+ * 1. Buka spreadsheet Anda → menu Ekstensi → Apps Script.
+ * 2. Ganti seluruh isi Code.gs dengan file ini → Simpan (Ctrl/Cmd+S).
+ * 3. Jalankan fungsi `siapkanSheet` sekali (beri izin akses saat diminta).
+ * 4. Deploy → New deployment → pilih tipe **Web app**:
+ *      - Execute as        : Me
+ *      - Who has access     : Anyone
+ *    lalu klik Deploy dan salin URL yang muncul.
+ * 5. Ambil KODE dari URL, yaitu bagian setelah "/macros/s/" dan sebelum "/exec"
+ *    contoh URL : https://script.google.com/macros/s/AKfycbXXXXXX/exec
+ *                 \___________________ kode Anda = AKfycbXXXXXX __________/
+ * 6. Tempel kode itu di LMS:
+ *      - Portal → Kelola mapel → kolom "Kode Apps Script", ATAU
+ *      - Di dalam mapel → ⚙️ Settings → "Kode Web App" → Uji koneksi.
+ *
+ * CATATAN TEKNIS:
+ * - Kiriman dari LMS memakai Content-Type text/plain (bukan application/json)
+ *   agar tidak kena preflight CORS yang tidak didukung Apps Script.
+ * - Satu spreadsheet bisa dipakai semua mapel (ada kolom "Mapel").
  * ============================================================================
  */
 
+/* ========================= KONFIGURASI ========================= */
+/** Opsional: isi ID spreadsheet (bagian /d/ pada URL spreadsheet) HANYA bila
+ *  skrip ini dibuat standalone (tidak menempel pada spreadsheet).
+ *  Bila kosong, skrip memakai spreadsheet tempat skrip ini menempel. */
 var SPREADSHEET_ID = "";
+
+/** KKTP dipakai bila LMS tidak mengirim nilai kktp. */
 var KKTP_DEFAULT = 70;
+
+/** Nama mapel pengganti bila LMS tidak mengirim kolom "mapel"
+ *  (mis. Matematika). Kosongkan ("") agar ditulis "-". */
 var MAPOL_DEFAULT = "";
 
+/** Definisi sheet + judul kolomnya. */
 var TABEL = {
   nilai: {
     name: "Nilai",
@@ -36,8 +74,32 @@ var TABEL = {
   }
 };
 
+/* ========================= WRAPPER LIBRARY =========================
+ * Ganti "NamaLibrary" dengan nama library yang muncul di editor Apps Script
+ * setelah Anda menambahkan library (Script ID:
+ * 1uYEcb34o95CACmyusZlM4hpTED61JAheMoRZ7s_gPoK345dH9wPQjJbt, versi 2).
+ *
+ * Contoh struktur (sesuaikan dengan fungsi yang diekspor library):
+ *
+ * var Lib = {
+ *   sinkronNilai: function(row) { return NamaLibrary.simpanNilai(row); },
+ *   backupProgres: function() { return NamaLibrary.exportProgres(); },
+ *   notifikasi: function(pesan) { return NamaLibrary.kirimNotif(pesan); }
+ * };
+ *
+ * Jika library tidak memiliki fungsi apa-apa yang perlu dipanggil,
+ * biarkan variabel Lib ini kosong atau hapus bagian ini.
+ * ========================= WRAPPER LIBRARY ========================= */
 var Lib = {};
+/* Contoh (hapus komentar dan isi nama fungsi asli library):
+var Lib = {
+  simpanNilai: function(nama, kelas, mapel, unit, jenis, skor, kktp, waktu) {
+    return NamaLibrary.simpanNilai(nama, kelas, mapel, unit, jenis, skor, kktp, waktu);
+  }
+};
+*/
 
+/* ========================= UTILITAS ========================= */
 function ss_() {
   if (SPREADSHEET_ID) return SpreadsheetApp.openById(SPREADSHEET_ID);
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -60,6 +122,8 @@ function sheet_(key) {
   return sh;
 }
 
+/** Perbarui baris judul bila daftar kolom berubah (mis. kolom "Absen" baru),
+ *  agar sheet lama otomatis mengikuti format Code.gs terbaru. */
 function ensureHead_(sh, head) {
   var cols = Math.max(sh.getLastColumn(), head.length);
   var have = cols > 0 ? (sh.getRange(1, 1, 1, cols).getValues()[0] || []) : [];
@@ -101,6 +165,9 @@ function log_(tipe, pesan) {
 
 function str_(v) { return v === undefined || v === null ? "" : String(v); }
 
+/* ========================= ENDPOINT UTAMA ========================= */
+
+/** Web app: semua kiriman LMS masuk lewat sini (POST JSON). */
 function doPost(e) {
   var data;
   try {
@@ -112,6 +179,7 @@ function doPost(e) {
   try {
     var t = str_(data.t).toLowerCase();
 
+    /* ---- Uji koneksi dari Settings LMS ---- */
     if (t === "uji") {
       var namaSs = ss_().getName();
       log_("uji", "Uji koneksi dari " + str_(data.mapel || "LMS") +
@@ -119,10 +187,17 @@ function doPost(e) {
       return out_({ ok: true, msg: "Terhubung ke \"" + namaSs + "\"", waktu: now_() });
     }
 
+    /* ---- Skor asesmen (diagnostik, formatif, kuis, UTS/UAS, remedial) ----
+     * Mendukung 2 format kiriman LMS:
+     *   Sejarah/engine lms.js : { t:"skor",  siswa, kelas, mapel, unit, jenis, skor, kktp, waktu }
+     *   Matematika (self-cont.): { t:"nilai", nama, kelas, sekolah, jenis, unit, skor, kktp }
+     */
     if (t === "skor" || t === "nilai") {
       var skor = Number(data.skor);
       if (isNaN(skor)) return out_({ ok: false, error: "skor bukan angka" });
       var kktp = Number(data.kktp) || KKTP_DEFAULT;
+      /* Format Matematika tidak mengirim "mapel" → tulis "-" (bisa juga diisi nama
+         mapel statis di sini, mis. var MAPOL_SEJARAH = "Matematika";) */
       var mapel = str_(data.mapel) || MAPOL_DEFAULT || "-";
       var row = [
         str_(data.waktu) || now_(),
@@ -138,9 +213,19 @@ function doPost(e) {
       ];
       withLock_(function () { sheet_("nilai").appendRow(row); });
       log_("skor", row[1] + " • " + row[2] + " • " + row[4] + " unit " + row[5] + " • " + row[7]);
+      /* ---- Panggilan library (diaktifkan bila Anda mengisi fungsi di Lib) ----
+         Contoh: Lib.simpanNilai(...) — hapus komentar & isi nama fungsi asli library. */
+      /* if (typeof Lib.simpanNilai === "function") {
+          try { Lib.simpanNilai(row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[0]); }
+          catch (e) { log_("lib", "Lib.simpanNilai gagal: " + String(e)); }
+        } */
       return out_({ ok: true, msg: "Skor tersimpan", status: row[9] });
     }
 
+    /* ---- Progres semester (opsional, upsert per Nama + Mapel) ----
+     * lms.js    : { t:"progres", siswa, kelas, absen, mapel, total:{pct,d,t} }
+     * matematika: { t:"progres", nama, kelas, sekolah, total:{pct,d,t}, ... }
+     */
     if (t === "progres") {
       if (data.total && typeof data.total === "object") {
         data.d = data.total.d; data.t = data.total.t; data.pct = data.total.pct;
@@ -151,6 +236,7 @@ function doPost(e) {
       return out_({ ok: true, msg: d2 });
     }
 
+    /* ---- Tipe lain (mis. forum/pesan) dicatat ke Log agar tidak hilang ---- */
     log_(t || "?", JSON.stringify(data));
     return out_({ ok: true, msg: "Tercatat di Log" });
   } catch (err) {
@@ -159,6 +245,7 @@ function doPost(e) {
   }
 }
 
+/** Web app: GET dipakai untuk ping/status. */
 function doGet(e) {
   return out_({
     ok: true,
@@ -169,6 +256,7 @@ function doGet(e) {
   });
 }
 
+/** Simpan/ubah baris progres (per Nama + Mapel). */
 function upsertProgres_(data) {
   var nama = str_(data.siswa) || "-", mapel = str_(data.mapel) || "-";
   var row = [
@@ -189,6 +277,9 @@ function upsertProgres_(data) {
   });
 }
 
+/* ========================= UTIL ADMIN ========================= */
+
+/** Jalankan sekali dari editor / menu LMS untuk membuat semua sheet. */
 function siapkanSheet() {
   sheet_("nilai");
   sheet_("progres");
@@ -202,6 +293,7 @@ function siapkanSheet() {
   );
 }
 
+/** Menu bantuan di spreadsheet. */
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("LMS")
@@ -210,6 +302,7 @@ function onOpen() {
     .addToUi();
 }
 
+/** Data contoh agar tampilan sheet langsung terlihat. */
 function isiContoh() {
   withLock_(function () {
     sheet_("nilai").appendRow([
@@ -218,4 +311,147 @@ function isiContoh() {
     sheet_("progres").appendRow([now_(), "Nadia Rahma", "X-3", "07", "Sejarah", 1, 7, 14]);
   });
   log_("setup", "Data contoh ditambahkan");
+}
+
+/* Mencari API key Gemini dengan toleran: nama property boleh sedikit beda
+   (spasi, huruf kecil, GEMINI_KEY, API_KEY, OPENAI_API_KEY lama).
+   Key Gemini format lama diawali AIza, format baru AI Studio diawali AQ. — keduanya diterima. */
+function keyGemini(v) { return v.indexOf('AIza') === 0 || v.indexOf('AQ.') === 0; }
+function ambilGroq() {
+  var all = PropertiesService.getScriptProperties().getProperties();
+  for (var k in all) {
+    var v = String(all[k] || '').trim().replace(/^['"]+|['"]+$/g, '').trim();
+    var nm = String(k).toUpperCase().replace(/[^A-Z]/g, '');
+    if (v.indexOf('gsk_') === 0 || ((nm === 'GROQAPIKEY' || nm === 'GROQKEY') && v)) return v;
+  }
+  return '';
+}
+function ambilKey() {
+  var all = PropertiesService.getScriptProperties().getProperties();
+  var bersih = function (v) { return String(v || '').trim().replace(/^['"]+|['"]+$/g, '').trim(); };
+  var urut = ['GEMINIAPIKEY', 'GEMINIKEY', 'APIKEY', 'GOOGLEAPIKEY', 'OPENAIAPIKEY'];
+  var peta = {};
+  for (var k in all) peta[String(k).toUpperCase().replace(/[^A-Z]/g, '')] = bersih(all[k]);
+  for (var i = 0; i < urut.length; i++) if (peta[urut[i]] && peta[urut[i]].indexOf('sk-') !== 0 && peta[urut[i]].indexOf('gsk_') !== 0) return peta[urut[i]];
+  for (var k2 in all) { var v = bersih(all[k2]); if (keyGemini(v)) return v; }
+  return '';
+}
+
+/* Jalankan di editor untuk melihat property apa saja yang tersimpan (nilai key TIDAK ditampilkan). */
+function cekKunci() {
+  var all = PropertiesService.getScriptProperties().getProperties(), ada = [];
+  for (var k in all) if (k.indexOf('BQ_') !== 0 && k !== 'BUDDY_DAY' && k !== 'GROQ_MODEL_AUTO') {
+    var v = String(all[k] || '').trim();
+    ada.push('"' + k + '" -> panjang ' + v.length + ' karakter, diawali "' + v.slice(0, 3) + '"');
+  }
+  Logger.log(ada.length ? 'Property tersimpan:  ' + ada.join('  |  ') : 'TIDAK ADA script property sama sekali. Tambahkan GROQ_API_KEY (dan/atau GEMINI_API_KEY) lalu klik Simpan.');
+  Logger.log(ambilGroq() ? 'OK: key Groq (gsk_...) ditemukan -> dipakai sebagai AI utama.' : 'Groq: belum ada key (buat gratis di console.groq.com/keys, simpan dengan nama GROQ_API_KEY).');
+  Logger.log(ambilKey() ? 'OK: key Gemini (AQ.... / AIza...) ditemukan -> ' + (ambilGroq() ? 'dipakai sebagai cadangan.' : 'dipakai sebagai AI utama.') : 'Gemini: belum ada key (opsional sebagai cadangan).');
+  Logger.log(ambilGroq() || ambilKey() ? 'Lanjut: jalankan tesBuddy.' : 'BELUM ADA KEY SAMA SEKALI: English Buddy belum bisa memakai AI.');
+}
+
+function groqKirim_(key, model, pesan) {
+  var body = {
+    model: model, max_tokens: 700, temperature: 0.6,
+    messages: [{role: 'system', content: BUDDY_SYSTEM}].concat(pesan.map(function (m) { return {role: m.role, content: m.text}; }))
+  };
+  if (/gpt-oss/.test(model)) { body.reasoning_effort = 'low'; body.max_tokens = 1500; }
+  var res = UrlFetchApp.fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: {'Authorization': 'Bearer ' + key}, payload: JSON.stringify(body)
+  });
+  var code = res.getResponseCode();
+  if (code !== 200) return {ok: false, error: 'api' + code, detail: 'Groq (' + model + '): ' + res.getContentText().slice(0, 300)};
+  var j = JSON.parse(res.getContentText());
+  var ans = j.choices && j.choices[0] && j.choices[0].message ? String(j.choices[0].message.content || '').trim() : '';
+  return ans ? {ok: true, answer: ans, sumber: 'Groq ' + model} : {ok: false, error: 'empty'};
+}
+
+/* Daftar model chat Groq yang benar-benar tersedia untuk key ini, urut dari yang paling cocok */
+function groqModels_(key) {
+  var res = UrlFetchApp.fetch('https://api.groq.com/openai/v1/models', {muteHttpExceptions: true, headers: {'Authorization': 'Bearer ' + key}});
+  if (res.getResponseCode() !== 200) return [];
+  var ids = (JSON.parse(res.getContentText()).data || []).filter(function (m) { return m.active !== false; }).map(function (m) { return m.id; })
+    .filter(function (id) { return !/whisper|tts|guard|orpheus|playai|distil|compound|prompt|safeguard/i.test(id); });
+  var suka = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'meta-llama/llama-4-maverick', 'meta-llama/llama-4-scout', 'qwen', 'openai/gpt-oss-20b', 'llama-3.1-8b-instant', 'llama', 'gemma', 'mistral'];
+  var skor = function (id) { for (var i = 0; i < suka.length; i++) if (id.indexOf(suka[i]) === 0 || id.indexOf(suka[i]) >= 0) return i; return 99; };
+  return ids.sort(function (a, b) { return skor(a) - skor(b); });
+}
+
+/* Tanya Groq: pakai model yang tersimpan; jika model tidak ada (404/400 model), cari otomatis model lain lalu simpan */
+function tanyaGroq_(key, model, pesan) {
+  var props = PropertiesService.getScriptProperties();
+  var pakai = props.getProperty('GROQ_MODEL_AUTO') || model;
+  var r = groqKirim_(key, pakai, pesan);
+  if (r.ok || !(r.error === 'api404' || (r.error === 'api400' && /model/i.test(r.detail || '')))) return r;
+  var daftar = groqModels_(key);
+  for (var i = 0; i < daftar.length && i < 4; i++) {
+    if (daftar[i] === pakai) continue;
+    var r2 = groqKirim_(key, daftar[i], pesan);
+    if (r2.ok) { props.setProperty('GROQ_MODEL_AUTO', daftar[i]); return r2; }
+    r = r2;
+  }
+  return r;
+}
+
+function tanyaGemini_(key, pesan) {
+  var contents = pesan.map(function (m) { return {role: m.role === 'user' ? 'user' : 'model', parts: [{text: m.text}]}; });
+  var endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent';
+  var body = JSON.stringify({
+    systemInstruction: {parts: [{text: BUDDY_SYSTEM}]},
+    contents: contents,
+    generationConfig: {maxOutputTokens: 600}
+  });
+  var res = UrlFetchApp.fetch(endpoint, {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: {'x-goog-api-key': key}, payload: body
+  });
+  /* cadangan untuk key format baru (AQ.): kirim lewat ?key= (satu kredensial saja) */
+  if (res.getResponseCode() === 401 || res.getResponseCode() === 403) {
+    res = UrlFetchApp.fetch(endpoint + '?key=' + encodeURIComponent(key), {
+      method: 'post', contentType: 'application/json', muteHttpExceptions: true, payload: body
+    });
+  }
+  if (res.getResponseCode() !== 200) return {ok: false, error: 'api' + res.getResponseCode(), detail: 'Gemini: ' + res.getContentText().slice(0, 300)};
+  var j = JSON.parse(res.getContentText());
+  var c = j.candidates && j.candidates[0];
+  var ans = c && c.content && c.content.parts ? c.content.parts.map(function (p) { return p.text || ''; }).join('').trim() : '';
+  return ans ? {ok: true, answer: ans, sumber: 'Gemini ' + GEMINI_MODEL} : {ok: false, error: 'empty'};
+}
+
+function buddy_(d) {
+  var props = PropertiesService.getScriptProperties();
+  var groq = ambilGroq(), gem = ambilKey();
+  if (!groq && !gem) return {ok: false, error: 'nokey'};
+  var today = Utilities.formatDate(new Date(), 'Asia/Jayapura', 'yyyyMMdd');
+  if (props.getProperty('BUDDY_DAY') !== today) {
+    var all = props.getProperties();
+    for (var k in all) if (k.indexOf('BQ_') === 0) props.deleteProperty(k);
+    props.setProperty('BUDDY_DAY', today);
+  }
+  var who = 'BQ_' + Utilities.base64EncodeWebSafe([d.kelas, d.absen, d.nama].join('|')).slice(0, 60);
+  var n = Number(props.getProperty(who) || 0);
+  if (n >= BUDDY_LIMIT) return {ok: false, error: 'limit', left: 0};
+  // Riwayat chat: diawali 'user' dan bergantian user/assistant
+  var pesan = [];
+  (d.history || []).slice(-8).concat([{role: 'user', content: d.q}]).forEach(function (m) {
+    if (!m || (m.role !== 'user' && m.role !== 'assistant')) return;
+    var text = String(m.content || '').slice(0, 1500);
+    if (!text) return;
+    if (!pesan.length && m.role !== 'user') return;
+    var last = pesan[pesan.length - 1];
+    if (last && last.role === m.role) last.text += '\n' + text;
+    else pesan.push({role: m.role, text: text});
+  });
+  // Urutan: Groq model utama -> Groq model cepat -> Gemini
+  var hasil = null, coba = [];
+  if (groq) coba.push(function () { return tanyaGroq_(groq, GROQ_MODEL, pesan); }, function () { return groqKirim_(groq, GROQ_MODEL_CEPAT, pesan); });
+  if (gem) coba.push(function () { return tanyaGemini_(gem, pesan); });
+  for (var i = 0; i < coba.length; i++) {
+    try { hasil = coba[i](); } catch (err) { hasil = {ok: false, error: 'api0', detail: String(err).slice(0, 200)}; }
+    if (hasil.ok) break;
+  }
+  if (!hasil.ok) return hasil;
+  props.setProperty(who, String(n + 1));
+  return {ok: true, answer: hasil.answer, sumber: hasil.sumber, left: BUDDY_LIMIT - n - 1};
 }
