@@ -1335,8 +1335,7 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
   animation:wake .5s cubic-bezier(.22,1,.36,1) 90ms backwards;
 }
 .sec-logo{
-  width:54px; height:54px; flex:none; border-radius:15px;
-  border:2px solid rgba(255,255,255,.62);
+  width:54px; height:54px; flex:none; border-radius:50%;
   box-shadow:0 10px 26px rgba(0,0,0,.42);
 }
 .brand-txt-lg{ display:flex; flex-direction:column; line-height:1; align-items:flex-start; gap:6px; text-align:left; margin-left:8px }
@@ -1397,7 +1396,7 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
   .slider{ height:clamp(180px, 48vw, 300px); border-radius:14px; margin-top:12px }
   .slider-top{ padding-top:14px; gap:10px }
   .slide-brand{ max-width:80%; text-align:center }
-  .sec-logo{ width:44px; height:44px; border-radius:12px }
+  .sec-logo{ width:44px; height:44px; border-radius:50% }
   .brand-txt-lg b{ font-size:clamp(16px, 2.4vw, 20px); letter-spacing:.12em }
   .brand-txt-lg small{ font-size:clamp(10px, 1.3vw, 12px); letter-spacing:.14em }
   .slider-dots{ right:10px; bottom:12px }
