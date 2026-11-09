@@ -1,22 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=EB+Garamond:wght@400;500;600&display=swap");
-
-/* ==========================================
-   LOKAL FONT (tanpa pakai system font)
-   Supaya font tetap sama di semua perangkat:
-   - Apple, Android, Windows, ChromeOS, dsb.
-   Gunakan file fonts di https://fonts.gstatic.com
-   ========================== */
-@font-face{font-family:'Baloo 2';font-style:normal;font-weight:500;font-display:swap src:url('https://fonts.gstatic.com/s/baloo2/v20/TXlaVZ3Lu-37Wjr4QvY2G1BvDf8PkAE.woff2') format('woff2')}
-@font-face{font-family:'Baloo 2';font-style:normal;font-weight:600;font-display:swap src:url('https://fonts.gstatic.com/s/baloo2/v20/TXlaVZ3Lu-37Wjr4QvY2G2Bt8PkAE.woff2') format('woff2')}
-@font-face{font-family:'Baloo 2';font-style:normal;font-weight:700;font-display:swap src:url('https://fonts.gstatic.com/s/baloo2/v20/TXlaVZ3Lu-37Wjr4QvY2G3Kt8PkAE.woff2') format('woff2')}
-@font-face{font-family:'Baloo 2';font-style:normal;font-weight:800;font-display:swap src:url('https://fonts.gstatic.com/s/baloo2/v20/TXlaVZ3Lu-37Wjr4QvY2G4Kt8PkAE.woff2') format('woff2')}
-@font-face{font-family:'Nunito';font-style:normal;font-weight:400;font-display:swap src:url('https://fonts.gstatic.com/s/nunito/v16/TTZtR2WC9xjv2_lazyKFhP.woff2') format('woff2')}
-@font-face{font-family:'Nunito';font-style:normal;font-weight:600;font-display:swap src:url('https://fonts.gstatic.com/s/nunito/v16/TTZtR2WC9xjv2_lazyKFhJ.woff2') format('woff2')}
-@font-face{font-family:'Nunito';font-style:normal;font-weight:700;font-display:swap src:url('https://fonts.gstatic.com/s/nunito/v16/TTZtR2WC9xjv2_lazyKFhO.woff2') format('woff2')}
-@font-face{font-family:'Nunito';font-style:normal;font-weight:800;font-display:swap src:url('https://fonts.gstatic.com/s/nunito/v16/TTZtR2WC9xjv2_lazyKFhP.woff2') format('woff2')}
-@font-face{font-family:'EB Garamond';font-style:normal;font-weight:400;font-display:swap src:url('https://fonts.gstatic.com/s/ebgaramond/v36/i059wLL2XlR3p23R6G_xswo4jM7Bn3w.woff2') format('woff2')}
-@font-face{font-family:'EB Garamond';font-style:normal;font-weight:500;font-display:swap src:url('https://fonts.gstatic.com/s/ebgaramond/v36/i059wLL2XlR3p23R6G_xswo4jM7Bn3w.woff2') format('woff2')}
-@font-face{font-family:'EB Garamond';font-style:normal;font-weight:600;font-display:swap src:url('https://fonts.gstatic.com/s/ebgaramond/v36/i059wLL2XlR3p23R6G_xswo4jM7Bn3w.woff2') format('woff2')}
+/* Font dimuat dari assets/fonts.css (file lokal, konsisten di semua perangkat). */
 
 /* Hapus fallback system font, pakai font yang kita kasih */
 :root{

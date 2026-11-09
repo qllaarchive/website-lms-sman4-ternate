@@ -13,6 +13,7 @@ import busboy from "busboy";
 import { csrfFor, csrfValid } from "./src/csrf.js";
 import { COOKIE, signSession, verifySession, sessionCookieHeader, clearSessionCookieHeader } from "./src/session.js";
 import { EntrySchema, parseKlassQuery } from "./src/validation.js";
+import { optimizeImage } from "./src/image.js";
 
 const prisma = globalThis.__lmsPrisma || new PrismaClient({
   datasourceUrl: (process.env.DATABASE_URL || "") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10",
@@ -170,7 +171,9 @@ async function sliderWrite(req, res, id) {
   if (file && file.buffer.length) {
     if (file.tooBig) return send(res, 413, { error: "file_too_large", maxBytes: MAX_IMAGE });
     if (!IMG_TYPES.has(file.mime)) return send(res, 415, { error: "unsupported_image_type" });
-    imageUrl = `data:${file.mime};base64,${file.buffer.toString("base64")}`;
+    /* JPG/PNG/GIF diubah ke WebP lebih dulu agar data di database ringan. */
+    const img = await optimizeImage(file.buffer, file.mime);
+    imageUrl = `data:${img.mime};base64,${img.buffer.toString("base64")}`;
   } else if (typeof fields.imageUrl === "string" && /^(https:\/\/|\/)/.test(fields.imageUrl)) {
     imageUrl = fields.imageUrl.slice(0, 1000);
   }

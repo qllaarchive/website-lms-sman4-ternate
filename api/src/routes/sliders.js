@@ -10,6 +10,7 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { requireAuth, requireCsrf, requireAdmin } from "../middleware/auth.js";
 import { UPLOAD_DIR } from "../uploads.js";
+import { optimizeImage } from "../image.js";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const prisma = new PrismaClient({ datasourceUrl: (process.env.DATABASE_URL||"") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10" });
@@ -37,20 +38,21 @@ const upload = multer({
 });
 
 async function storeFile(file) {
-  const ext = IMG_EXT[file.mimetype] || ".jpg";
-  const name = "sl-" + Date.now().toString(36) + "-" + randomUUID().slice(0, 8) + ext;
+  /* JPG/PNG/GIF diubah ke WebP (dan dikecilkan) sebelum disimpan. */
+  const img = await optimizeImage(file.buffer, file.mimetype);
+  const name = "sl-" + Date.now().toString(36) + "-" + randomUUID().slice(0, 8) + img.ext;
   if (R2_ENABLED) {
     const key = name;
     await s3.send(new PutObjectCommand({
       Bucket: R2_BUCKET_NAME,
       Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
+      Body: img.buffer,
+      ContentType: img.mime,
     }));
     return R2_PUBLIC_URL + "/" + key;
   }
   if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-  fs.writeFileSync(path.join(UPLOAD_DIR, name), file.buffer);
+  fs.writeFileSync(path.join(UPLOAD_DIR, name), img.buffer);
   return "/api/uploads/" + name;
 }
 

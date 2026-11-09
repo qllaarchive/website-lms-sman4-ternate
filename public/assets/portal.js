@@ -1066,21 +1066,23 @@
   var skIdx = 0, slTimer = null, skFileURL = null, skEditingId = null, skHover = false, skSaving = false;
   var SLIDE_MS = 7000;
   var skFileOK = /^image\/(jpe?g|png|webp)$/i;
-  var SK_SHRINK_OVER = 512 * 1024;             // auto-convert kalau foto > 0.5 MB
+  var SK_SHRINK_OVER = 512 * 1024;             // WebP di atas 0.5 MB ikut dikecilkan
   var skFileMax = 8 * 1024 * 1024;             // batas kirim ke server: 8 MB
-  var SK_WEBP_Q = 0.85;                        // mutu WebP: 0.85 (seimbang ukuran & kualitas)
+  var SK_WEBP_Q = 0.82;                        // mutu WebP: 0.82 (ringan, tetap tajam)
 
-  /* Foto HP biasanya 3–10 MB. Auto-convert lewat browser: sisi terpanjang
-     dipotong maks 1920 px, dimasukkan ke WebP (mutu 0,85). Kalau hasil WebP
-     tidak lebih kecil dari asli, gunakan file asli agar tidak memperlambat. */
+  /* Semua unggahan JPG/JPEG/PNG otomatis diubah ke WebP lewat browser:
+     sisi terpanjang dipotong maks 2000 px, mutu 0,82. Foto WebP yang besar
+     juga dikecilkan. Hasilnya slider jauh lebih ringan saat dimuat. */
   function shrinkImage(file){
     return new Promise(function(resolve){
-      if(!file || file.size <= SK_SHRINK_OVER || !window.URL || !document.createElement("canvas").toBlob) return resolve(file);
+      if(!file || !window.URL || !document.createElement("canvas").toBlob) return resolve(file);
+      var isWebp = file.type === "image/webp";
+      if(isWebp && file.size <= SK_SHRINK_OVER) return resolve(file);
       var url = URL.createObjectURL(file);
       var img = new Image();
       img.onload = function(){
         try{
-          var max = 1920, w = img.naturalWidth, h = img.naturalHeight;
+          var max = 2000, w = img.naturalWidth, h = img.naturalHeight;
           var k = Math.min(1, max / Math.max(w, h));
           var c = document.createElement("canvas");
           c.width = Math.round(w * k); c.height = Math.round(h * k);
@@ -1089,7 +1091,8 @@
           g.drawImage(img, 0, 0, c.width, c.height);
           c.toBlob(function(b){
             URL.revokeObjectURL(url);
-            if(!b || b.size >= file.size || b.type !== "image/webp") return resolve(file);
+            if(!b || b.type !== "image/webp") return resolve(file);
+            if(isWebp && b.size >= file.size) return resolve(file);
             var name = String(file.name || "foto").replace(/\.[^.]+$/, "") + ".webp";
             try{ resolve(new File([b], name, { type: "image/webp" })); }
             catch(e){ b.name = name; resolve(b); }
@@ -1220,7 +1223,7 @@
     if(skFileURL){ URL.revokeObjectURL(skFileURL); skFileURL = null; }
     var t = $("sk-form-title"), sub = $("sk-form-sub");
     if(t) t.textContent = "Tambah Foto";
-    if(sub) sub.textContent = "Unggah foto kegiatan yang akan berputar di beranda (JPG/PNG/WebP, maks 8\u00A0MB).";
+    if(sub) sub.textContent = "Unggah foto kegiatan yang akan berputar di beranda (JPG/PNG/WebP, maks 8\u00A0MB). Foto JPG/PNG otomatis diubah ke WebP agar ringan.";
     if(skForm) skForm.hidden = true;
   }
   function setSkSaving(on, editing){
