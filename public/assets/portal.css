@@ -1001,13 +1001,18 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
      Pakai block agar "SMANFOURTTE" bisa pindah baris sendiri, dan ukur font
      supaya kata terpanjang selalu muat: ~6em + bintang, fon ≤ (100vw-32px)/6. */
   .intro-title{
-    display:block; min-width:0; max-width:100%;
+    display:block; min-width:0; max-width:100%; position:relative;
     font-size:clamp(24px, 14.5vw, 64px); line-height:1.06;
-    letter-spacing:-.06em; white-space:normal; text-align:center;
+    letter-spacing:-.02em; white-space:normal; text-align:center;
     overflow-wrap:normal; hyphens:none;
   }
   .intro-title > span:first-child{ display:inline }
-  .intro-bloom{ display:inline-block; vertical-align:baseline; margin-top:0; margin-left:.1em }
+  /* Bintang dibuat mutlak di pojok kanan-atas agar tidak menggeser
+     baris teks — baris judul tetap benar-benar di tengah. */
+  .intro-bloom{
+    position:absolute; top:-.2em; right:-.1em;
+    width:.28em; height:.28em; margin:0;
+  }
   .intro-school{ margin-top:18px; font-size:10px; letter-spacing:.22em; text-align:center }
   .intro-cta{ margin-top:30px; width:min(210px, 85vw); justify-content:center }
 }
