@@ -735,9 +735,9 @@ a.p-next:active{ transform:scale(.995) }
 .to-top svg{ width:18px; height:18px }
 
 /* ——— gerak: masuk sekali lalu diam ——— */
-@keyframes rise{ 0%{ opacity:0; transform:translateY(14px) scale(.96) } 55%{ transform:scale(1.025) } 100%{ opacity:1; transform:scale(1) } }
-@keyframes popin{ 0%{ opacity:0; transform:translateY(10px) scale(.92) } 65%{ transform:scale(1.045) } 100%{ opacity:1; transform:none } }
-@keyframes wordrise{ 0%{ opacity:0; transform:translateY(14px) scale(.9) } 55%{ transform:scale(1.04) } 100%{ opacity:1; transform:none } }
+@keyframes rise{ from{ opacity:0; transform:translateY(14px) } to{ opacity:1; transform:none } }
+@keyframes popin{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+@keyframes wordrise{ from{ opacity:0; transform:translateY(14px) } to{ opacity:1; transform:none } }
 @keyframes dotwave{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(.38) } }
 @keyframes fillbar{ from{ transform:scaleX(0) } }
 .hero{ animation:rise var(--dur-enter) var(--ease) both }
@@ -745,7 +745,7 @@ a.p-next:active{ transform:scale(.995) }
 .hero-actions{ animation:rise var(--dur-enter) var(--ease) 130ms both }
 .admin-bar{ animation:rise var(--dur-enter) var(--ease) 150ms both }
 .cards.is-first .card{
-  animation:popin 300ms var(--ease-back) backwards;
+  animation:popin 300ms var(--ease) backwards;
   animation-delay:calc(160ms + var(--i, 0) * 45ms);
 }
 .cards.is-first .prog .bar{
@@ -757,7 +757,7 @@ a.p-next:active{ transform:scale(.995) }
     dengan stagger cepat dan overshoot pengan (easeOutBack) ——— */
 #portal-title .w{
   display:inline-block;
-  animation:wordrise 300ms var(--ease-back) backwards;
+  animation:wordrise 300ms var(--ease) backwards;
   animation-delay:calc(40ms + var(--w, 0) * 30ms);
 }
 
@@ -964,9 +964,9 @@ html.intro-seen .intro{ display:none !important }
 .intro-cta-ic svg{ width:14px; height:14px }
 @media (hover: hover) and (pointer: fine){ .intro-cta:hover .intro-cta-ic{ transform:translateX(2px) } }
 #portal-title:focus{ outline:none }
-@keyframes introUp{ 0%{ opacity:0; transform:translateY(20px) } 60%{ transform:translateY(-3px) } 100%{ opacity:1; transform:none } }
-@keyframes introBloom{ 0%{ opacity:0; transform:rotate(-40deg) scale(.55) } 50%{ transform:rotate(6deg) scale(1.03) } 100%{ opacity:1; transform:rotate(9deg) scale(1) } }
-@keyframes introZoom{ 0%{ transform:scale(1.065) } 45%{ transform:scale(1.005) } 100%{ transform:scale(1) } }
+@keyframes introUp{ from{ opacity:0; transform:translateY(20px) } to{ opacity:1; transform:none } }
+@keyframes introBloom{ from{ opacity:0; transform:translateY(20px) } to{ opacity:1; transform:none } }
+@keyframes introZoom{ from{ opacity:0; transform:translateY(14px) } to{ opacity:1; transform:none } }
 
 /* ——— transisi intro → portal: portal "bangun" saat tirai naik ——— */
 @keyframes wake{
@@ -1026,7 +1026,7 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
   display:flex; flex-direction:column;
   animation:pagein 200ms var(--ease) both;
 }
-@keyframes pagein{ 0%{ opacity:0; transform:translateY(10px) scale(.985) } 60%{ transform:scale(1.01) } 100%{ opacity:1; transform:none } }
+@keyframes pagein{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
 .page-bar{
   position:relative; z-index:2; flex:none;
   background:color-mix(in srgb, var(--bg) 88%, transparent);
