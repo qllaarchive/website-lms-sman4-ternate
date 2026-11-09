@@ -1,8 +1,8 @@
 /* Optimasi gambar unggahan: JPG/PNG/GIF otomatis diubah ke WebP dan
    dikecilkan agar slider ringan. `sharp` dimuat dinamis supaya server tetap
    jalan (memakai berkas asli) bila paket native itu belum tersedia. */
-const MAX_SIDE = 2000;
-const WEBP_QUALITY = 82;
+const MAX_SIDE = 1600;
+const WEBP_QUALITY = 80;
 
 let sharpPromise = null;
 function loadSharp() {

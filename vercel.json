@@ -8,5 +8,13 @@
     { "source": "/", "destination": "/index.html" },
     { "source": "/api/:path*", "destination": "/api" }
   ],
+  "headers": [
+    {
+      "source": "/assets/fonts/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ],
   "crons": []
 }

@@ -9,8 +9,15 @@
   var seg = $("seg"), segThumb = $("seg-thumb");
   var metaTheme = $("meta-theme");
   var THEME_KEY = "lms_theme";
-  var CLASS_KEY = "lms_class";
   var ADMIN_HINT = "lms_admin_logged_in";
+  var CACHE_ENTRIES = "lms_cache_entries_v1";
+  var CACHE_SLIDERS = "lms_cache_sliders_v1";
+  function readCache(key){
+    try{ return JSON.parse(localStorage.getItem(key) || "null"); }catch(e){ return null; }
+  }
+  function writeCache(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
   /* Sekolah memilih animasi lembut tetap berjalan walau perangkat memakai mode
      "kurangi animasi" (umum aktif di mode hemat baterai Android / Windows). */
   var reduce = false;
@@ -79,7 +86,7 @@
       server: true
     };
   }
-  function applyServerEntries(list){
+  function applyServerEntries(list, fromCache){
     if(!Array.isArray(list)) return false;
     var grouped = { X: [], XI: [], XII: [] };
     list.forEach(function(e){
@@ -87,9 +94,11 @@
       if(rec) grouped[e.klass].push(rec);
     });
     state.entries = grouped;
-    var nb = $("noback");
-    if(nb) nb.hidden = true;
-    apiAvailable = true;
+    if(!fromCache){
+      var nb = $("noback");
+      if(nb) nb.hidden = true;
+      apiAvailable = true;
+    }
     render(true);
     syncKelolaUI();
     return true;
@@ -99,6 +108,7 @@
     var req = (window._apiUser && LMS_API.getAllEntries) ? LMS_API.getAllEntries() : LMS_API.getEntries();
     return req.then(function(r){
       if(!r || !r.ok || !r.data || !Array.isArray(r.data.entries)) return false;
+      writeCache(CACHE_ENTRIES, r.data.entries);
       return applyServerEntries(r.data.entries);
     });
   }
@@ -146,12 +156,10 @@
     }, 3200);
   }
 
-  /* ---------- kelas aktif ---------- */
+  /* ---------- kelas aktif ----------
+     Selalu mulai dari Kelas X setiap halaman dimuat/di-refresh. Pilihan
+     kelas tetap bisa diganti manual, tetapi tidak disimpan lintas refresh. */
   var klass = "X";
-  try{
-    var ck = localStorage.getItem(CLASS_KEY);
-    if(CLASSES.indexOf(ck) >= 0) klass = ck;
-  }catch(e){}
 
   function phaseOf(k){ return k === "X" ? "Fase E" : "Fase F"; }
   function syncPhaseUI(){
@@ -162,7 +170,6 @@
   function setClass(k){
     if(CLASSES.indexOf(k) < 0) return;
     klass = k;
-    try{ localStorage.setItem(CLASS_KEY, k); }catch(e){}
     syncClassUI();
     syncPhaseUI();
     render(true);
@@ -170,41 +177,99 @@
 
   /* ---------- auth (API + cookie JWT; tanpa akun tersimpan di perangkat) ---------- */
   var apiAvailable = false;
-  if(window.LMS_API){
+  function markApiOk(){
+    apiAvailable = true;
+    var nb = $("noback");
+    if(nb) nb.hidden = true;
+  }
+  function markApiDown(){
+    if(apiAvailable) return;
+    var nb = $("noback");
+    if(nb) nb.hidden = false;
+  }
+  function handleBootMe(r){
+    if(r && r.ok){
+      markApiOk();
+      if(r.data && r.data.user){
+        window._apiUser = r.data.user;
+        try{ localStorage.setItem(ADMIN_HINT, "1"); }catch(e){}
+      }else{
+        window._apiUser = null;
+        try{ localStorage.removeItem(ADMIN_HINT); }catch(e){}
+      }
+    }
+    syncAuthUI();
+  }
+  /* Data publik/admin diambil paralel dan ditampilkan begitu tiap respons
+     tiba — tidak menunggu /auth/me atau respons lain yang lebih lambat. */
+  function handleBootEntries(r, triedAdmin){
+    if(r && r.ok && r.data && Array.isArray(r.data.entries)){
+      markApiOk();
+      applyServerEntries(r.data.entries);
+      writeCache(CACHE_ENTRIES, r.data.entries);
+      return;
+    }
+    if(!triedAdmin && r && (r.status === 401 || r.status === 403) && LMS_API.getEntries){
+      return LMS_API.getEntries().then(function(r2){ handleBootEntries(r2, true); });
+    }
+    markApiDown();
+  }
+  function handleBootSliders(r, triedAdmin){
+    if(r && r.ok && r.data && Array.isArray(r.data.sliders)){
+      markApiOk();
+      state2.sliders = r.data.sliders;
+      syncSliderUI();
+      syncSkUI();
+      writeCache(CACHE_SLIDERS, r.data.sliders);
+      return;
+    }
+    if(!triedAdmin && r && (r.status === 401 || r.status === 403) && LMS_API.getSliders){
+      return LMS_API.getSliders().then(function(r2){ handleBootSliders(r2, true); });
+    }
+    markApiDown();
+  }
+  function handleBootAll(r){
+    if(!(r && r.ok && r.data && (Array.isArray(r.data.entries) || Array.isArray(r.data.sliders)))) return false;
+    markApiOk();
+    if(r.data.user){
+      window._apiUser = r.data.user;
+      try{ localStorage.setItem(ADMIN_HINT, "1"); }catch(e){}
+    }else{
+      window._apiUser = null;
+      try{ localStorage.removeItem(ADMIN_HINT); }catch(e){}
+    }
+    if(Array.isArray(r.data.entries)){
+      applyServerEntries(r.data.entries);
+      writeCache(CACHE_ENTRIES, r.data.entries);
+    }
+    if(Array.isArray(r.data.sliders)){
+      state2.sliders = r.data.sliders;
+      syncSliderUI();
+      syncSkUI();
+      writeCache(CACHE_SLIDERS, r.data.sliders);
+    }
+    syncAuthUI();
+    return true;
+  }
+  /* Cadangan untuk API lama yang belum punya /api/boot. */
+  function legacyBoot(){
     var adminHint = localStorage.getItem(ADMIN_HINT) === "1";
-    /* Optimasi boot: jika diyakini admin, langsung tarik data all (lms/all, sliders/all).
-       Jika 401, ambil ulang versi publik. */
-    var dataReqs = [LMS_API.me(), adminHint ? LMS_API.getAllEntries() : LMS_API.getEntries(), adminHint ? LMS_API.getAllSliders() : LMS_API.getSliders()];
-    Promise.all(dataReqs).then(function(res){
-      var me = res[0], entries = res[1], sliders = res[2];
-      /* Jika hint salah (token expired), coba ambil publik */
-      if(adminHint && (!me.ok || !me.data || !me.data.user || entries.status === 401 || sliders.status === 401)){
-         localStorage.removeItem(ADMIN_HINT);
-         return Promise.all([LMS_API.getEntries(), LMS_API.getSliders()]).then(function(res2){
-             return [me, res2[0], res2[1]];
-         });
-      }
-      return res;
-    }).then(function(res){
-      var me = res[0], entries = res[1], sliders = res[2];
-      if(me && me.ok && me.data && me.data.user) {
-        window._apiUser = me.data.user;
-        localStorage.setItem(ADMIN_HINT, "1");
-      }
-      apiAvailable = !!((entries && entries.ok) || (sliders && sliders.ok) || (me && me.ok));
-      var nb = $("noback");
-      if(nb && !apiAvailable) nb.hidden = false;
-      if(!apiAvailable){ syncAuthUI(); return; }
-      if(entries && entries.ok && entries.data && Array.isArray(entries.data.entries)){
-        applyServerEntries(entries.data.entries);
-      }
-      if(sliders && sliders.ok && sliders.data && Array.isArray(sliders.data.sliders)){
-        state2.sliders = sliders.data.sliders;
-        syncSliderUI();
-        syncSkUI();
-      }
-      syncAuthUI();
-    }).then(function(){ syncAuthUI(); }, function(){ syncAuthUI(); });
+    LMS_API.me().then(handleBootMe, function(){ syncAuthUI(); });
+    (adminHint ? LMS_API.getAllEntries() : LMS_API.getEntries())
+      .then(function(r){ handleBootEntries(r, !adminHint); }, function(){ markApiDown(); });
+    (adminHint ? LMS_API.getAllSliders() : LMS_API.getSliders())
+      .then(function(r){ handleBootSliders(r, !adminHint); }, function(){ markApiDown(); });
+  }
+  if(window.LMS_API){
+    if(LMS_API.boot){
+      LMS_API.boot().then(function(r){
+        if(handleBootAll(r)) return;
+        if(r && r.status === 0){ markApiDown(); syncAuthUI(); return; }
+        legacyBoot();
+      }, function(){ markApiDown(); syncAuthUI(); });
+    }else{
+      legacyBoot();
+    }
   }
 
   function isAdmin(){ return apiAvailable && !!window._apiUser; }
@@ -1068,10 +1133,10 @@
   var skFileOK = /^image\/(jpe?g|png|webp)$/i;
   var SK_SHRINK_OVER = 512 * 1024;             // WebP di atas 0.5 MB ikut dikecilkan
   var skFileMax = 8 * 1024 * 1024;             // batas kirim ke server: 8 MB
-  var SK_WEBP_Q = 0.82;                        // mutu WebP: 0.82 (ringan, tetap tajam)
+  var SK_WEBP_Q = 0.80;                        // mutu WebP: 0.80 (ringan, tetap tajam)
 
   /* Semua unggahan JPG/JPEG/PNG otomatis diubah ke WebP lewat browser:
-     sisi terpanjang dipotong maks 2000 px, mutu 0,82. Foto WebP yang besar
+     sisi terpanjang dipotong maks 1600 px, mutu 0,80. Foto WebP yang besar
      juga dikecilkan. Hasilnya slider jauh lebih ringan saat dimuat. */
   function shrinkImage(file){
     return new Promise(function(resolve){
@@ -1082,7 +1147,7 @@
       var img = new Image();
       img.onload = function(){
         try{
-          var max = 2000, w = img.naturalWidth, h = img.naturalHeight;
+          var max = 1600, w = img.naturalWidth, h = img.naturalHeight;
           var k = Math.min(1, max / Math.max(w, h));
           var c = document.createElement("canvas");
           c.width = Math.round(w * k); c.height = Math.round(h * k);
@@ -1113,6 +1178,7 @@
     return req.then(function(r){
       if(!r || !r.ok || !r.data || !Array.isArray(r.data.sliders)) return false;
       state2.sliders = r.data.sliders;
+      writeCache(CACHE_SLIDERS, r.data.sliders);
       syncSliderUI();
       syncSkUI();
       return true;
@@ -1612,6 +1678,18 @@
   });
 
   /* ---------- init ---------- */
+  /* Tampilkan salinan terakhir dari perangkat lebih dulu supaya kartu LMS dan
+     slider langsung terlihat saat refresh; data server memperbarui setelahnya. */
+  if(window.LMS_API){
+    var cachedEntries = readCache(CACHE_ENTRIES);
+    if(Array.isArray(cachedEntries) && cachedEntries.length) applyServerEntries(cachedEntries, true);
+    var cachedSliders = readCache(CACHE_SLIDERS);
+    if(Array.isArray(cachedSliders)){
+      state2.sliders = cachedSliders;
+      syncSliderUI();
+      syncSkUI();
+    }
+  }
   syncClassUI();
   syncPhaseUI();
   syncPantauUI();

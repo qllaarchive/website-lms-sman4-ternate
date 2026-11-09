@@ -18,6 +18,7 @@ if (WEAK_SECRET && process.env.NODE_ENV === "production" && !process.env.VERCEL)
 }
 
 import authRoutes from "./routes/auth.js";
+import bootRoutes from "./routes/boot.js";
 import lmsRoutes from "./routes/lms.js";
 import schoolRoutes from "./routes/school.js";
 import sliderRoutes from "./routes/sliders.js";
@@ -58,6 +59,7 @@ app.use("/api/uploads", (_req, res, next) => {
   next();
 }, express.static(UPLOAD_DIR, { maxAge: "7d", fallthrough: false }));
 
+app.use("/api/boot", rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }), bootRoutes);
 app.use("/api/auth", rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }), authRoutes);
 app.use("/api/lms", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), lmsRoutes);
 app.use("/api/school", rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false }), schoolRoutes);

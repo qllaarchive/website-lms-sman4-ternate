@@ -78,6 +78,14 @@
       return _probe;
     },
 
+    /* Muat awal: sesi + daftar LMS + slider dalam satu permintaan. */
+    boot: function(){
+      return apiFetch("/boot", { timeout: 10000 }).then(function(r){
+        if (r.ok && r.data && r.data.csrf) storeCsrf(r.data.csrf);
+        return r;
+      });
+    },
+
     /* Auth (cookie JWT httpOnly + CSRF token di memori) */
     login: function(username, password){
       return apiFetch("/auth/login", { method: "POST", body: JSON.stringify({ username: username, password: password }) })

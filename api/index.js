@@ -7,7 +7,6 @@
                Wajib cookie sesi lms_session + header X-CSRF-Token. */
 import crypto from "node:crypto";
 import { PrismaClient } from "@prisma/client";
-import argon2 from "argon2";
 import { z } from "zod";
 import busboy from "busboy";
 import { csrfFor, csrfValid } from "./src/csrf.js";
@@ -19,6 +18,13 @@ const prisma = globalThis.__lmsPrisma || new PrismaClient({
   datasourceUrl: (process.env.DATABASE_URL || "") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10",
 });
 globalThis.__lmsPrisma = prisma;
+
+/* argon2 dimuat hanya saat login/seed supaya cold start baca halaman ringan. */
+let argon2Promise = null;
+function loadArgon2() {
+  if (!argon2Promise) argon2Promise = import("argon2").then((m) => m.default || m);
+  return argon2Promise;
+}
 
 const MAX_IMAGE = 3 * 1024 * 1024; /* batas Vercel 4,5 MB per permintaan */
 const IMG_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -156,7 +162,7 @@ async function sliderImage(req, res, id) {
   res.setHeader("Content-Type", IMG_TYPES.has(m[1]) ? m[1] : "application/octet-stream");
   res.setHeader("Content-Length", String(buf.length));
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("Cache-Control", s.pub ? "public, max-age=604800, immutable" : "private, no-store");
+  res.setHeader("Cache-Control", s.pub ? "public, max-age=604800, s-maxage=31536000, stale-while-revalidate=86400, immutable" : "private, no-store");
   return res.end(buf);
 }
 
@@ -221,6 +227,36 @@ async function sliderRoutes(req, res, p) {
   return false;
 }
 
+/* ---------------- Boot ----------------
+   Satu permintaan untuk sesi + daftar LMS + slider; mengurangi jumlah
+   cold start serverless saat beranda di-refresh. */
+async function bootRoute(req, res) {
+  if (req.method !== "GET") return send(res, 405, { error: "method_not_allowed" });
+  let user = null;
+  let csrf = null;
+  let isAdmin = false;
+  const s = await sessionUser(req);
+  if (s) {
+    user = { id: s.user.id, username: s.user.username };
+    isAdmin = (s.user.role || "ADMIN") === "ADMIN";
+    const fresh = signSession(s.user.id);
+    res.setHeader("Set-Cookie", sessionCookieHeader(req, fresh));
+    csrf = csrfFor("user:" + s.user.id);
+  }
+  const where = isAdmin ? {} : { pub: true };
+  const [entries, sliders] = await Promise.all([
+    prisma.lmsEntry.findMany({ where, orderBy: { createdAt: "asc" } }),
+    prisma.slider.findMany({ where, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
+  ]);
+  res.setHeader("Cache-Control", "no-store");
+  return send(res, 200, {
+    user,
+    csrf,
+    entries,
+    sliders: sliders.map(publicSlider),
+  });
+}
+
 /* ---------------- Auth ---------------- */
 const LoginSchema = z.object({ username: z.string().min(1).max(64), password: z.string().min(1).max(128) });
 /* Verifikasi tetap dijalankan untuk username yang tidak ada agar waktu respons
@@ -237,6 +273,7 @@ async function authRoutes(req, res, p) {
     const name = parsed.data.username.trim();
     const user = (await prisma.user.findUnique({ where: { username: name } })) ||
       (await prisma.user.findFirst({ where: { username: { equals: name, mode: "insensitive" } } }));
+    const argon2 = await loadArgon2();
     const ok = await argon2.verify(user ? user.passwordHash : DUMMY_HASH, parsed.data.password).catch(() => false);
     if (!ok) return send(res, 401, { error: "invalid_credentials" });
     const token = signSession(user.id);
@@ -274,6 +311,7 @@ async function seedRoute(req, res) {
   const authorized = count === 0 || (token && typeof given === "string" && given.length === token.length &&
     crypto.timingSafeEqual(Buffer.from(given), Buffer.from(token)));
   if (!authorized) return send(res, 403, { error: "forbidden" });
+  const argon2 = await loadArgon2();
   const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
   await prisma.user.upsert({ where: { username }, update: { passwordHash }, create: { username, passwordHash, role: "ADMIN" } });
   return send(res, 200, { ok: true });
@@ -286,6 +324,7 @@ export default async function handler(req, res) {
   try {
     const p = pathOf(req);
     if (p === "/api/health") return send(res, 200, { ok: true });
+    if (p === "/api/boot") return await bootRoute(req, res);
     if (p === "/api/seed") return await seedRoute(req, res);
     if (p.startsWith("/api/auth/")) res.setHeader("Cache-Control", "no-store");
     if (p.startsWith("/api/auth/")) { if ((await authRoutes(req, res, p)) !== false) return; }
