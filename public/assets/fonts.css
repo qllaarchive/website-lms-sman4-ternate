@@ -47,3 +47,19 @@
   font-display:swap;
   src:url('fonts/kalam-700-latin.woff2') format('woff2');
 }
+@font-face{
+  font-family:'SF Pro Display';
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+  src:url('fonts/sfprodisplay-regular.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+2000-206F,U+2212;
+}
+@font-face{
+  font-family:'SF Pro Display';
+  font-style:normal;
+  font-weight:500 900;
+  font-display:swap;
+  src:url('fonts/sfprodisplay-bold.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+2000-206F,U+2212;
+}

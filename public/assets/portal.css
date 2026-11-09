@@ -835,6 +835,7 @@ html.intro-seen .intro{ display:none !important }
   --intro-daisy:#e7c75b;
   position:fixed; inset:0; z-index:200;
   overflow:auto; background:#1a2b19; color:var(--intro-cream);
+  font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;
   isolation:isolate;
   will-change:opacity, transform;
 }
@@ -944,7 +945,7 @@ html.intro-seen .intro{ display:none !important }
   margin-top:44px; display:inline-flex; align-items:center; justify-content:center; gap:14px;
   height:52px; padding:0 12px 0 24px; border:0; border-radius:999px; cursor:pointer;
   background:var(--intro-cream); color:var(--intro-plum);
-  font:650 14.5px/1 "Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  font:650 14.5px/1 'SF Pro Display',-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
   letter-spacing:.01em;
   box-shadow:0 18px 40px -18px rgba(8,18,8,.65);
   transition:transform .22s var(--ease), background-color .22s var(--ease), box-shadow .22s var(--ease);
@@ -997,35 +998,31 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
   .intro-inner{ padding-inline:16px }
   .intro-crest{ gap:12px; margin-top:max(12px, calc(8px + env(safe-area-inset-top))) }
   .intro-main{ margin-top:-2vh; display:flex; flex-direction:column; align-items:center; max-width:100% }
-  /* Flex memaksa span judul tak bisa menyusut → teks terpotong di samping di HP.
-     Pakai block agar "SMANFOURTTE" bisa pindah baris sendiri, dan ukur font
-     supaya kata terpanjang selalu muat: ~6em + bintang, fon ≤ (100vw-32px)/6. */
+  /* Judul: block murni + text-align center. Baris bisa membungkus dengan bebas,
+     tidak ada elemen inline (bintang) yang menggeser garis tengah. */
   .intro-title{
-    display:block; min-width:0; max-width:100%; position:relative;
-    font-size:clamp(24px, 14.5vw, 64px); line-height:1.06;
-    letter-spacing:-.02em; white-space:normal; text-align:center;
-    overflow-wrap:normal; hyphens:none;
+    display:block; min-width:0; max-width:100%;
+    font-size:clamp(26px, 13vw, 68px);
+    line-height:1.08; letter-spacing:-.05em;
+    white-space:normal; text-align:center;
+    font-weight:700;
   }
   .intro-title > span:first-child{ display:inline }
-  /* Bintang dibuat mutlak di pojok kanan-atas agar tidak menggeser
-     baris teks — baris judul tetap benar-benar di tengah. */
-  .intro-bloom{
-    position:absolute; top:-.2em; right:-.1em;
-    width:.28em; height:.28em; margin:0;
-  }
-  .intro-school{ margin-top:18px; font-size:10px; letter-spacing:.22em; text-align:center }
+  /* Bintang disembunyikan di mobile agar posisi teks selalu pas tengah. */
+  .intro-bloom{ display:none }
+  .intro-school{ margin-top:20px; font-size:10px; letter-spacing:.24em; text-align:center }
   .intro-cta{ margin-top:30px; width:min(210px, 85vw); justify-content:center }
 }
 @media (max-width:480px){
   .intro-crest{ flex-direction:row; align-items:center; gap:10px }
   .intro-crest::after{ display:none }
-  .intro-title{ font-size:clamp(24px, 14.5vw, 52px); line-height:1.08 }
-  .intro-school{ margin-top:14px; font-size:9.5px; letter-spacing:.18em; text-align:center }
+  .intro-title{ font-size:clamp(24px, 13vw, 52px) }
+  .intro-school{ margin-top:14px; font-size:9.5px; letter-spacing:.2em; text-align:center }
   .intro-cta{ margin-top:26px; width:min(190px, 90vw); justify-content:center }
 }
 @media (max-width:360px){
-  .intro-title{ font-size:clamp(20px, 14.5vw, 44px) }
-  .intro-school{ font-size:9px; letter-spacing:.16em; text-align:center }
+  .intro-title{ font-size:clamp(22px, 13vw, 44px) }
+  .intro-school{ font-size:9px; letter-spacing:.18em; text-align:center }
   .intro-cta{ height:48px; width:min(170px, 92vw); padding:0 10px 0 20px; font-size:13.5px; justify-content:center }
 }
 
