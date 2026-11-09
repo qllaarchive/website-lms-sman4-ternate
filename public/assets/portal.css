@@ -919,7 +919,7 @@ html.intro-seen .intro{ display:none !important }
 .intro-main{ grid-row:2; align-self:center; justify-self:center; width:100%; max-width:1100px; text-align:center; margin-top:-2vh }
 .intro-title{
   display:flex; align-items:flex-start; justify-content:center;
-  font-size:clamp(44px, 10.6vw, 124px); line-height:.92;
+  font-size:clamp(36px, 8vw, 92px); line-height:.95;
   letter-spacing:-.07em; font-weight:800; color:var(--intro-cream);
   white-space:nowrap;
   text-shadow:0 2px 18px rgba(5,18,12,.32), 0 18px 60px rgba(5,18,12,.3);
