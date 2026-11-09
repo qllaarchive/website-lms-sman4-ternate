@@ -21,7 +21,7 @@ class LmsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterivialApp(
       title: 'LMS SMAN 4 Ternate',
       theme: ThemeData(useMaterial3: true),
       home: const LmsWebView(),

@@ -9,10 +9,10 @@ import crypto from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import busboy from "busboy";
-import { csrfFor, csrfValid } from "./src/csrf.js";
-import { COOKIE, signSession, verifySession, sessionCookieHeader, clearSessionCookieHeader } from "./src/session.js";
-import { EntrySchema, parseKlassQuery } from "./src/validation.js";
-import { optimizeImage } from "./src/image.js";
+import { csrfFor, csrfValid } from "./_src/csrf.js";
+import { COOKIE, signSession, verifySession, sessionCookieHeader, clearSessionCookieHeader } from "./_src/session.js";
+import { EntrySchema, parseKlassQuery } from "./_src/validation.js";
+import { optimizeImage } from "./_src/image.js";
 
 const prisma = globalThis.__lmsPrisma || new PrismaClient({
   datasourceUrl: (process.env.DATABASE_URL || "") + (process.env.DATABASE_URL?.includes("?") ? "&" : "?") + "connect_timeout=10&pool_timeout=10",
