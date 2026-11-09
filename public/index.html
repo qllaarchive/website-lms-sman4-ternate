@@ -321,7 +321,11 @@
               <p id="sk-form-sub">Unggah foto kegiatan yang akan berputar di beranda (JPG/PNG/WebP, maks 8&nbsp;MB). Foto JPG/PNG otomatis diubah ke WebP agar ringan.</p>
             </div>
             <div class="sk-pick">
-              <input id="sk-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Pilih berkas foto dari perangkat">
+              <label class="sk-file-btn" for="sk-input">
+                <span>Pilih Foto</span>
+                <input id="sk-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Pilih berkas foto dari perangkat" class="sk-file">
+              </label>
+              <span id="sk-file-name" class="sk-file-name">Belum ada berkas dipilih</span>
             </div>
             <figure class="sk-preview" id="sk-preview" hidden>
               <img id="sk-preview-img" alt="Pratinjau foto yang dipilih">

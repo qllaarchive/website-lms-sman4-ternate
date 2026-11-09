@@ -1348,6 +1348,8 @@
   if(skCancel) skCancel.addEventListener("click", resetSkForm);
   if(skInput) skInput.addEventListener("change", function(){
     var f = this.files && this.files[0];
+    var nameEl = $("sk-file-name");
+    if(nameEl) nameEl.textContent = f ? f.name : "Belum ada berkas dipilih";
     if(skPreview) skPreview.hidden = !f;
     if(!f) return;
     if(skFileURL){ URL.revokeObjectURL(skFileURL); skFileURL = null; }

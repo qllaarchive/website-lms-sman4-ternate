@@ -1417,23 +1417,19 @@ body.waking footer{ animation:wake .5s cubic-bezier(.22,1,.36,1) 560ms both }
 #sk-add{ margin-left:auto; height:38px; padding:0 16px }
 .sk-section .k-count{ margin-left:auto }
 .sk-form{ max-width:100%; margin-top:14px; position:static }
-.sk-pick{ display:flex; flex-direction:column; gap:8px; min-width:0 }
-.sk-pick input{ width:100%; min-width:0 }
-.sk-pick input[type="file"]{
-  padding:9px 12px; border:1px dashed color-mix(in srgb, var(--ink) 30%, var(--line));
-  border-radius:12px; background:var(--bg);
-  color:var(--ink2); font-size:12.5px;
+.sk-pick{ display:flex; gap:10px; align-items:center; min-width:0; flex-wrap:wrap; }
+.sk-file{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+.sk-file-btn{
+  display:inline-flex; align-items:center; height:40px; padding:0 16px;
+  border:1px solid var(--line); border-radius:10px; background:var(--bg);
+  color:var(--ink); cursor:pointer; font:600 14px var(--body); min-width:0;
 }
-.sk-pick input[type="file"]::file-selector-button,
-.sk-pick input[type="file"]::-webkit-file-upload-button{
-  appearance:none; -webkit-appearance:none; margin-right:10px;
-  height:30px; padding:0 14px; border:1px solid transparent; border-radius:999px;
-  background:var(--fill); color:var(--ink); cursor:pointer;
-  font:600 12.5px/1 "Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
-}
-@media (hover:hover) and (pointer:fine){
-  .sk-pick input[type="file"]::file-selector-button:hover,
-  .sk-pick input[type="file"]::-webkit-file-upload-button:hover{ background:color-mix(in srgb, var(--ink) 8%, var(--fill)) }
+.sk-file-btn:hover{ border-color:var(--ink); background:color-mix(in srgb, var(--ink) 6%, var(--bg)); }
+.sk-file-btn:active{ transform:scale(.98); }
+.sk-file-name{
+  flex:1; min-width:0; height:40px; line-height:38px; padding:0 12px;
+  border:1px solid var(--line); border-radius:10px; background:var(--fill);
+  color:var(--ink2); font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .sk-preview{ margin:0 auto 14px; max-width:100%; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--fill); animation:rise var(--dur) var(--ease) both; }
 .sk-preview img{ display:block; width:100%; height:auto; max-height:240px; object-fit:cover; }
