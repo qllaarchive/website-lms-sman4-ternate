@@ -135,6 +135,15 @@ npm run dev          # Menjalankan server dengan pengawas (node --watch)
 ```
 > **Catatan:** Backend **wajib** aktif agar fitur login, manajemen tautan LMS, dan profil sekolah berfungsi penuh. Tanpa backend, portal akan berjalan dalam mode baca-saja (*read-only*) menggunakan data lokal bawaan.
 
+### C. Catatan Batas Unggah Foto (Nginx)
+Unggahan foto slider dibatasi **8 MB** oleh aplikasi (`api/_src/routes/sliders.js`), tetapi **Nginx memiliki default `client_max_body_size 1m`** — file lebih dari 1 MB akan ditolak dengan `413` sebelum sampai ke API, dan portal menampilkannya sebagai "Ukuran foto masih terlalu besar" meskipun foto ≤ 8 MB.
+
+Semua config Nginx di repo ini sudah memuat `client_max_body_size 12m;` (`portal-nginx.conf`, `scripts/setup-ubuntu.sh`, `scripts/deploy-ubuntu.sh`). Bila memakai Nginx sendiri, tambahkan baris berikut di blok `server {` lalu `sudo nginx -t && sudo systemctl reload nginx`:
+
+```nginx
+client_max_body_size 12m;
+```
+
 ---
 
 ## 🧪 Validasi & Pengujian Data
