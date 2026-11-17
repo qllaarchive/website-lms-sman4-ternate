@@ -39,7 +39,9 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const allowed = (process.env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
-    if (allowed.includes(origin)) {
+    /* Origin development lokal (flutter run -d chrome) selalu diizinkan. */
+    const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    if (allowed.includes(origin) || isLocal) {
       return callback(null, true);
     }
     callback(null, false);
