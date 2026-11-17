@@ -321,6 +321,23 @@ export default async function handler(req, res) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("X-Frame-Options", "DENY");
+  /* CORS untuk klien lintas-origin (web dev localhost & whitelist env). */
+  const ORIGIN = req.headers.origin;
+  if (ORIGIN) {
+    const allowed = (process.env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+    const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(ORIGIN);
+    if (allowed.includes(ORIGIN) || isLocal) {
+      res.setHeader("Access-Control-Allow-Origin", ORIGIN);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Vary", "Origin");
+    }
+  }
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,X-CSRF-Token");
+    res.setHeader("Access-Control-Max-Age", "600");
+    return send(res, 204, {});
+  }
   try {
     const p = pathOf(req);
     if (p === "/api/health") return send(res, 200, { ok: true });
