@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="assets/fonts.css">
 <link rel="stylesheet" href="assets/portal.css?v=20261109c">
 <link rel="stylesheet" href="assets/theme-sman4.css?v=20261118">
+<link rel="stylesheet" href="assets/bento-sman4.css?v=20261118b">
 </head>
 <body>
 <section class="intro" id="intro" role="region" aria-labelledby="intro-title">
@@ -94,8 +95,9 @@
   </div>
 </header>
 
-<main class="gut">
-  <section class="slider no-slides" id="slider" role="group" aria-roledescription="carousel" aria-label="Foto kegiatan sekolah">
+<main class="gut s4-main">
+  <div class="bento" id="bento">
+  <section class="slider no-slides b-hero" id="slider" role="group" aria-roledescription="carousel" aria-label="Foto kegiatan sekolah">
     <div class="slider-stage" id="slider-stage"></div>
     <div class="slider-shade" aria-hidden="true"></div>
     <div class="gut slider-top">
@@ -113,9 +115,28 @@
     <div class="slider-dots" id="slider-dots" aria-label="Pilih foto"></div>
     <p class="sr-only" id="slider-live" aria-live="polite"></p>
   </section>
-
-  <section class="hero">
-    <p class="eyebrow">SMA Negeri 4 Ternate · <span id="hero-eyebrow">Fase E</span></p>
+  <aside class="b-tile b-kepsek" aria-labelledby="kp-name">
+    <figure class="kp-photo">
+      <picture>
+        <source type="image/webp" srcset="assets/kepsek-sman4.webp">
+        <img src="assets/kepsek-sman4.jpg" alt="Jabur Jamil, Kepala SMA Negeri 4 Kota Ternate, di ruang kerjanya" width="640" height="800" loading="lazy" decoding="async">
+      </picture>
+    </figure>
+    <div class="kp-body">
+      <h2 class="b-title">Sambutan kepala sekolah</h2>
+      <blockquote class="kp-quote">
+        <p>Selamat datang di One Site SMANFOURTTE. Di sini kalian bisa membaca materi, mengerjakan latihan, dan mencoba lab maya kapan saja, di sekolah maupun di rumah.</p>
+        <p>Gunakan portal ini dengan tekun dan jujur, dan tetap ikuti arahan guru di kelas.</p>
+      </blockquote>
+      <p class="kp-name" id="kp-name">Jabur Jamil, S.Ag., M.Si.</p>
+      <p class="kp-role">Kepala SMA Negeri 4 Kota Ternate</p>
+    </div>
+  </aside>
+  <section class="b-tile b-find" aria-labelledby="find-title">
+    <div class="find-top">
+      <h2 class="b-title" id="find-title">Pilih kelas</h2>
+      <span class="phase" id="hero-eyebrow">Fase E</span>
+    </div>
     <div class="hero-actions">
       <div class="seg" id="class-seg" role="radiogroup" aria-label="Pilih kelas">
         <span class="seg-thumb" id="class-thumb" aria-hidden="true"></span>
@@ -124,20 +145,29 @@
         <button type="button" role="radio" data-k="XII" aria-label="Kelas XII">XII</button>
       </div>
     </div>
-  </section>
-
-  <div class="search">
+    <div class="search">
     <span class="s-ic" id="s-ic" aria-hidden="true"></span>
     <input id="q" type="search" inputmode="search" enterkeyhint="search" placeholder="Cari mata pelajaran…" aria-label="Cari mata pelajaran" aria-keyshortcuts="/" autocomplete="off" spellcheck="false">
     <button type="button" class="q-clear" id="q-clear" aria-label="Hapus pencarian" hidden><span id="q-clear-ic" aria-hidden="true"></span></button>
   </div>
-  <p class="search-meta" id="search-meta" aria-live="polite" hidden></p>
+    <p class="search-meta" id="search-meta" aria-live="polite" hidden></p>
+  </section>
+  <section class="b-tile b-stats" aria-label="Ringkasan portal">
+    <div class="st"><b id="st-mapel">0</b><span>mapel terbit di Kelas <i id="st-kelas">X</i></span></div>
+    <div class="st"><b id="st-lab">0</b><span>lab maya</span></div>
+    <div class="st"><b id="st-rumpun">0</b><span>rumpun pelajaran</span></div>
+  </section>
+  <section class="b-tile b-time" aria-label="Waktu Ternate">
+    <p class="tm-greet" id="tm-greet">Selamat belajar</p>
+    <p class="tm-clock"><span id="tm-clock">--.--</span><small>WIT</small></p>
+    <p class="tm-date" id="tm-date"></p>
+  </section>
+  </div>
   <p class="noback" id="noback" role="status" hidden>
     <span class="nb-ic" aria-hidden="true"></span>
     <span>Backend tidak terhubung — mode baca saja. Login &amp; kelola LMS butuh backend aktif.</span>
   </p>
-
-  <section class="cards is-first" id="grid" aria-label="Daftar LMS"></section>
+  <section class="cards is-first" id="grid" aria-label="Daftar LMS per rumpun"></section>
   <p class="empty" id="empty" hidden>
     <span class="e-ic" id="e-ic" aria-hidden="true"></span>
     <span id="empty-text"></span>
@@ -402,8 +432,8 @@
 <script src="data/registry.js"></script>
 <script src="config.js"></script>
 <script src="assets/api-client.js?v=20261109"></script>
-<script src="assets/portal.js?v=20261118"></script>
-<script src="assets/sman4-fx.js?v=20261118"></script>
-<script src="assets/intro.js"></script>
+<script src="assets/portal.js?v=20261118b"></script>
+<script src="assets/sman4-fx.js?v=20261118b"></script>
+<script src="assets/intro.js?v=20261118b"></script>
 </body>
 </html>

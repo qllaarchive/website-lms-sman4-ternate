@@ -25,3 +25,69 @@
     intro.appendChild(r);
   }
 })();
+
+/* Video sinematik pembuka (±7,5 detik). Diputar sekali per sesi, bisa dilewati.
+   Gagal autoplay / pengguna memilih gerak dikurangi → langsung tampilkan bingkai akhir. */
+(function(){
+  var root = document.documentElement;
+  var intro = document.getElementById("intro");
+  if(!intro || root.classList.contains("intro-seen")) return;
+  var enterBtn = document.getElementById("intro-enter");
+  var tall = (window.innerWidth || 1) / (window.innerHeight || 1) < 1;
+  var base = "assets/pembuka-" + (tall ? "tall" : "wide");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var v = document.createElement("video");
+  v.className = "s4-film";
+  v.muted = true; v.defaultMuted = true; v.playsInline = true;
+  v.setAttribute("muted", ""); v.setAttribute("playsinline", ""); v.setAttribute("aria-hidden", "true");
+  v.preload = "auto";
+  var shade = intro.querySelector(".intro-shade");
+  intro.insertBefore(v, shade || intro.firstChild);
+  intro.classList.add("has-film");
+
+  var skip = document.createElement("button");
+  skip.type = "button"; skip.className = "s4-skip"; skip.textContent = "Lewati";
+  skip.setAttribute("aria-label", "Lewati video pembuka dan masuk ke portal");
+  intro.appendChild(skip);
+  skip.addEventListener("click", function(){ if(enterBtn) enterBtn.click(); });
+
+  var done = false;
+  function finish(stillFrame){
+    if(done) return; done = true;
+    if(stillFrame){ v.removeAttribute("src"); v.poster = base + "-akhir.webp"; try{ v.load(); }catch(e){} }
+    intro.classList.add("film-done");
+    skip.hidden = true;
+    if(enterBtn) setTimeout(function(){ try{ enterBtn.focus({ preventScroll:true }); }catch(e){} }, 350);
+  }
+  if(reduce){ finish(true); return; }
+
+  v.src = base + ".mp4";
+  v.addEventListener("ended", function(){ finish(false); });
+  v.addEventListener("error", function(){ finish(true); });
+  var started = false;
+  v.addEventListener("playing", function(){ started = true; intro.classList.add("film-on"); });
+  var p = v.play();
+  if(p && p.catch) p.catch(function(){ finish(true); });
+  /* jaringan lambat: jangan biarkan layar hitam terlalu lama */
+  setTimeout(function(){ if(!started) finish(true); }, 4000);
+  /* hemat daya setelah pembuka ditutup */
+  if(enterBtn) enterBtn.addEventListener("click", function(){ setTimeout(function(){ try{ v.pause(); }catch(e){} }, 700); });
+})();
+
+/* Petak waktu: jam & tanggal Ternate (WIT). */
+(function(){
+  var c = document.getElementById("tm-clock"), d = document.getElementById("tm-date"), g = document.getElementById("tm-greet");
+  if(!c) return;
+  var tz = "Asia/Jayapura";
+  function fmt(opts){ try{ return new Intl.DateTimeFormat("id-ID", Object.assign({ timeZone:tz }, opts)).format(new Date()); }catch(e){ return ""; } }
+  function tick(){
+    var hm = fmt({ hour:"2-digit", minute:"2-digit", hour12:false }).replace(":", ".");
+    if(hm) c.textContent = hm;
+    if(d) d.textContent = fmt({ weekday:"long", day:"numeric", month:"long", year:"numeric" });
+    var h = parseInt(fmt({ hour:"numeric", hour12:false }), 10);
+    if(g && !isNaN(h)) g.textContent = h < 11 ? "Selamat pagi" : h < 15 ? "Selamat siang" : h < 18 ? "Selamat sore" : "Selamat malam";
+  }
+  tick();
+  setInterval(tick, 15000);
+})();

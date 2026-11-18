@@ -1,0 +1,235 @@
+/* One Site SMANFOURTTE — beranda bento + video pembuka.
+   Dimuat setelah theme-sman4.css. Token warna diambil dari tema Malam Gamalama. */
+
+/* =========================================================
+   VIDEO PEMBUKA
+   ========================================================= */
+.s4-film{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; background:var(--s4-night); z-index:0;
+}
+.intro.has-film .intro-bg,
+.intro.has-film .intro-shade{ display:none !important }
+.intro.has-film .intro-inner{ position:static !important }
+.intro.has-film .intro-main > *:not(.intro-cta){ display:none !important }
+.intro.has-film .intro-main{
+  position:absolute !important; left:0; right:0; z-index:2;
+  bottom:max(9vh, calc(env(safe-area-inset-bottom) + 64px));
+  margin:0 !important;
+}
+.intro.has-film:not(.film-done) .intro-cta,
+.intro.has-film:not(.film-done) .s4-region{ visibility:hidden !important; opacity:0 !important; animation:none !important }
+.intro.film-done .intro-cta{ animation:s4CtaIn .8s cubic-bezier(.2,.7,.2,1) both !important }
+.intro.film-done .s4-region{ animation:s4CtaIn .8s ease .25s both !important }
+@keyframes s4CtaIn{ from{ opacity:0; transform:translateY(12px) } to{ opacity:1; transform:none } }
+#portal-title:focus{ outline:none !important }
+.s4-skip{
+  position:absolute; z-index:3;
+  top:max(18px, env(safe-area-inset-top)); right:max(18px, env(safe-area-inset-right));
+  font:500 14px/1 Inter, system-ui, sans-serif; letter-spacing:.01em;
+  color:var(--s4-ivory); background:rgba(6,20,26,.42);
+  border:1px solid rgba(243,236,220,.28); border-radius:999px;
+  padding:10px 18px; cursor:pointer;
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  transition:border-color .25s, background .25s;
+}
+.s4-skip:hover{ border-color:var(--s4-gold); background:rgba(6,20,26,.7) }
+.s4-skip[hidden]{ display:none }
+
+/* =========================================================
+   BENTO
+   ========================================================= */
+.s4-main{ padding-top:6px }
+.bento{
+  display:grid; gap:14px; margin-top:18px;
+  grid-template-columns:repeat(12, minmax(0, 1fr));
+}
+.b-tile{
+  position:relative; overflow:hidden; isolation:isolate;
+  border-radius:22px; padding:22px 24px;
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(232,184,74,.07), transparent 55%),
+    linear-gradient(165deg, rgba(255,255,255,.045), rgba(255,255,255,.01) 70%),
+    var(--s4-deep);
+  border:1px solid rgba(232,184,74,.14);
+  color:var(--ink);
+  animation:s4TileIn .8s cubic-bezier(.2,.7,.2,1) both;
+}
+.b-title{
+  font-family:var(--s4-serif); font-weight:600; font-size:1.42rem; line-height:1.15;
+  letter-spacing:.004em; color:var(--s4-ivory); margin:0;
+}
+
+/* foto kegiatan = petak utama */
+.bento .b-hero{
+  grid-column:1 / 9; grid-row:1 / 3;
+  margin:0 !important; height:auto !important; min-height:452px;
+  border-radius:28px !important;
+}
+
+/* sambutan kepala sekolah: foto penuh, teks di atas gradasi */
+.b-kepsek{
+  grid-column:9 / 13; grid-row:1 / 3;
+  padding:0; display:flex; flex-direction:column; justify-content:flex-end;
+  min-height:452px; animation-delay:.08s;
+}
+.kp-photo{ position:absolute; left:0; right:0; top:0; height:62%; margin:0; z-index:-1 }
+.kp-photo img{ width:100%; height:100%; object-fit:cover; object-position:50% 10%; display:block }
+.kp-photo::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(11,31,39,0) 38%, rgba(11,31,39,.78) 66%, rgba(11,31,39,.96) 84%, var(--s4-deep) 100%);
+}
+.kp-body{ padding:0 24px 22px; margin-top:auto }
+.b-kepsek{ padding-top:min(250px, 52%) }
+.kp-body .b-title{ font-size:1.18rem; font-style:italic; font-weight:500; color:var(--s4-gold-soft) }
+.kp-quote{ margin:8px 0 0; font-family:var(--s4-serif); font-size:1.04rem; line-height:1.5; color:var(--s4-ivory) }
+.kp-quote p + p{ margin-top:.5em }
+.kp-name{
+  margin:16px 0 0; padding-top:14px; border-top:1px solid rgba(232,184,74,.3);
+  font:600 15px/1.3 Inter, system-ui, sans-serif; color:var(--s4-ivory);
+}
+.kp-role{ margin:3px 0 0; font-size:13px; color:var(--ink2) }
+
+/* pilih kelas + cari */
+.b-find{ grid-column:1 / 6; display:flex; flex-direction:column; gap:14px; animation-delay:.14s }
+.find-top{ display:flex; align-items:baseline; justify-content:space-between; gap:12px }
+.phase{
+  font-family:var(--s4-serif); font-style:italic; font-size:1.1rem; color:var(--s4-gold-soft);
+}
+.b-find .hero-actions{ margin:0 !important; animation:none !important }
+.b-find .search{ margin:0 !important; animation:none !important }
+.b-find .search-meta{ margin:-6px 2px 0 }
+
+/* statistik */
+.b-stats{
+  grid-column:6 / 10; display:grid; grid-template-columns:repeat(3, 1fr);
+  padding:22px 8px; animation-delay:.2s;
+}
+.st{ display:flex; flex-direction:column; justify-content:center; padding:0 16px }
+.st + .st{ border-left:1px solid rgba(232,184,74,.16) }
+.st b{
+  font-family:var(--s4-serif); font-weight:500; font-size:3.1rem; line-height:1;
+  color:var(--s4-gold); font-variant-numeric:lining-nums tabular-nums;
+}
+.st span{ margin-top:8px; font-size:13px; line-height:1.35; color:var(--ink2) }
+.st i{ font-style:normal; color:var(--s4-ivory) }
+
+/* waktu Ternate */
+.b-time{
+  grid-column:10 / 13; display:flex; flex-direction:column; justify-content:center;
+  animation-delay:.26s;
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(58,160,216,.16), transparent 60%),
+    linear-gradient(165deg, rgba(255,255,255,.045), rgba(255,255,255,.01) 70%),
+    var(--s4-deep);
+}
+.tm-greet{ margin:0; font-family:var(--s4-serif); font-style:italic; font-size:1.1rem; color:var(--s4-gold-soft) }
+.tm-clock{
+  margin:4px 0 0; display:flex; align-items:baseline; gap:8px;
+  font-family:var(--s4-serif); font-weight:500; font-size:3.1rem; line-height:1;
+  color:var(--s4-ivory); font-variant-numeric:lining-nums tabular-nums;
+}
+.tm-clock small{ font:600 12px/1 Inter, system-ui, sans-serif; letter-spacing:.06em; color:var(--s4-gold) }
+.tm-date{ margin:8px 0 0; font-size:13px; color:var(--ink2) }
+
+/* =========================================================
+   RUMPUN MAPEL
+   ========================================================= */
+#grid.cards{
+  display:block !important; columns:2 440px; column-gap:14px;
+  margin:14px 0 8px !important;
+}
+.rumpun{
+  break-inside:avoid; -webkit-column-break-inside:avoid;
+  display:inline-block; width:100%; margin:0 0 14px;
+  border-radius:22px; padding:18px 18px 16px;
+  background:
+    radial-gradient(110% 70% at 0% 0%, color-mix(in srgb, var(--g) 16%, transparent), transparent 62%),
+    linear-gradient(165deg, rgba(255,255,255,.04), rgba(255,255,255,.008) 70%),
+    var(--s4-deep);
+  border:1px solid color-mix(in srgb, var(--g) 26%, transparent);
+}
+.rumpun-h{
+  display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  padding:2px 4px 14px;
+}
+.rumpun-h h2{
+  margin:0; display:flex; align-items:center; gap:10px;
+  font-family:var(--s4-serif); font-weight:600; font-size:1.42rem; line-height:1.2;
+  color:var(--s4-ivory);
+}
+.rumpun-h h2::before{
+  content:""; width:10px; height:10px; border-radius:50%; flex:none;
+  background:var(--g); box-shadow:0 0 0 4px color-mix(in srgb, var(--g) 22%, transparent);
+}
+.rumpun-h span{ font-size:13px; color:var(--ink3); white-space:nowrap }
+.rumpun-list{ display:grid; gap:8px }
+
+/* kartu di dalam rumpun: baris ringkas */
+.rumpun .card{
+  flex-direction:row !important; align-items:center; gap:14px !important;
+  padding:12px 14px 12px 16px !important; border-radius:14px !important;
+  background:rgba(6,20,26,.42) !important;
+  border:1px solid rgba(243,236,220,.06) !important;
+  box-shadow:none !important;
+}
+.rumpun .card::before{ top:12px; bottom:12px }
+.rumpun .card .tile{ width:42px !important; height:42px !important; flex:none }
+.rumpun .card .tile svg{ width:20px; height:20px }
+.rumpun .card .txt{ flex:1; min-width:0 }
+.rumpun .card h3{ font-size:1.18rem !important; line-height:1.2 }
+.rumpun .card .cap{ margin-top:2px; font-size:12.5px }
+.rumpun .card .chev{ margin:0 !important; position:static !important; flex:none }
+@media (hover:hover) and (pointer:fine){
+  .rumpun .card:hover{ border-color:color-mix(in srgb, var(--g) 55%, transparent) !important; transform:translateX(3px) !important }
+}
+
+/* hiasan lama yang tak dipakai di bento */
+.hero-dots{ display:none !important }
+
+@keyframes s4TileIn{ from{ opacity:0; transform:translateY(14px) scale(.985) } to{ opacity:1; transform:none } }
+
+/* =========================================================
+   RESPONSIF
+   ========================================================= */
+@media (max-width:1180px){
+  .b-find{ grid-column:1 / 7 }
+  .b-stats{ grid-column:7 / 13 }
+  .b-time{ grid-column:1 / 13; flex-direction:row; align-items:baseline; gap:16px; flex-wrap:wrap; padding:16px 24px }
+  .tm-clock{ font-size:2.2rem; margin:0 }
+  .tm-date{ margin:0 }
+}
+@media (max-width:900px){
+  .bento{ grid-template-columns:repeat(6, minmax(0, 1fr)) }
+  .bento .b-hero{ grid-column:1 / -1; grid-row:auto; min-height:0; height:clamp(240px, 52vw, 380px) !important }
+  .b-kepsek{ grid-column:1 / -1; grid-row:auto; min-height:0; order:5 }
+  .b-find{ grid-column:1 / -1; order:2 }
+  .b-stats{ grid-column:1 / -1; order:3 }
+  .b-time{ grid-column:1 / -1; order:4 }
+  /* sambutan: foto bulat di samping, bukan latar */
+  .b-kepsek{ display:grid; grid-template-columns:96px 1fr; gap:0 18px; padding:20px; align-items:start }
+  .b-kepsek{ padding-top:20px }
+  .kp-photo{ position:relative; inset:auto; z-index:0; width:96px; height:120px; border-radius:16px; overflow:hidden;
+             box-shadow:0 0 0 1px rgba(232,184,74,.4) }
+  .kp-photo::after{ display:none }
+  .kp-body{ padding:0 }
+  .kp-quote{ font-size:1.05rem }
+  #grid.cards{ columns:1 }
+}
+@media (max-width:560px){
+  .bento{ gap:10px; margin-top:12px }
+  .b-tile{ border-radius:18px; padding:18px }
+  .bento .b-hero{ border-radius:20px !important }
+  .b-stats{ padding:16px 4px }
+  .st{ padding:0 10px }
+  .st b{ font-size:2.3rem }
+  .st span{ font-size:12px }
+  .b-kepsek{ grid-template-columns:72px 1fr; gap:0 14px }
+  .kp-photo{ width:72px; height:90px; border-radius:12px }
+  .kp-quote{ grid-column:1 / -1 }
+  .rumpun{ padding:14px 12px 12px; border-radius:18px }
+  .rumpun-h h2{ font-size:1.26rem }
+}
+@media (prefers-reduced-motion:reduce){
+  .b-tile{ animation:none }
+}

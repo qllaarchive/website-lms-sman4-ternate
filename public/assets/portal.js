@@ -761,6 +761,46 @@
       '<span class="chev" aria-hidden="true">' + I(ext ? "external-link" : "chevron-right") + '</span>' +
     '</a>';
   }
+  /* Rumpun mapel untuk beranda bento SMAN 4. Urutan uji penting:
+     "bahasa-indonesia-labmaya" harus jatuh ke Bahasa, "matematika-labmaya" ke MIPA. */
+  var RUMPUN = [
+    { k:"mipa",     n:"Matematika & Sains",          c:"#3aa0d8", re:/matemat|fisika|kimia|biolog|\bipa\b/ },
+    { k:"ips",      n:"Ilmu Sosial",                 c:"#e8b84a", re:/sejarah|geograf|ekonomi|sosiolog|\bips\b/ },
+    { k:"bahasa",   n:"Bahasa",                      c:"#62b74a", re:/bahasa|inggris|english|arab|jepang|jerman|mandarin|sastra/ },
+    { k:"karakter", n:"Agama, Pancasila & Jasmani",  c:"#e59a8c", re:/agama|pendais|\bpai\b|pkn|ppkn|pancasila|pjok|jasmani|olahraga|budi pekerti/ },
+    { k:"tekno",    n:"Teknologi, Seni & Prakarya",  c:"#9aa6ff", re:/informatika|\btik\b|\bkka\b|koding|kecerdasan|prakarya|kewirausahaan|seni/ },
+    { k:"lain",     n:"Lainnya",                     c:"#a9bab6", re:null }
+  ];
+  function rumpunOf(e){
+    var s = (String(e.id || "") + " " + String(e.name || "") + " " + String(e.short || "")).toLowerCase().replace(/[-_]/g, " ");
+    for(var i = 0; i < RUMPUN.length - 1; i++) if(RUMPUN[i].re.test(s)) return RUMPUN[i].k;
+    return "lain";
+  }
+  function isLab(e){ return /lab\s*maya|labmaya/i.test(String(e.id || "") + " " + String(e.name || "")); }
+  function rumpunHTML(list){
+    var b = {}, idx = 0;
+    RUMPUN.forEach(function(g){ b[g.k] = []; });
+    list.forEach(function(e){ b[rumpunOf(e)].push(e); });
+    return RUMPUN.map(function(g){
+      var items = b[g.k];
+      if(!items.length) return "";
+      return '<section class="rumpun" data-r="' + g.k + '" data-n="' + items.length + '" style="--g:' + g.c + '" aria-label="' + esc(g.n) + '">' +
+        '<header class="rumpun-h"><h2>' + esc(g.n) + '</h2><span>' + items.length + ' mapel</span></header>' +
+        '<div class="rumpun-list">' + items.map(function(e){ return card(e, idx++); }).join("") + '</div>' +
+      '</section>';
+    }).join("");
+  }
+  function syncStats(){
+    var all = entries().filter(function(e){ return e.pub !== false; });
+    var labs = all.filter(isLab).length;
+    var groups = {};
+    all.forEach(function(e){ groups[rumpunOf(e)] = 1; });
+    var set = function(id, v){ var el = $(id); if(el) el.textContent = v; };
+    set("st-mapel", all.length - labs);
+    set("st-lab", labs);
+    set("st-rumpun", Object.keys(groups).length);
+    set("st-kelas", klass);
+  }
   function esc(s){
     return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -794,9 +834,10 @@
       if(e.pub === false) return false;
       return !term || (String(e.name || "") + " " + String(e.short || "") + " " + String(e.id || "")).toLowerCase().indexOf(term) >= 0;
     });
+    syncStats();
     if(grid){
       grid.classList.remove("is-swap");
-      grid.innerHTML = list.map(card).join("");
+      grid.innerHTML = rumpunHTML(list);
       if(!first) grid.classList.remove("is-first");
       first = false;
       if(animate && !reduce){
