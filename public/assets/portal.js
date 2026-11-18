@@ -646,7 +646,7 @@
   if(mqDark && mqDark.addEventListener) mqDark.addEventListener("change", syncThemeUI);
   try{
     var t0 = localStorage.getItem(THEME_KEY);
-    if(t0 === "light" || t0 === "dark" || t0 === "auto") document.documentElement.setAttribute("data-theme", t0);
+    void t0; document.documentElement.setAttribute("data-theme", "dark"); /* tema SMAN 4 selalu gelap */
   }catch(e){}
   syncThemeUI();
 

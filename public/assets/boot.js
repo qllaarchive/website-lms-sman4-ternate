@@ -4,7 +4,8 @@
   /* — tema terang/gelap/ikuti perangkat — */
   var t;
   try{ t = localStorage.getItem("lms_theme"); }catch(e){}
-  if(t !== "light" && t !== "dark") t = "auto";
+  /* Tema "Malam Gamalama": portal selalu gelap. */
+  t = "dark";
   document.documentElement.setAttribute("data-theme", t);
 
   /* — sembunyikan halaman pembuka pada kunjungan berikutnya dalam sesi yang sama — */
