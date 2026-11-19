@@ -9,6 +9,12 @@ const STEPS = [
     hapusFile: [/lms-bahasa-inggris-x-2026-2027\.netlify\.app/],
     jadi: { id:"bahasa-inggris-labmaya", name:"Bahasa Inggris", short:"B. Inggris", icon:"globe", color:"#0b7285", file:"mapel/bahasa-inggris.html" },
   },
+  {
+    key: "matematika",
+    hapus: ["matematika"],
+    hapusFile: [/lms-matematika-x-2026\.netlify\.app/],
+    jadi: { id:"matematika-labmaya", name:"Matematika", short:"Matematika", file:"mapel/matematika.html" },
+  },
 ];
 (async () => {
   if (!process.env.DATABASE_URL) { console.log("lms-versi-baru: DATABASE_URL kosong, dilewati."); return; }
