@@ -35,7 +35,6 @@
   var enterBtn = document.getElementById("intro-enter");
   var tall = (window.innerWidth || 1) / (window.innerHeight || 1) < 1;
   var base = "assets/pembuka-" + (tall ? "tall" : "wide");
-  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var v = document.createElement("video");
   v.className = "s4-film";
@@ -56,7 +55,7 @@
   var done = false;
   function finish(stillFrame){
     if(done) return; done = true;
-    if(stillFrame){ v.removeAttribute("src"); v.poster = base + "-akhir.webp"; try{ v.load(); }catch(e){} }
+    if(stillFrame){ v.removeAttribute("src"); v.poster = base + "-akhir.webp"; try{ v.load(); }catch(e){} intro.classList.add("film-still"); }
     intro.classList.add("film-done");
     orbit();
     skip.hidden = true;
@@ -80,7 +79,7 @@
     }
     place(); window.addEventListener("resize", place);
   }
-  if(reduce){ finish(true); return; }
+  /* Diputar juga saat "kurangi animasi" aktif: pemilik situs ingin efek zoom selalu tampil; tombol Lewati tetap ada. */
 
   v.src = base + ".mp4";
   v.addEventListener("ended", function(){ finish(false); });

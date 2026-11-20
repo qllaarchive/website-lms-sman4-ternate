@@ -22,6 +22,9 @@
 .intro.film-done .intro-cta{ animation:s4CtaIn .8s cubic-bezier(.2,.7,.2,1) both !important }
 .intro.film-done .s4-region{ animation:s4CtaIn .8s ease .25s both !important }
 @keyframes s4CtaIn{ from{ opacity:0; transform:translateY(12px) } to{ opacity:1; transform:none } }
+/* video gagal diputar (autoplay diblokir / jaringan putus): bingkai akhir tetap tampil dengan gerak zoom */
+.intro.film-still .s4-film{ animation:s4Zoom 6s cubic-bezier(.2,.7,.2,1) both }
+@keyframes s4Zoom{ from{ transform:scale(1.35); filter:brightness(.55) } to{ transform:none; filter:none } }
 .s4-orbit{ position:absolute; z-index:1; pointer-events:none; opacity:0; animation:s4CtaIn .8s ease .1s forwards }
 .s4-orbit svg{ width:100%; height:100%; overflow:visible }
 .s4-orbit circle{ fill:none; stroke:var(--s4-gold); stroke-linecap:round; transform-origin:100px 100px }
