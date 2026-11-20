@@ -29,7 +29,7 @@
 .s4-orbit svg{ width:100%; height:100%; overflow:visible }
 .s4-orbit circle{ fill:none; stroke:var(--s4-gold); stroke-linecap:round; transform-origin:100px 100px }
 .s4-orbit .r3{ stroke-width:3.2; stroke-dasharray:80 473; filter:drop-shadow(0 0 6px rgba(232,184,74,.85)); animation:s4Orbit 4.5s linear infinite }
-.s4-orbit .r4{ stroke-width:1.6; stroke-dasharray:24 598; opacity:.7; animation:s4Orbit 7s linear infinite reverse }
+.s4-orbit .r4{ stroke-width:1.5; stroke-dasharray:2 9; opacity:.9; animation:s4Orbit 12s linear infinite reverse }
 @keyframes s4Orbit{ to{ transform:rotate(360deg) } }
 #portal-title:focus{ outline:none !important }
 .s4-skip{
