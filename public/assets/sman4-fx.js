@@ -58,8 +58,27 @@
     if(done) return; done = true;
     if(stillFrame){ v.removeAttribute("src"); v.poster = base + "-akhir.webp"; try{ v.load(); }catch(e){} }
     intro.classList.add("film-done");
+    orbit();
     skip.hidden = true;
     if(enterBtn) setTimeout(function(){ try{ enterBtn.focus({ preventScroll:true }); }catch(e){} }, 350);
+  }
+  /* Busur emas yang terus mengitari lambang di bingkai akhir video.
+     Posisi lambang (piksel video) diukur dari pembuka-*-akhir.webp: pusat & lebar lingkaran 200 satuan SVG. */
+  var EMB = tall ? { w:720, h:1280, x:359, y:562.5, d:242 } : { w:1280, h:720, x:639.5, y:301.5, d:201 };
+  function orbit(){
+    if(intro.querySelector(".s4-orbit")) return;
+    var o = document.createElement("div");
+    o.className = "s4-orbit"; o.setAttribute("aria-hidden", "true");
+    o.innerHTML = '<svg viewBox="0 0 200 200"><circle class="r3" cx="100" cy="100" r="88"/><circle class="r4" cx="100" cy="100" r="99"/></svg>';
+    intro.insertBefore(o, v.nextSibling);
+    function place(){ /* sama dengan object-fit:cover */
+      var W = intro.clientWidth, H = intro.clientHeight, k = Math.max(W / EMB.w, H / EMB.h);
+      var ox = (W - EMB.w * k) / 2, oy = (H - EMB.h * k) / 2, d = EMB.d * k;
+      o.style.width = o.style.height = d + "px";
+      o.style.left = (ox + EMB.x * k - d / 2) + "px";
+      o.style.top = (oy + EMB.y * k - d / 2) + "px";
+    }
+    place(); window.addEventListener("resize", place);
   }
   if(reduce){ finish(true); return; }
 
