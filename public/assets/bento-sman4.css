@@ -1,49 +1,32 @@
-/* One Site SMANFOURTTE — beranda bento + video pembuka.
+/* One Site SMANFOURTTE — beranda bento + animasi pembuka.
    Dimuat setelah theme-sman4.css. Token warna diambil dari tema Malam Gamalama. */
 
 /* =========================================================
-   VIDEO PEMBUKA
+   ANIMASI PEMBUKA (tanpa video)
+   1) 0–3,4 dtk: kamera mendekat ke papan nama sekolah lalu mundur & meredup
+   2) 3,5 dtk: lingkaran emas tergambar, logo & judul muncul
+   3) seterusnya: busur emas dan cincin titik berputar terus mengelilingi logo
    ========================================================= */
-.s4-film{
-  position:absolute; inset:0; width:100%; height:100%;
-  object-fit:cover; background:var(--s4-night); z-index:0;
+.intro-bg{ --s4-o:68% 48%; transform-origin:var(--s4-o); animation:s4Push 3.4s cubic-bezier(.55,0,.2,1) both }
+@media (max-width:700px){ .intro-bg{ --s4-o:75% 42% } }
+@keyframes s4Push{
+  0%{ transform:scale(2.1); filter:brightness(2.3) saturate(1.7) }
+  35%{ transform:scale(2.1); filter:brightness(2.3) saturate(1.7) }
+  100%{ transform:none; filter:none }
 }
-.intro.has-film .intro-bg,
-.intro.has-film .intro-shade{ display:none !important }
-.intro.has-film .intro-inner{ position:static !important }
-.intro.has-film .intro-main > *:not(.intro-cta){ display:none !important }
-.intro.has-film .intro-main{
-  position:absolute !important; left:0; right:0; z-index:2;
-  bottom:max(9vh, calc(env(safe-area-inset-bottom) + 64px));
-  margin:0 !important;
-}
-.intro.has-film:not(.film-done) .intro-cta,
-.intro.has-film:not(.film-done) .s4-region{ visibility:hidden !important; opacity:0 !important; animation:none !important }
-.intro.film-done .intro-cta{ animation:s4CtaIn .8s cubic-bezier(.2,.7,.2,1) both !important }
-.intro.film-done .s4-region{ animation:s4CtaIn .8s ease .25s both !important }
-@keyframes s4CtaIn{ from{ opacity:0; transform:translateY(12px) } to{ opacity:1; transform:none } }
-/* video gagal diputar (autoplay diblokir / jaringan putus): bingkai akhir tetap tampil dengan gerak zoom */
-.intro.film-still .s4-film{ animation:s4Zoom 6s cubic-bezier(.2,.7,.2,1) both }
-@keyframes s4Zoom{ from{ transform:scale(1.35); filter:brightness(.55) } to{ transform:none; filter:none } }
-.s4-orbit{ position:absolute; z-index:1; pointer-events:none; opacity:0; animation:s4CtaIn .8s ease .1s forwards }
-.s4-orbit svg{ width:100%; height:100%; overflow:visible }
-.s4-orbit circle{ fill:none; stroke:var(--s4-gold); stroke-linecap:round; transform-origin:100px 100px }
-.s4-orbit .r3{ stroke-width:3.2; stroke-dasharray:80 473; filter:drop-shadow(0 0 6px rgba(232,184,74,.85)); animation:s4Orbit 4.5s linear infinite }
-.s4-orbit .r4{ stroke-width:1.5; stroke-dasharray:2 9; opacity:.9; animation:s4Orbit 12s linear infinite reverse }
-@keyframes s4Orbit{ to{ transform:rotate(360deg) } }
+.intro-shade{ animation:s4Fade 1.6s ease 1.8s both }
+.intro:not(.is-leaving) .s4-emblem .r1{ animation-delay:3.5s !important }
+.intro:not(.is-leaving) .s4-emblem .r2{ animation-duration:20s, 1s !important; animation-delay:0s, 3.9s !important }
+.intro:not(.is-leaving) .s4-emblem .tick{ animation-delay:4.5s !important }
+.intro:not(.is-leaving) .s4-emblem img{ animation-delay:3.7s !important }
+.intro:not(.is-leaving) .intro-title{ animation-delay:3.9s !important }
+.intro:not(.is-leaving) .intro-school{ animation-delay:4.3s !important }
+.intro:not(.is-leaving) .intro-cta{ animation-delay:4.5s !important }
+.intro:not(.is-leaving) .s4-region{ animation-delay:4.9s !important }
+.s4-emblem .r3{ fill:none; stroke:var(--s4-gold); stroke-width:3.2; stroke-linecap:round; stroke-dasharray:80 473;
+  transform-origin:100px 100px; opacity:0; filter:drop-shadow(0 0 6px rgba(232,184,74,.85));
+  animation:s4Fade .6s ease 5s forwards, s4Spin 4.5s linear 5s infinite }
 #portal-title:focus{ outline:none !important }
-.s4-skip{
-  position:absolute; z-index:3;
-  top:max(18px, env(safe-area-inset-top)); right:max(18px, env(safe-area-inset-right));
-  font:500 14px/1 Inter, system-ui, sans-serif; letter-spacing:.01em;
-  color:var(--s4-ivory); background:rgba(6,20,26,.42);
-  border:1px solid rgba(243,236,220,.28); border-radius:999px;
-  padding:10px 18px; cursor:pointer;
-  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-  transition:border-color .25s, background .25s;
-}
-.s4-skip:hover{ border-color:var(--s4-gold); background:rgba(6,20,26,.7) }
-.s4-skip[hidden]{ display:none }
 
 /* =========================================================
    BENTO
