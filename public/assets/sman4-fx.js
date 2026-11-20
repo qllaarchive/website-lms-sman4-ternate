@@ -42,6 +42,7 @@
   v.muted = true; v.defaultMuted = true; v.playsInline = true;
   v.setAttribute("muted", ""); v.setAttribute("playsinline", ""); v.setAttribute("aria-hidden", "true");
   v.preload = "auto";
+  v.poster = base + "-awal.webp"; /* bingkai pertama tampil selama video dimuat di jaringan lambat */
   var shade = intro.querySelector(".intro-shade");
   intro.insertBefore(v, shade || intro.firstChild);
   intro.classList.add("has-film");
@@ -69,8 +70,8 @@
   v.addEventListener("playing", function(){ started = true; intro.classList.add("film-on"); });
   var p = v.play();
   if(p && p.catch) p.catch(function(){ finish(true); });
-  /* jaringan lambat: jangan biarkan layar hitam terlalu lama */
-  setTimeout(function(){ if(!started) finish(true); }, 4000);
+  /* jaringan lambat: tunggu lebih lama (poster bingkai pertama sudah tampil), baru menyerah */
+  setTimeout(function(){ if(!started) finish(true); }, 15000);
   /* hemat daya setelah pembuka ditutup */
   if(enterBtn) enterBtn.addEventListener("click", function(){ setTimeout(function(){ try{ v.pause(); }catch(e){} }, 700); });
 })();
