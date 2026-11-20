@@ -228,7 +228,7 @@ function resolveArg(a){
   return fromCwd; // biarkan error ENOENT jelas di readFileSync
 }
 const files = args.length ? args.map(resolveArg)
-  : fs.readdirSync(path.join(ROOT, "data")).filter(x => x.endsWith(".js") && x !== "registry.js")
+  : fs.readdirSync(path.join(ROOT, "data")).filter(x => x.endsWith(".js") && !x.endsWith(".min.js") && x !== "registry.js")
       .map(x => path.join(ROOT, "data", x));
 
 if(!files.length) E("(files)", "tidak ada file data untuk divalidasi");
