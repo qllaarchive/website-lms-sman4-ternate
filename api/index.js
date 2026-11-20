@@ -27,12 +27,13 @@ function loadArgon2() {
 }
 
 const MAX_IMAGE = 3 * 1024 * 1024; /* batas Vercel 4,5 MB per permintaan */
-const IMG_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const IMG_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 /* ---------------- utilitas ---------------- */
 function send(res, status, body) { return res.status(status).json(body); }
 
 function fail(res, e) {
+  if (e instanceof URIError) return send(res, 400, { error: "bad_path" });
   console.error("[api]", e);
   return send(res, 500, { error: "server_error" }); /* detail error hanya di log */
 }
@@ -56,11 +57,11 @@ function jsonBody(req) {
 async function sessionUser(req) {
   const token = getCookie(req, COOKIE);
   if (!token || !process.env.JWT_SECRET) return null;
-  try {
-    const payload = verifySession(token);
-    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
-    return user ? { user, token } : null;
-  } catch { return null; }
+  let payload;
+  try { payload = verifySession(token); } catch { return null; }
+  /* galat database dibiarkan naik → 500, bukan dianggap "belum login" */
+  const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+  return user ? { user, token } : null;
 }
 
 /* Cek login admin; untuk metode yang mengubah data juga cek CSRF. */
@@ -154,7 +155,7 @@ async function sliderImage(req, res, id) {
   if (!s || (!s.pub && !(await sessionUser(req)))) return send(res, 404, { error: "not_found" });
   const m = /^data:([^;,]+);base64,(.*)$/s.exec(s.imageUrl || "");
   if (!m) {
-    if (/^(https:\/\/|\/)/.test(s.imageUrl || "")) { res.statusCode = 302; res.setHeader("Location", s.imageUrl); return res.end(); }
+    if (/^(https:\/\/|\/(?!\/))/.test(s.imageUrl || "")) { res.statusCode = 302; res.setHeader("Location", s.imageUrl); return res.end(); }
     return send(res, 404, { error: "not_found" });
   }
   const buf = Buffer.from(m[2], "base64");
@@ -162,7 +163,7 @@ async function sliderImage(req, res, id) {
   res.setHeader("Content-Type", IMG_TYPES.has(m[1]) ? m[1] : "application/octet-stream");
   res.setHeader("Content-Length", String(buf.length));
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("Cache-Control", s.pub ? "public, max-age=604800, s-maxage=31536000, stale-while-revalidate=86400, immutable" : "private, no-store");
+  res.setHeader("Cache-Control", s.pub ? "public, max-age=604800, s-maxage=300, stale-while-revalidate=86400" : "private, no-store");
   return res.end(buf);
 }
 
@@ -180,7 +181,7 @@ async function sliderWrite(req, res, id) {
     /* JPG/PNG/GIF diubah ke WebP lebih dulu agar data di database ringan. */
     const img = await optimizeImage(file.buffer, file.mime);
     imageUrl = `data:${img.mime};base64,${img.buffer.toString("base64")}`;
-  } else if (typeof fields.imageUrl === "string" && /^(https:\/\/|\/)/.test(fields.imageUrl)) {
+  } else if (typeof fields.imageUrl === "string" && /^(https:\/\/|\/(?!\/))/.test(fields.imageUrl)) {
     imageUrl = fields.imageUrl.slice(0, 1000);
   }
 
@@ -263,10 +264,25 @@ const LoginSchema = z.object({ username: z.string().min(1).max(64), password: z.
    tidak membocorkan akun mana yang terdaftar. */
 const DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$torDi32IkVn29EA/mlUxTA$595oL4GQbwVyHaRmGbVBZYecIN1ZkQKKKu8MCPywPuQ";
 
+/* shortcut: penghitung di memori per instance serverless, bukan global; pindah ke Redis/tabel bila diserang serius */
+const LOGIN_FAILS = new Map();
+function loginBlocked(ip) {
+  const e = LOGIN_FAILS.get(ip);
+  if (!e || Date.now() - e.t > 15 * 60 * 1000) { LOGIN_FAILS.delete(ip); return false; }
+  return e.n >= 10;
+}
+function loginFailed(ip) {
+  const e = LOGIN_FAILS.get(ip);
+  if (!e || Date.now() - e.t > 15 * 60 * 1000) LOGIN_FAILS.set(ip, { n: 1, t: Date.now() });
+  else e.n++;
+}
+
 async function authRoutes(req, res, p) {
   if (p === "/api/auth/login") {
     if (req.method !== "POST") return send(res, 405, { error: "method_not_allowed" });
     if (!process.env.JWT_SECRET) return send(res, 500, { error: "server_not_configured" });
+    const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "?";
+    if (loginBlocked(ip)) return send(res, 429, { error: "too_many_attempts" });
     const parsed = LoginSchema.safeParse(jsonBody(req));
     if (!parsed.success) return send(res, 400, { error: "invalid_input" });
     /* cocokkan persis dulu, lalu tanpa peduli huruf besar/kecil */
@@ -275,7 +291,8 @@ async function authRoutes(req, res, p) {
       (await prisma.user.findFirst({ where: { username: { equals: name, mode: "insensitive" } } }));
     const argon2 = await loadArgon2();
     const ok = await argon2.verify(user ? user.passwordHash : DUMMY_HASH, parsed.data.password).catch(() => false);
-    if (!ok) return send(res, 401, { error: "invalid_credentials" });
+    if (!ok) { loginFailed(ip); return send(res, 401, { error: "invalid_credentials" }); }
+    LOGIN_FAILS.delete(ip);
     const token = signSession(user.id);
     res.setHeader("Set-Cookie", sessionCookieHeader(req, token));
     return send(res, 200, { user: { id: user.id, username: user.username }, csrf: csrfFor("user:" + user.id) });
