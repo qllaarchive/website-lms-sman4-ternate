@@ -961,7 +961,7 @@
     if($("k-count")) $("k-count").textContent = entries.length + " LMS · " + shown + " tampil" + (off ? " · " + off + " arsip" : "");
     if(kList) kList.innerHTML = entries.map(function(e, i){
       return '<div class="k-row" data-id="' + esc(e.id) + '" data-i="' + i + '" style="--i:' + i + '">' +
-        '<span class="k-mark" style="color:' + esc(e.color || "#0d9488") + '">' + I(e.icon || "book") + "</span>" +
+        '<span class="k-mark" style="--c:' + esc(e.color || "#0d9488") + '">' + I(e.icon || "book") + "</span>" +
         '<span class="k-info"><b>' + esc(e.name || "Tanpa nama") + "</b>" +
         "<small>" + esc(e.file || "—") + (e.teacher ? " · " + esc(e.teacher) : "") + "</small></span>" +
         (e.pub === false ? '<span class="k-off" title="Tidak tampil di daftar siswa">arsip — tak tampil</span>' : "") +

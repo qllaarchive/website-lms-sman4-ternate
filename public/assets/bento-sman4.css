@@ -288,3 +288,56 @@ body{ background-image:none !important }
     radial-gradient(75% 70% at 50% 45%, rgba(7,24,32,0) 30%, rgba(7,24,32,.72) 100%),
     linear-gradient(180deg, rgba(7,24,32,0) 55%, rgba(7,24,32,.85) 100%) !important;
 }
+
+/* =========================================================
+   GUI: lebih rapi, lebih mudah dibaca
+   ========================================================= */
+/* ikon mapel: warna asli diterangkan agar tetap kontras di latar gelap (mis. KKA biru tua) */
+.cards .card .tile, .rumpun .card .tile{
+  background:color-mix(in srgb, var(--c) 22%, var(--s4-deep)) !important;
+  color:color-mix(in srgb, var(--c) 45%, #ffffff) !important;
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent) !important;
+}
+.rumpun .card .tile{ width:46px !important; height:46px !important }
+.rumpun .card .tile svg{ width:22px; height:22px }
+.rumpun .card::before{ display:none }
+.rumpun .card h3{ font-size:1.24rem !important }
+.rumpun .card .cap{ font-size:13.5px !important; color:var(--ink2) !important }
+.rumpun-h span{ font-size:14px; color:var(--ink2) }
+.rumpun-list{ gap:6px }
+.st span{ font-size:14px; color:var(--ink2) }
+.tm-date{ font-size:14px }
+.kp-role{ font-size:14px }
+.search input{ font-size:16px !important }
+footer{ font-size:15px }
+
+/* ---------- jendela login ---------- */
+.login-pic{ filter:saturate(.95) brightness(.85) !important }
+.login-pic::after{ background:linear-gradient(90deg, var(--s4-deep) 0%, rgba(14,37,48,0) 35%) !important }
+.login-sub{ font-size:15px !important; line-height:1.55 !important }
+.f-field input{ height:50px !important; font-size:16px !important; border-radius:14px !important;
+  border-color:rgba(255,255,255,.14) !important; background:rgba(255,255,255,.05) !important }
+.f-field input::placeholder{ color:var(--ink3) !important }
+.login-side .btn.primary, .login-side button[type="submit"]{ height:50px !important; font-size:16px !important; border-radius:14px !important }
+.login-note{ font-size:14px !important }
+
+/* ---------- panel kelola admin: satu lapis kartu, bukan kartu di dalam kartu ---------- */
+.k-section, .k-form-card{ background:var(--s4-deep) !important; border:1px solid var(--s4-line) !important }
+.k-section-head h3{ font-size:1.3rem !important }
+.k-count{ font-size:13.5px !important; color:var(--ink2) !important }
+.k-list{ gap:0 !important }
+.k-row{ border:0 !important; border-radius:0 !important; background:transparent !important;
+  border-bottom:1px solid var(--s4-line) !important; padding:14px 18px !important }
+.k-row:last-child{ border-bottom:0 !important }
+.k-row:hover{ background:rgba(255,255,255,.035) !important }
+.k-mark{ width:42px !important; height:42px !important; border-radius:50% !important;
+  color:color-mix(in srgb, var(--c, #0d9488) 45%, #ffffff) !important;
+  background:color-mix(in srgb, var(--c, #0d9488) 22%, var(--s4-deep)) !important;
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--c, #0d9488) 45%, transparent) }
+.k-info b{ font-size:16px !important }
+.k-info small{ font-size:13px !important; color:var(--ink3) !important }
+.k-actions{ gap:8px !important }
+.k-actions .btn{ height:36px !important; padding:0 14px !important; font-size:14px !important }
+.manage-label{ font-size:14px !important }
+.page-switch-item{ font-size:1.35rem !important }
+@media (max-width:640px){ .page-switch-item{ font-size:1.02rem !important } .k-row{ padding:12px 14px !important } }
