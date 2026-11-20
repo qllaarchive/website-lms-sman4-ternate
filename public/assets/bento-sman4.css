@@ -225,3 +225,65 @@
 @media (prefers-reduced-motion:reduce){
   .b-tile{ animation:none }
 }
+
+/* =========================================================
+   PENYEGARAN WARNA — tetap gelap, tapi bersih:
+   permukaan padat tanpa gradasi berlapis, tabir foto hanya di tempat teks duduk.
+   ========================================================= */
+:root, :root[data-theme]{
+  --s4-night:#071820; --s4-deep:#0e2530; --s4-raise:#15333f;
+  --s4-gold:#f0c04f; --s4-gold-soft:#f7d98f; --s4-ivory:#f6f1e4;
+  --ink2:#b9c8c5; --ink3:#8aa09c;
+  --s4-line:rgba(255,255,255,.08);
+}
+html, body{ background:var(--s4-night) !important }
+body{ background-image:none !important }
+
+/* petak bento & rumpun: satu warna permukaan, garis tipis, bayangan lembut */
+.b-tile, .b-time, .rumpun{
+  background:var(--s4-deep) !important;
+  border:1px solid var(--s4-line) !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 20px 40px -30px rgba(0,0,0,.9);
+}
+.rumpun .card{ background:rgba(255,255,255,.035) !important; border-color:transparent !important }
+@media (hover:hover) and (pointer:fine){
+  .rumpun .card:hover{ background:rgba(255,255,255,.06) !important }
+}
+.st + .st{ border-left-color:var(--s4-line) }
+.cards .card{ background:var(--s4-deep) !important }
+
+/* foto kegiatan: tabir hanya atas (identitas) & bawah (judul) — tengah foto tetap cerah */
+.slider{ box-shadow:0 0 0 1px var(--s4-line), 0 30px 60px -36px rgba(0,0,0,.9) !important }
+.slider-shade{
+  background:
+    linear-gradient(180deg, rgba(4,14,19,.55) 0%, rgba(4,14,19,0) 26%),
+    linear-gradient(0deg, rgba(4,14,19,.88) 0%, rgba(4,14,19,.45) 26%, rgba(4,14,19,0) 50%) !important;
+}
+.b-hero #portal-title{
+  top:auto; left:32px; right:32px; bottom:30px; transform:none;
+  text-align:left; white-space:normal; text-wrap:balance;
+  font-size:clamp(30px, 3.6vw, 46px) !important; letter-spacing:.005em !important;
+  text-shadow:0 2px 18px rgba(0,0,0,.45);
+  animation:s4Rise .7s cubic-bezier(.2,.8,.2,1) .1s both !important;
+}
+.b-hero .slider-dots{ right:28px; left:auto; bottom:22px }
+@media (max-width:640px){
+  .b-hero #portal-title{ left:18px; right:18px; bottom:20px; font-size:clamp(22px, 7vw, 30px) !important }
+}
+
+/* sambutan kepala sekolah: foto bersih di atas, teks di bawah foto (bukan di atas wajah) */
+@media (min-width:901px){
+  .kp-photo{ height:236px }
+  .kp-photo::after{ background:linear-gradient(180deg, rgba(14,37,48,0) 60%, var(--s4-deep) 100%) }
+  .b-kepsek{ padding-top:232px !important; justify-content:flex-start }
+  .kp-body{ margin-top:0 }
+}
+.kp-body .b-title{ color:var(--s4-gold) }
+
+/* halaman pembuka: foto gedung lebih jernih, gelap hanya di tepi & bawah */
+.intro-bg img{ filter:saturate(.9) brightness(.62) contrast(1.04) !important }
+.intro-shade{
+  background:
+    radial-gradient(75% 70% at 50% 45%, rgba(7,24,32,0) 30%, rgba(7,24,32,.72) 100%),
+    linear-gradient(180deg, rgba(7,24,32,0) 55%, rgba(7,24,32,.85) 100%) !important;
+}
