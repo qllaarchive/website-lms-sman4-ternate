@@ -57,7 +57,7 @@
     if(done) return; done = true;
     if(stillFrame){ v.removeAttribute("src"); v.poster = base + "-akhir.webp"; try{ v.load(); }catch(e){} intro.classList.add("film-still"); }
     intro.classList.add("film-done");
-    orbit();
+    if(stillFrame) orbit(); /* video berjalan: logo diputar ulang dari video itu sendiri (lihat "ended") */
     skip.hidden = true;
     if(enterBtn) setTimeout(function(){ try{ enterBtn.focus({ preventScroll:true }); }catch(e){} }, 350);
   }
@@ -82,7 +82,13 @@
   /* Diputar juga saat "kurangi animasi" aktif: pemilik situs ingin efek zoom selalu tampil; tombol Lewati tetap ada. */
 
   v.src = base + ".mp4";
-  v.addEventListener("ended", function(){ finish(false); });
+  /* Setelah selesai, bagian logo (detik 5,2 → akhir: lingkaran emas tergambar & logo muncul) diputar ulang terus. */
+  var LOOP_FROM = 5.2;
+  v.addEventListener("ended", function(){
+    finish(false);
+    if(intro.classList.contains("is-leaving")) return;
+    try{ v.currentTime = LOOP_FROM; var q = v.play(); if(q && q.catch) q.catch(function(){}); }catch(e){}
+  });
   v.addEventListener("error", function(){ finish(true); });
   var started = false;
   v.addEventListener("playing", function(){ started = true; intro.classList.add("film-on"); });
